@@ -14,6 +14,123 @@
 import type { Tables } from './db/database.types';
 
 // =============================================================================
+// HTTP Status Codes
+// =============================================================================
+
+/**
+ * HTTP status codes used in API responses
+ * Provides type-safe status code constants
+ */
+export enum HttpStatus {
+  OK = 200,
+  CREATED = 201,
+  NO_CONTENT = 204,
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  CONFLICT = 409,
+  UNPROCESSABLE_ENTITY = 422,
+  TOO_MANY_REQUESTS = 429,
+  INTERNAL_SERVER_ERROR = 500,
+}
+
+// =============================================================================
+// Error Codes
+// =============================================================================
+
+/**
+ * Standard API error codes
+ * Used in error responses for consistent error handling
+ */
+export enum ErrorCode {
+  // Authentication & Authorization
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  FORBIDDEN = 'FORBIDDEN',
+  
+  // Validation
+  BAD_REQUEST = 'BAD_REQUEST',
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  
+  // Resources
+  NOT_FOUND = 'NOT_FOUND',
+  PROFILE_NOT_FOUND = 'PROFILE_NOT_FOUND',
+  DECK_NOT_FOUND = 'DECK_NOT_FOUND',
+  CARD_NOT_FOUND = 'CARD_NOT_FOUND',
+  
+  // Business Logic
+  CONFLICT = 'CONFLICT',
+  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
+  
+  // Server
+  INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
+  DATABASE_ERROR = 'DATABASE_ERROR',
+  
+  // Rate Limiting
+  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
+}
+
+// =============================================================================
+// Error Response Types
+// =============================================================================
+
+/**
+ * Single validation error (used in ValidationErrorResponse)
+ */
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+/**
+ * Standard error response structure
+ * Used for all error responses (400, 401, 403, 404, 500, etc.)
+ */
+export interface ErrorResponse {
+  error: {
+    code: string;
+    message: string;
+    details?: string;
+  }
+}
+
+/**
+ * Validation error response with field-level errors (400 Bad Request)
+ * Used when request validation fails (Zod validation errors)
+ */
+export interface ValidationErrorResponse {
+  error: {
+    code: 'VALIDATION_ERROR';
+    message: string;
+    errors: ValidationError[];
+  }
+}
+
+/**
+ * Conflict error response (409 Conflict)
+ * Used when operation conflicts with current resource state
+ */
+export interface ConflictErrorResponse {
+  error: {
+    code: 'CONFLICT';
+    message: string;
+    details?: string;
+  }
+}
+
+/**
+ * Unprocessable entity error response (422 Unprocessable Entity)
+ * Used when request is well-formed but semantically incorrect
+ */
+export interface UnprocessableErrorResponse {
+  error: {
+    code: 'UNPROCESSABLE_ENTITY';
+    message: string;
+    details?: string;
+  }
+}
+
+// =============================================================================
 // Shared Types
 // =============================================================================
 
@@ -298,4 +415,18 @@ export type DbDeck = Tables<'decks'>;
 export type DbCard = Tables<'cards'>;
 export type DbReview = Tables<'reviews'>;
 export type DbAILog = Tables<'ai_generation_logs'>;
+
+// =============================================================================
+// Internal Service Types (not exposed in API)
+// =============================================================================
+
+/**
+ * Internal type for profile update operations (snake_case for DB)
+ * Used in ProfileService.updateProfile() to prepare data for database update
+ */
+export interface UpdateProfileData {
+  privacy_consent?: boolean;
+  deleted_at?: string | null;
+  updated_at?: string; // Automatically set by trigger, but included for completeness
+}
 
