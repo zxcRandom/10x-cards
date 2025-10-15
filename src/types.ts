@@ -289,24 +289,6 @@ export type CardDeletedDTO = DeletedDTO;
 // =============================================================================
 
 /**
- * Review DTO - Single review representation
- * Based on Tables<'reviews'> with camelCase field names
- */
-export interface ReviewDTO {
-  id: string;
-  cardId: string;
-  userId: string;
-  grade: number;
-  reviewDate: string;
-}
-
-/**
- * Reviews List DTO - GET /api/v1/reviews
- * Paginated list of reviews for the authenticated user
- */
-export type ReviewsListDTO = PaginatedListDTO<ReviewDTO>;
-
-/**
  * Valid review grades for SM-2 algorithm
  * 0 = Complete blackout
  * 1 = Incorrect, but remembered upon seeing answer
@@ -316,6 +298,24 @@ export type ReviewsListDTO = PaginatedListDTO<ReviewDTO>;
  * 5 = Perfect recall
  */
 export type ReviewGrade = 0 | 1 | 2 | 3 | 4 | 5;
+
+/**
+ * Review DTO - Single review representation
+ * Based on Tables<'reviews'> with camelCase field names
+ */
+export interface ReviewDTO {
+  id: string;
+  cardId: string;
+  userId: string;
+  grade: ReviewGrade;
+  reviewDate: string;
+}
+
+/**
+ * Reviews List DTO - GET /api/v1/reviews
+ * Paginated list of reviews for the authenticated user
+ */
+export type ReviewsListDTO = PaginatedListDTO<ReviewDTO>;
 
 /**
  * Create Review Command - POST /api/v1/cards/{cardId}/review

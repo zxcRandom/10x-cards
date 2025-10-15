@@ -273,7 +273,7 @@ Conventions
   {
     "deck": { "id": "uuid", "name": "string", "createdByAi": true, "createdAt": string, "updatedAt": string },
     "cards": [ { "id": "uuid", "question": "string", "answer": "string" } ],
-    "log": { "id": "uuid", "inputTextLength": number, "generatedCardsCount": number, "errorMessage": string | null, "createdAt": string }
+    "log": { "id": "uuid", "deckId": "uuid|null", "inputTextLength": number, "generatedCardsCount": number, "errorMessage": string | null, "createdAt": string }
   }
 - Success: 201 Created (even if 0 cards created, errorMessage null indicates success)
 - Errors: 400 (too long input, empty input), 401, 422, 429 (rate limited), 500
