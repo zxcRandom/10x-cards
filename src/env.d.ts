@@ -1,7 +1,7 @@
 /// <reference types="astro/client" />
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './db/database.types.ts';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "./db/database.types.ts";
 
 declare global {
   namespace App {
@@ -14,12 +14,12 @@ declare global {
 interface ImportMetaEnv {
   readonly SUPABASE_URL: string;
   readonly SUPABASE_KEY: string;
-  
+
   // OpenRouter Configuration
   readonly OPENROUTER_API_KEY: string;
   readonly OPENROUTER_MODEL: string;
   readonly OPENROUTER_BASE_URL: string;
-  
+
   // AI Generation Limits
   readonly AI_RATE_LIMIT_PER_MINUTE: string;
   readonly AI_RATE_LIMIT_PER_DAY: string;

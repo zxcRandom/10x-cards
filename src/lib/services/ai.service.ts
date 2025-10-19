@@ -8,23 +8,26 @@ export interface GeneratedCard {
 }
 
 export class AIServiceError extends Error {
-  constructor(message: string, public readonly cause?: unknown) {
+  constructor(
+    message: string,
+    public readonly cause?: unknown
+  ) {
     super(message);
-    this.name = 'AIServiceError';
+    this.name = "AIServiceError";
   }
 }
 
 export class AITimeoutError extends AIServiceError {
   constructor() {
-    super('AI request timed out');
-    this.name = 'AITimeoutError';
+    super("AI request timed out");
+    this.name = "AITimeoutError";
   }
 }
 
 export class AIParsingError extends AIServiceError {
   constructor(message: string) {
     super(message);
-    this.name = 'AIParsingError';
+    this.name = "AIParsingError";
   }
 }
 
@@ -36,23 +39,19 @@ export class AIService {
 
   constructor() {
     this.apiKey = import.meta.env.OPENROUTER_API_KEY;
-    this.model = import.meta.env.OPENROUTER_MODEL || 'openai/gpt-3.5-turbo';
-    this.baseUrl =
-      import.meta.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
-    this.timeout = parseInt(import.meta.env.AI_TIMEOUT_MS || '30000');
+    this.model = import.meta.env.OPENROUTER_MODEL || "openai/gpt-3.5-turbo";
+    this.baseUrl = import.meta.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";
+    this.timeout = parseInt(import.meta.env.AI_TIMEOUT_MS || "30000");
 
     if (!this.apiKey) {
-      throw new Error('OPENROUTER_API_KEY is not configured');
+      throw new Error("OPENROUTER_API_KEY is not configured");
     }
   }
 
   /**
    * Generate flashcards from input text using AI
    */
-  async generateFlashcardsFromText(
-    inputText: string,
-    maxCards: number = 20
-  ): Promise<GeneratedCard[]> {
+  async generateFlashcardsFromText(inputText: string, maxCards = 20): Promise<GeneratedCard[]> {
     const startTime = Date.now();
 
     try {
@@ -62,9 +61,7 @@ export class AIService {
       const validCards = this.validateCards(cards);
 
       const duration = Date.now() - startTime;
-      console.log(
-        `AI generation completed in ${duration}ms, generated ${validCards.length} cards`
-      );
+      console.log(`AI generation completed in ${duration}ms, generated ${validCards.length} cards`);
 
       return validCards;
     } catch (error) {
@@ -103,11 +100,9 @@ Return ONLY a JSON array with this exact format (no additional text):
    */
   private sanitizeInput(text: string): string {
     // Remove potentially harmful characters, keep educational content
-    return (
-      text
-        .replace(/[<>]/g, '') // Remove HTML-like tags
-        .slice(0, 20000)
-    ); // Hard limit
+    return text
+      .replace(/[<>]/g, "") // Remove HTML-like tags
+      .slice(0, 20000); // Hard limit
   }
 
   /**
@@ -123,18 +118,18 @@ Return ONLY a JSON array with this exact format (no additional text):
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
         const response = await fetch(`${this.baseUrl}/chat/completions`, {
-          method: 'POST',
+          method: "POST",
           headers: {
             Authorization: `Bearer ${this.apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://10x-cards.app', // Required by OpenRouter
-            'X-Title': '10x Cards',
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://10x-cards.app", // Required by OpenRouter
+            "X-Title": "10x Cards",
           },
           body: JSON.stringify({
             model: this.model,
             messages: [
               {
-                role: 'user',
+                role: "user",
                 content: prompt,
               },
             ],
@@ -148,17 +143,14 @@ Return ONLY a JSON array with this exact format (no additional text):
 
         if (!response.ok) {
           const errorBody = await response.text();
-          throw new AIServiceError(
-            `OpenRouter API error: ${response.status} ${response.statusText}`,
-            errorBody
-          );
+          throw new AIServiceError(`OpenRouter API error: ${response.status} ${response.statusText}`, errorBody);
         }
 
         const data = await response.json();
         const content = data.choices?.[0]?.message?.content;
 
         if (!content) {
-          throw new AIParsingError('No content in AI response');
+          throw new AIParsingError("No content in AI response");
         }
 
         return content;
@@ -166,15 +158,12 @@ Return ONLY a JSON array with this exact format (no additional text):
         lastError = error;
 
         // Handle AbortController timeout
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (error instanceof Error && error.name === "AbortError") {
           throw new AITimeoutError();
         }
 
         // Don't retry on timeout or 4xx errors
-        if (
-          error instanceof AITimeoutError ||
-          (error instanceof AIServiceError && error.message.includes('4'))
-        ) {
+        if (error instanceof AITimeoutError || (error instanceof AIServiceError && error.message.includes("4"))) {
           throw error;
         }
 
@@ -187,7 +176,7 @@ Return ONLY a JSON array with this exact format (no additional text):
       }
     }
 
-    throw new AIServiceError('AI request failed after retries', lastError);
+    throw new AIServiceError("AI request failed after retries", lastError);
   }
 
   /**
@@ -199,13 +188,13 @@ Return ONLY a JSON array with this exact format (no additional text):
       // AI might wrap it in markdown code blocks
       const jsonMatch = response.match(/\[[\s\S]*\]/);
       if (!jsonMatch) {
-        throw new AIParsingError('No JSON array found in response');
+        throw new AIParsingError("No JSON array found in response");
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
 
       if (!Array.isArray(parsed)) {
-        throw new AIParsingError('Response is not an array');
+        throw new AIParsingError("Response is not an array");
       }
 
       return parsed;
@@ -214,7 +203,7 @@ Return ONLY a JSON array with this exact format (no additional text):
         throw error;
       }
       throw new AIParsingError(
-        `Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to parse AI response: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }
@@ -226,13 +215,8 @@ Return ONLY a JSON array with this exact format (no additional text):
     return cards
       .filter((card) => {
         // Check structure
-        if (
-          typeof card !== 'object' ||
-          card === null ||
-          !('question' in card) ||
-          !('answer' in card)
-        ) {
-          console.warn('Invalid card structure:', card);
+        if (typeof card !== "object" || card === null || !("question" in card) || !("answer" in card)) {
+          console.warn("Invalid card structure:", card);
           return false;
         }
 
@@ -241,13 +225,13 @@ Return ONLY a JSON array with this exact format (no additional text):
         const answer = String(card.answer).trim();
 
         if (!question || !answer) {
-          console.warn('Empty question or answer:', card);
+          console.warn("Empty question or answer:", card);
           return false;
         }
 
         // Check length
         if (question.length > 10000 || answer.length > 10000) {
-          console.warn('Question or answer too long:', card);
+          console.warn("Question or answer too long:", card);
           return false;
         }
 
@@ -262,4 +246,3 @@ Return ONLY a JSON array with this exact format (no additional text):
 
 // Singleton instance
 export const aiService = new AIService();
-

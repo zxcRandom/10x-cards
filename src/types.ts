@@ -1,17 +1,17 @@
 /**
  * API Types - DTOs and Command Models
- * 
+ *
  * This file contains Data Transfer Objects (DTOs) and Command Models for the REST API.
  * All types are derived from database entity types defined in src/db/database.types.ts
  * and follow the API specification defined in .ai/api-plan.md
- * 
+ *
  * Naming conventions:
  * - DTOs: Response data structures (e.g., ProfileDTO, DeckDTO)
  * - Commands: Request data structures (e.g., CreateDeckCommand, UpdateProfileCommand)
  * - ListDTOs: Paginated list responses (e.g., DecksListDTO, CardsListDTO)
  */
 
-import type { Tables } from './db/database.types';
+import type { Tables } from "./db/database.types";
 
 // =============================================================================
 // HTTP Status Codes
@@ -45,29 +45,29 @@ export enum HttpStatus {
  */
 export enum ErrorCode {
   // Authentication & Authorization
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-  
+  UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
+
   // Validation
-  BAD_REQUEST = 'BAD_REQUEST',
-  VALIDATION_ERROR = 'VALIDATION_ERROR',
-  
+  BAD_REQUEST = "BAD_REQUEST",
+  VALIDATION_ERROR = "VALIDATION_ERROR",
+
   // Resources
-  NOT_FOUND = 'NOT_FOUND',
-  PROFILE_NOT_FOUND = 'PROFILE_NOT_FOUND',
-  DECK_NOT_FOUND = 'DECK_NOT_FOUND',
-  CARD_NOT_FOUND = 'CARD_NOT_FOUND',
-  
+  NOT_FOUND = "NOT_FOUND",
+  PROFILE_NOT_FOUND = "PROFILE_NOT_FOUND",
+  DECK_NOT_FOUND = "DECK_NOT_FOUND",
+  CARD_NOT_FOUND = "CARD_NOT_FOUND",
+
   // Business Logic
-  CONFLICT = 'CONFLICT',
-  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
-  
+  CONFLICT = "CONFLICT",
+  UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY",
+
   // Server
-  INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR',
-  DATABASE_ERROR = 'DATABASE_ERROR',
-  
+  INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR",
+  DATABASE_ERROR = "DATABASE_ERROR",
+
   // Rate Limiting
-  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
+  TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS",
 }
 
 // =============================================================================
@@ -91,7 +91,7 @@ export interface ErrorResponse {
     code: string;
     message: string;
     details?: string;
-  }
+  };
 }
 
 /**
@@ -100,10 +100,10 @@ export interface ErrorResponse {
  */
 export interface ValidationErrorResponse {
   error: {
-    code: 'VALIDATION_ERROR';
+    code: "VALIDATION_ERROR";
     message: string;
     errors: ValidationError[];
-  }
+  };
 }
 
 /**
@@ -112,10 +112,10 @@ export interface ValidationErrorResponse {
  */
 export interface ConflictErrorResponse {
   error: {
-    code: 'CONFLICT';
+    code: "CONFLICT";
     message: string;
     details?: string;
-  }
+  };
 }
 
 /**
@@ -124,10 +124,10 @@ export interface ConflictErrorResponse {
  */
 export interface UnprocessableErrorResponse {
   error: {
-    code: 'UNPROCESSABLE_ENTITY';
+    code: "UNPROCESSABLE_ENTITY";
     message: string;
     details?: string;
-  }
+  };
 }
 
 // =============================================================================
@@ -148,7 +148,7 @@ export interface PaginatedListDTO<T> {
  * Standard deletion confirmation response
  */
 export interface DeletedDTO {
-  status: 'deleted';
+  status: "deleted";
 }
 
 // =============================================================================
@@ -181,7 +181,7 @@ export interface UpdateProfileCommand {
  * Response after soft-deleting a profile
  */
 export interface ProfileDeletedDTO {
-  status: 'deleted';
+  status: "deleted";
   deletedAt: string;
 }
 
@@ -381,11 +381,11 @@ export interface CreateAIDeckCommand {
  */
 export interface AIDeckResponseDTO {
   deck: DeckDTO;
-  cards: Array<{
+  cards: {
     id: string;
     question: string;
     answer: string;
-  }>;
+  }[];
   log: AILogDTO;
 }
 
@@ -398,7 +398,7 @@ export interface AIDeckResponseDTO {
  * System health check response
  */
 export interface HealthDTO {
-  status: 'ok';
+  status: "ok";
   time: string; // ISO-8601 timestamp
 }
 
@@ -410,11 +410,11 @@ export interface HealthDTO {
  * Helper type to transform database row to DTO (snake_case to camelCase)
  * This is used internally for type safety when mapping database entities to DTOs
  */
-export type DbProfile = Tables<'profiles'>;
-export type DbDeck = Tables<'decks'>;
-export type DbCard = Tables<'cards'>;
-export type DbReview = Tables<'reviews'>;
-export type DbAILog = Tables<'ai_generation_logs'>;
+export type DbProfile = Tables<"profiles">;
+export type DbDeck = Tables<"decks">;
+export type DbCard = Tables<"cards">;
+export type DbReview = Tables<"reviews">;
+export type DbAILog = Tables<"ai_generation_logs">;
 
 // =============================================================================
 // Internal Service Types (not exposed in API)
@@ -429,4 +429,3 @@ export interface UpdateProfileData {
   deleted_at?: string | null;
   updated_at?: string; // Automatically set by trigger, but included for completeness
 }
-
