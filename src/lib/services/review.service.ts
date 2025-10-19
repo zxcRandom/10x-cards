@@ -30,6 +30,21 @@ interface SM2Result {
 }
 
 /**
+ * Card with deck relationship from JOIN query
+ */
+interface CardWithDeck {
+  id: string;
+  deck_id: string;
+  ease_factor: number;
+  interval_days: number;
+  repetitions: number;
+  next_review_date: string;
+  deck: {
+    user_id: string;
+  };
+}
+
+/**
  * Maps database review row (snake_case) to ReviewDTO (camelCase)
  *
  * @param dbReview - Review row from database
@@ -191,8 +206,8 @@ export const ReviewService = {
         return { error: "CARD_NOT_FOUND" as ErrorCode };
       }
 
-      // Check ownership via JOIN
-      const deck = (card as any).deck;
+      // Check ownership via JOIN - properly typed
+      const deck = (card as CardWithDeck).deck;
       if (!deck || deck.user_id !== userId) {
         console.warn("[ReviewService.createReview] Access denied:", {
           cardId,

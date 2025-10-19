@@ -151,7 +151,7 @@ export const CardService = {
   ): Promise<CardDTO[] | { error: ErrorCode }> {
     try {
       // Verify deck ownership first
-      const { exists, owned } = await this.verifyDeckOwnership(
+      const { exists, owned } = await CardService.verifyDeckOwnership(
         supabase,
         deckId,
         userId

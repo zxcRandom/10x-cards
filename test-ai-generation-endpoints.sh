@@ -99,6 +99,7 @@ echo ""
 # Test 4: Invalid input - too long text
 echo "Test 4: Too long input text"
 echo "----------------------------------------------"
+# Test with text exceeding max length (20001 chars > 20000 max)
 LONG_TEXT=$(printf 'A%.0s' {1..20001})
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/ai/decks/from-text" \
   -H "Content-Type: application/json" \

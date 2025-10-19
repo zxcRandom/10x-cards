@@ -92,7 +92,12 @@ test_endpoint \
 # TEST 6: Filter by date range
 test_endpoint \
     "Filter reviews by date range" \
-    "$BASE_URL/api/v1/reviews?from=2025-01-01T00:00:00Z&to=2025-12-31T23:59:59Z" \
+    "# TEST 6: Filter by date range
+# Use relative dates to avoid test failures when year changes
+FROM_DATE="$(date -u +"%Y-01-01T00:00:00Z")"
+TO_DATE="$(date -u +"%Y-12-31T23:59:59Z")"
+RESPONSE=$(curl -s -w "\n%{http_code}" \
+    "$BASE_URL/api/v1/reviews?from=$FROM_DATE&to=$TO_DATE" \" \
     "200" \
     "Authorization: Bearer $AUTH_TOKEN"
 
@@ -169,7 +174,7 @@ test_endpoint \
 # TEST 17: Combined filters
 test_endpoint \
     "Combined filters (cardId + date range)" \
-    "$BASE_URL/api/v1/reviews?cardId=$CARD_ID&from=2025-01-01T00:00:00Z&limit=10" \
+    "$BASE_URL/api/v1/reviews?cardId=$CARD_ID&from=$FROM_DATE&limit=10" \
     "200" \
     "Authorization: Bearer $AUTH_TOKEN"
 
