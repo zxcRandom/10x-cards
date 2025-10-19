@@ -368,13 +368,15 @@ Supabase Query (with filters, pagination, sorting)
 
 #### KROK 5: Zwróć response
 ```typescript
+const response: AILogsListDTO = {
+  items: mappedLogs,
+  total: count,
+  limit: pagination.limit,
+  offset: pagination.offset
+};
+
 return new Response(
-  JSON.stringify({
-    items: mappedLogs,
-    total: count,
-    limit: pagination.limit,
-    offset: pagination.offset
-  } satisfies AILogsListDTO),
+  JSON.stringify(response),
   {
     status: 200,
     headers: { 'Content-Type': 'application/json' }
@@ -1085,17 +1087,19 @@ export const GET: APIRoute = async ({ request, locals }) => {
       validated = listAILogsQuerySchema.parse(queryParams);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const validationError: ValidationErrorResponse = {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request validation failed',
+            errors: error.errors.map(e => ({
+              field: e.path.join('.'),
+              message: e.message
+            }))
+          }
+        };
+        
         return new Response(
-          JSON.stringify({
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Request validation failed',
-              errors: error.errors.map(e => ({
-                field: e.path.join('.'),
-                message: e.message
-              }))
-            }
-          } satisfies ValidationErrorResponse),
+          JSON.stringify(validationError),
           {
             status: 400,
             headers: { 'Content-Type': 'application/json' }

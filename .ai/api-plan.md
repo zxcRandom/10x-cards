@@ -120,15 +120,15 @@ Conventions
   { "name"?: "string" }
 - Response JSON: deck object
 - Success: 200 OK
-- Errors: 400, 401, 403, 404, 422, 500
+- Errors: 400, 401, 404 (not found or not owner), 422, 500
 
 5) DELETE /api/v1/decks/{deckId}
 - Method: DELETE
 - Path: `/api/v1/decks/{deckId}`
-- Description: Delete deck (cascades to cards via FK)
-- Response JSON: { "status": "deleted" }
-- Success: 200 OK
-- Errors: 401, 403, 404, 500
+- Description: Delete a deck (cascade deletes cards and reviews)
+- Response JSON: n/a (204)
+- Success: 204 No Content
+- Errors: 401, 404 (not found or not owner), 500
 
 ### 2.3 Cards
 

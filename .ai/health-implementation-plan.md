@@ -433,9 +433,10 @@ export const GET: APIRoute = async ({ locals }) => {
 
   try {
     // STEP 1: Database connectivity check
+    // Using head: true to avoid transferring data for this high-frequency endpoint
     const { error: dbError } = await locals.supabase
       .from('profiles')
-      .select('id')
+      .select('id', { head: true })
       .limit(1);
 
     if (dbError) {

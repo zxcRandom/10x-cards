@@ -68,11 +68,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 #### ProfileDeletedDTO
 ```typescript
-// Już zdefiniowany w src/types.ts
-export interface ProfileDeletedDTO {
-  status: 'deleted';
-  deletedAt: string; // ISO-8601 timestamp
-}
+```typescript
+import type { APIRoute } from 'astro';
+import { ProfileService, ConflictError } from '@/lib/services/profile.service';
+// ... other imports ...
 ```
 
 ### Typy pomocnicze
@@ -305,7 +304,9 @@ async deleteProfile(userId, supabase) {
     };
   }
   
-  // Wykonaj soft delete
+  // Wykonaj soft delete używając czasu serwera (NOW())
+  // Note: W produkcji zaleca się użycie RPC funkcji z SECURITY DEFINER
+  // która wykonuje UPDATE ... SET deleted_at = NOW() dla lepszej spójności
   const { data } = await supabase
     .from('profiles')
     .update({ deleted_at: new Date().toISOString() })
