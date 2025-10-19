@@ -2,20 +2,32 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 import { createAIDeckSchema } from "./from-text.schema";
 import { aiService, AIServiceError, AITimeoutError, AIParsingError } from "../../../../../lib/services/ai.service";
-import type { ErrorResponse, ValidationErrorResponse, UnprocessableErrorResponse } from "../../../../../types";
+import { DeckService } from "../../../../../lib/services/deck.service";
+import { CardService } from "../../../../../lib/services/card.service";
+import { AILogService } from "../../../../../lib/services/ai-log.service";
+import { RateLimitService } from "../../../../../lib/services/rate-limit.service";
+import type { 
+  AIDeckResponseDTO,
+  ErrorResponse, 
+  ValidationErrorResponse, 
+  UnprocessableErrorResponse 
+} from "../../../../../types";
 
 /**
  * POST /api/v1/ai/decks/from-text
  * Generate deck and cards from text using AI
  *
- * TEMPORARY IMPLEMENTATION - Only tests AI service
- * TODO: Add database services, rate limiting, full error handling
+ * Full implementation with:
+ * - Rate limiting (10 req/min)
+ * - Database integration (deck + cards + log)
+ * - Error recovery with logging
+ * - Comprehensive error handling
  */
 export const POST: APIRoute = async ({ request, locals }) => {
   const startTime = Date.now();
 
   try {
-    // STEP 1: Authentication (basic check)
+    // STEP 1: Authentication
     const {
       data: { user },
       error: authError,
@@ -36,7 +48,29 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // STEP 2: Parse and validate request body
+    // STEP 2: Rate limiting
+    const rateLimitService = new RateLimitService();
+    const rateLimit = await rateLimitService.checkAIRateLimit(user.id);
+    
+    if (!rateLimit.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "TOO_MANY_REQUESTS",
+            message: "Rate limit exceeded. Please try again later.",
+          },
+        } satisfies ErrorResponse),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+          },
+        }
+      );
+    }
+
+    // STEP 3: Parse and validate request body
     let requestBody: unknown;
     try {
       requestBody = await request.json();
@@ -80,32 +114,100 @@ export const POST: APIRoute = async ({ request, locals }) => {
       throw error;
     }
 
-    // STEP 3: Test AI Service (TEMPORARY - no database yet)
-    console.log(`🧪 Testing AI generation for user ${user.id}, maxCards: ${validated.maxCards}`);
+    // STEP 4: Generate cards using AI
+    console.log(`� AI generation for user ${user.id}, maxCards: ${validated.maxCards}`);
 
-    const generatedCards = await aiService.generateFlashcardsFromText(validated.inputText, validated.maxCards);
+    const generatedCards = await aiService.generateFlashcardsFromText(
+      validated.inputText,
+      validated.maxCards
+    );
 
-    const duration = Date.now() - startTime;
-    console.log(`✅ AI generation test completed in ${duration}ms`);
+    // STEP 5: Create deck and cards in database
+    let deckId: string | null = null;
+    let cards: any[] = [];
 
-    // STEP 4: Return test response (TEMPORARY)
-    return new Response(
-      JSON.stringify({
-        message: "AI Service test successful!",
-        deckName: validated.deckName || "Test Deck",
+    try {
+      // Create deck
+      const deckName =
+        validated.deckName || `AI Generated Deck - ${new Date().toLocaleDateString()}`;
+
+      const deckResult = await DeckService.createDeck(
+        user.id,
+        { name: deckName, createdByAi: true },
+        locals.supabase
+      );
+
+      deckId = deckResult.id;
+
+      // Create cards in batch
+      if (generatedCards.length > 0) {
+        const cardsResult = await CardService.createCardsBatch(
+          locals.supabase,
+          deckId,
+          user.id,
+          generatedCards
+        );
+
+        if ("error" in cardsResult) {
+          throw new Error(`Failed to create cards: ${cardsResult.error}`);
+        }
+
+        cards = cardsResult;
+      }
+
+      // Create success log
+      const log = await AILogService.createLog(locals.supabase, {
+        userId: user.id,
+        deckId: deckId,
+        inputTextLength: validated.inputText.length,
         generatedCardsCount: generatedCards.length,
-        cards: generatedCards,
-        duration: `${duration}ms`,
-        note: "This is a temporary test response. Database integration pending.",
-      }),
-      {
-        status: 200, // 200 for test, will be 201 when fully implemented
+        errorMessage: null,
+      });
+
+      // Increment rate limit
+      await rateLimitService.incrementAIRateLimit(user.id);
+
+      const duration = Date.now() - startTime;
+      console.log(`✅ AI generation completed in ${duration}ms: ${cards.length} cards created`);
+
+      // STEP 6: Return success response
+      const response: AIDeckResponseDTO = {
+        deck: deckResult,
+        cards: cards.map((card) => ({
+          id: card.id,
+          question: card.question,
+          answer: card.answer,
+        })),
+        log: log,
+      };
+
+      return new Response(JSON.stringify(response), {
+        status: 201,
         headers: {
           "Content-Type": "application/json",
           "X-Request-Duration": duration.toString(),
+          "X-RateLimit-Remaining": (rateLimit.remaining - 1).toString(),
         },
+      });
+    } catch (dbError) {
+      console.error("Database operation failed:", dbError);
+
+      // Log the failed attempt
+      try {
+        await AILogService.createLog(locals.supabase, {
+          userId: user.id,
+          deckId: deckId,
+          inputTextLength: validated.inputText.length,
+          generatedCardsCount: 0,
+          errorMessage:
+            dbError instanceof Error ? dbError.message : "Unknown database error",
+        });
+      } catch (logError) {
+        console.error("Failed to log error:", logError);
       }
-    );
+
+      throw new Error("Failed to save generated content to database");
+    }
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`❌ AI test failed after ${duration}ms:`, error);
