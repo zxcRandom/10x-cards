@@ -51,3 +51,53 @@ export const UpdateDeckSchema = z
  * Type inferred from UpdateDeckSchema
  */
 export type UpdateDeckInput = z.infer<typeof UpdateDeckSchema>;
+
+/**
+ * Validation schema for GET /api/v1/decks query parameters
+ * Validates pagination, sorting, and filtering options
+ */
+export const ListDecksQuerySchema = z.object({
+  limit: z.coerce
+    .number({
+      invalid_type_error: "Limit must be a number",
+    })
+    .int("Limit must be an integer")
+    .min(1, "Limit must be at least 1")
+    .max(100, "Limit must not exceed 100")
+    .default(20),
+
+  offset: z.coerce
+    .number({
+      invalid_type_error: "Offset must be a number",
+    })
+    .int("Offset must be an integer")
+    .min(0, "Offset must be non-negative")
+    .default(0),
+
+  sort: z
+    .enum(["createdAt", "updatedAt", "name"], {
+      errorMap: () => ({
+        message: "Sort must be one of: createdAt, updatedAt, name",
+      }),
+    })
+    .default("createdAt"),
+
+  order: z
+    .enum(["asc", "desc"], {
+      errorMap: () => ({ message: "Order must be either asc or desc" }),
+    })
+    .default("desc"),
+
+  createdByAi: z.coerce
+    .boolean({
+      invalid_type_error: "createdByAi must be a boolean",
+    })
+    .optional(),
+
+  q: z.string().trim().optional(),
+});
+
+/**
+ * Type inferred from ListDecksQuerySchema
+ */
+export type ListDecksQueryInput = z.infer<typeof ListDecksQuerySchema>;

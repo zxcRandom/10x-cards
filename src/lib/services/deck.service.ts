@@ -1,5 +1,17 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { CreateDeckCommand, DbDeck, DeckDTO } from "@/types";
+import type { CreateDeckCommand, DbDeck, DeckDTO, DecksListDTO } from "@/types";
+
+/**
+ * Options for listing decks with filtering, sorting, and pagination
+ */
+export interface ListDecksOptions {
+  limit: number;
+  offset: number;
+  sort: "createdAt" | "updatedAt" | "name";
+  order: "asc" | "desc";
+  createdByAi?: boolean;
+  q?: string;
+}
 
 /**
  * DeckService - Business logic for deck management
@@ -69,6 +81,85 @@ export const DeckService = {
 
     // Step 5: Map database row to DTO (snake_case → camelCase)
     return this.mapDeckToDTO(data);
+  },
+
+  /**
+   * Lists decks for the authenticated user with filtering, sorting, and pagination
+   *
+   * @param userId - User UUID from JWT token
+   * @param options - Filtering, sorting, and pagination options
+   * @param supabase - Supabase client instance tied to the request
+   * @returns DecksListDTO with items, total count, limit, and offset
+   * @throws Error - When database error occurs
+   *
+   * @example
+   * const decks = await DeckService.listDecks(
+   *   user.id,
+   *   { limit: 20, offset: 0, sort: 'createdAt', order: 'desc' },
+   *   supabase
+   * );
+   */
+  async listDecks(
+    userId: string,
+    options: ListDecksOptions,
+    supabase: SupabaseClient
+  ): Promise<DecksListDTO> {
+    const { limit, offset, sort, order, createdByAi, q } = options;
+
+    // Step 1: Map sort field from camelCase to snake_case
+    const sortField =
+      sort === "createdAt"
+        ? "created_at"
+        : sort === "updatedAt"
+        ? "updated_at"
+        : "name";
+
+    // Step 2: Build base query with count
+    let query = supabase
+      .from("decks")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId);
+
+    // Step 3: Apply optional filters
+    if (createdByAi !== undefined) {
+      query = query.eq("created_by_ai", createdByAi);
+    }
+
+    if (q) {
+      query = query.ilike("name", `%${q}%`);
+    }
+
+    // Step 4: Apply sorting and pagination
+    query = query
+      .order(sortField, { ascending: order === "asc" })
+      .range(offset, offset + limit - 1);
+
+    // Step 5: Execute query
+    const { data, error, count } = await query;
+
+    // Step 6: Handle database errors
+    if (error) {
+      console.error("[DeckService.listDecks] Database error:", {
+        error: error.message,
+        code: error.code,
+        userId,
+        options,
+        timestamp: new Date().toISOString(),
+      });
+
+      throw new Error(`Failed to fetch decks: ${error.message}`);
+    }
+
+    // Step 7: Map results to DTOs
+    const items = (data || []).map((deck) => this.mapDeckToDTO(deck));
+
+    // Step 8: Return paginated response
+    return {
+      items,
+      total: count ?? 0,
+      limit,
+      offset,
+    };
   },
 
   /**
