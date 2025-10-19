@@ -655,7 +655,7 @@ const { data, count } = await supabase
 
 return {
   items: data,
-  total: count ?? null,  // null if includeTotal=false
+  total: includeTotal ? (count ?? 0) : 0,  // 0 if includeTotal=false
   limit,
   offset
 };
@@ -878,8 +878,8 @@ describe('listAILogsQuerySchema', () => {
 **Plik**: `src/lib/services/ai-log.service.ts` (rozszerzenie istniejącego)
 
 ```typescript
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DbAILog, AILogDTO, AILogsListDTO } from '../../../types';
+import type { SupabaseClient } from '@/db/supabase.client';
+import type { DbAILog, AILogDTO, AILogsListDTO } from '@/types';
 import { mapAILogToDTO } from './mappers';
 
 export interface CreateAILogData {
@@ -1034,12 +1034,12 @@ export class AILogService {
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
 import { listAILogsQuerySchema } from './logs.schema';
-import { AILogService } from '../../../lib/services/ai-log.service';
+import { AILogService } from '@/lib/services/ai-log.service';
 import type { 
   AILogsListDTO,
   ErrorResponse, 
   ValidationErrorResponse 
-} from '../../../types';
+} from '@/types';
 
 /**
  * GET /api/v1/ai/logs

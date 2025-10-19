@@ -422,7 +422,7 @@ console.log(`Health check completed in ${duration}ms`);
 
 ```typescript
 import type { APIRoute } from 'astro';
-import type { HealthDTO, ErrorResponse } from '../../../types';
+import type { HealthDTO, ErrorResponse } from '@/types';
 
 /**
  * GET /api/v1/health

@@ -770,8 +770,8 @@ CHECK (deleted_at IS NULL OR deleted_at <= NOW())
 **Plik**: `src/lib/services/profile.service.ts`
 
 ```typescript
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ProfileDeletedDTO } from '../../../types';
+import type { SupabaseClient } from '@/db/supabase.client';
+import type { ProfileDeletedDTO } from '@/types';
 
 export class ProfileService {
   // ... existing methods (getProfile, updateProfile) ...
@@ -958,7 +958,7 @@ Dodaj do istniejącego pliku (który ma GET i PATCH handlers):
 
 ```typescript
 import type { APIRoute } from 'astro';
-import { ProfileService, ConflictError, UnprocessableError } from '@/lib/services/profile.service';
+import { ProfileService, ConflictError } from '@/lib/services/profile.service';
 // ... other imports ...
 
 // ... existing GET handler ...
@@ -1029,7 +1029,7 @@ export const DELETE: APIRoute = async ({ locals }) => {
 
     // Obsługa błędu "Profile not found"
     if (error instanceof Error && error.message === 'Profile not found') {
-      console.error('[DELETE /api/v1/profile] Profile not found for user:', user?.id);
+      console.error('[DELETE /api/v1/profile] Profile not found');
 
       return new Response(
         JSON.stringify({

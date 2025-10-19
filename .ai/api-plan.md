@@ -110,7 +110,7 @@ Conventions
 - Description: Get a deck by id (owned by requester)
 - Response JSON: same as POST response
 - Success: 200 OK
-- Errors: 401, 403 (not owner), 404, 500
+- Errors: 401, 404 (not found or not owner), 500
 
 4) PATCH /api/v1/decks/{deckId}
 - Method: PATCH
