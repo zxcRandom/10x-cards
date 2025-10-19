@@ -13,6 +13,148 @@ import {
 import { formatZodErrors } from "../../../../lib/utils/zod-errors";
 
 /**
+ * GET /api/v1/cards/{cardId}
+ *
+ * Retrieves a single card by ID with full details including SM-2 fields.
+ * Verifies card ownership via deck ownership check.
+ *
+ * Authentication: Required (Bearer token)
+ * Authorization: User must own the card (via deck ownership)
+ *
+ * Success Response: 200 OK
+ * {
+ *   "id": "uuid",
+ *   "deckId": "uuid",
+ *   "question": "...",
+ *   "answer": "...",
+ *   "easeFactor": 2.5,
+ *   "intervalDays": 1,
+ *   "repetitions": 0,
+ *   "nextReviewDate": "ISO-8601",
+ *   "createdAt": "ISO-8601",
+ *   "updatedAt": "ISO-8601"
+ * }
+ *
+ * Error Responses:
+ * - 400 Bad Request: Invalid cardId format
+ * - 401 Unauthorized: Missing or invalid token
+ * - 404 Not Found: Card doesn't exist or doesn't belong to user
+ * - 500 Internal Server Error: Unexpected error
+ */
+export const GET: APIRoute = async ({ params, locals }) => {
+  try {
+    // =========================================================================
+    // STEP 1: Authentication Check
+    // =========================================================================
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.warn("[GET /api/v1/cards/{cardId}] Authentication failed:", {
+        error: authError?.message,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // =========================================================================
+    // STEP 2: Path Parameter Validation
+    // =========================================================================
+    const cardIdValidation = cardIdParamSchema.safeParse(params.cardId);
+
+    if (!cardIdValidation.success) {
+      console.warn("[GET /api/v1/cards/{cardId}] Invalid cardId format:", {
+        cardId: params.cardId,
+        userId: user.id,
+        error: cardIdValidation.error.errors[0]?.message,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "CARD_NOT_FOUND",
+          message: "Card not found",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const cardId = cardIdValidation.data;
+
+    // =========================================================================
+    // STEP 3: Get Card with Ownership Verification
+    // =========================================================================
+    // Use CardService to get card (includes ownership verification)
+    const card = await CardService.getCardById(locals.supabase, cardId, user.id);
+
+    if (!card) {
+      console.warn("[GET /api/v1/cards/{cardId}] Card not found or access denied:", {
+        cardId,
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "CARD_NOT_FOUND",
+          message: "Card not found",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // =========================================================================
+    // STEP 4: Return Success Response
+    // =========================================================================
+    console.info("[GET /api/v1/cards/{cardId}] Card retrieved successfully:", {
+      cardId,
+      userId: user.id,
+      timestamp: new Date().toISOString(),
+    });
+
+    return new Response(JSON.stringify(card), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("[GET /api/v1/cards/{cardId}] Unexpected error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+
+    const errorResponse: ErrorResponse = {
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred",
+      },
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
+
+/**
  * PATCH /api/v1/cards/{cardId}
  *
  * Updates a card's question and/or answer.
