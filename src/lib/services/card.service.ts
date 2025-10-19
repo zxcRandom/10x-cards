@@ -228,4 +228,105 @@ export const CardService = {
       return { exists: false, owned: false };
     }
   },
+
+  /**
+   * Updates a card's question and/or answer
+   * SM-2 fields (easeFactor, intervalDays, repetitions, nextReviewDate) cannot be updated
+   * and are managed exclusively by the review endpoint
+   *
+   * @param supabase - Supabase client instance
+   * @param cardId - UUID of the card to update
+   * @param userId - UUID of the authenticated user (for ownership verification)
+   * @param command - Update data (UpdateCardCommand)
+   * @returns Promise<CardDTO | { error: ErrorCode }>
+   *
+   * @example
+   * const result = await CardService.updateCard(
+   *   supabase,
+   *   "660e8400-e29b-41d4-a716-446655440001",
+   *   "bee8997e-9e30-4a76-b675-15917059c46a",
+   *   { question: "Updated question?" }
+   * );
+   *
+   * if ("error" in result) {
+   *   // Handle error
+   * } else {
+   *   // Use result as CardDTO
+   * }
+   */
+  async updateCard(
+    supabase: SupabaseClient,
+    cardId: string,
+    userId: string,
+    command: { question?: string; answer?: string }
+  ): Promise<CardDTO | { error: ErrorCode }> {
+    try {
+      // Verify card ownership via JOIN with decks
+      const { data: cardCheck, error: checkError } = await supabase
+        .from("cards")
+        .select(
+          `
+          id,
+          decks!inner (user_id)
+        `
+        )
+        .eq("id", cardId)
+        .eq("decks.user_id", userId)
+        .single();
+
+      if (checkError || !cardCheck) {
+        console.error("[CardService.updateCard] Card not found or access denied:", {
+          cardId,
+          userId,
+          error: checkError?.message,
+        });
+        return { error: "CARD_NOT_FOUND" as ErrorCode };
+      }
+
+      // Prepare update data (only question and answer, ignore SM-2 fields)
+      const updateData: any = {};
+
+      if (command.question !== undefined) {
+        updateData.question = command.question.trim();
+      }
+      if (command.answer !== undefined) {
+        updateData.answer = command.answer.trim();
+      }
+
+      // Update card in database
+      const { data, error } = await supabase
+        .from("cards")
+        .update(updateData)
+        .eq("id", cardId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("[CardService.updateCard] Database error:", {
+          cardId,
+          userId,
+          error: error.message,
+          code: error.code,
+        });
+        return { error: "DATABASE_ERROR" as ErrorCode };
+      }
+
+      if (!data) {
+        console.error("[CardService.updateCard] No data returned after update:", {
+          cardId,
+          userId,
+        });
+        return { error: "DATABASE_ERROR" as ErrorCode };
+      }
+
+      return mapCardToDTO(data);
+    } catch (error) {
+      console.error("[CardService.updateCard] Unexpected error:", {
+        cardId,
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { error: "INTERNAL_SERVER_ERROR" as ErrorCode };
+    }
+  },
 };

@@ -20,21 +20,26 @@ export const createCardSchema = z.object({
 /**
  * Validation schema for updating a card
  * PATCH /api/v1/cards/{cardId}
+ * At least one field (question or answer) must be provided
  */
-export const updateCardSchema = z.object({
-  question: z
-    .string()
-    .trim()
-    .min(1, "Question cannot be empty")
-    .max(10000, "Question cannot exceed 10,000 characters")
-    .optional(),
-  answer: z
-    .string()
-    .trim()
-    .min(1, "Answer cannot be empty")
-    .max(10000, "Answer cannot exceed 10,000 characters")
-    .optional(),
-});
+export const updateCardSchema = z
+  .object({
+    question: z
+      .string()
+      .trim()
+      .min(1, "Question cannot be empty")
+      .max(10000, "Question cannot exceed 10,000 characters")
+      .optional(),
+    answer: z
+      .string()
+      .trim()
+      .min(1, "Answer cannot be empty")
+      .max(10000, "Answer cannot exceed 10,000 characters")
+      .optional(),
+  })
+  .refine((data) => data.question !== undefined || data.answer !== undefined, {
+    message: "At least one field (question or answer) must be provided",
+  });
 
 /**
  * Validation schema for deckId path parameter
