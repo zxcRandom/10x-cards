@@ -822,7 +822,7 @@ import {
   ErrorCode,
   type DeckDTO,
   type ErrorResponse 
-} from '../../../../types';
+} from '../../../types';
 
 /**
  * Validation schema for deck ID path parameter

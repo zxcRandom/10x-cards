@@ -880,7 +880,7 @@ async updateDeck(
 
 **Import:**
 ```typescript
-import type { UpdateDeckCommand } from '../../types';
+import type { UpdateDeckCommand } from '../../../types';
 ```
 
 **Uwagi:**
@@ -1067,7 +1067,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
 
 **Imports:**
 ```typescript
-import type { UpdateDeckCommand } from '../../../../types';
+import type { UpdateDeckCommand } from '../../../types';
 ```
 
 **Uwagi:**

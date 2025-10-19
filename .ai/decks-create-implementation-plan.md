@@ -887,7 +887,7 @@ async createDeck(userId: string, command: CreateDeckCommand): Promise<DeckDTO> {
 
 **Import do dodania:**
 ```typescript
-import type { CreateDeckCommand } from '../../types';
+import type { CreateDeckCommand } from '../../../types';
 ```
 
 **Uwagi:**
@@ -1039,7 +1039,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
 **Imports potrzebne:**
 ```typescript
-import type { CreateDeckCommand } from '../../../../types';
+import type { CreateDeckCommand } from '../../../types';
 ```
 
 **Uwagi implementacyjne:**
@@ -1485,7 +1485,7 @@ import {
   HttpStatus, 
   ErrorCode,
   // ... types
-} from '../../../../types';
+} from '../../../types';
 
 // ============= GET ENDPOINT =============
 const ListDecksQuerySchema = z.object({

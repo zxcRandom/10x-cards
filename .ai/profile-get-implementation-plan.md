@@ -574,7 +574,7 @@ SELECT * FROM pg_trigger WHERE tgname = 'on_auth_user_created';
 
 ```typescript
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DbProfile, ProfileDTO } from '@/types';
+import type { DbProfile, ProfileDTO } from '../../../types';
 
 export class ProfileService {
   /**

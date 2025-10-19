@@ -912,7 +912,7 @@ export async function DELETE(context: APIContext): Promise<Response> {
 
 **Imports:**
 ```typescript
-import type { DeckDeletedDTO } from '../../../../types';
+import type { DeckDeletedDTO } from '../../../types';
 ```
 
 **Uwagi:**

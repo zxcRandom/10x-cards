@@ -856,7 +856,7 @@ src/
 ```typescript
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../db/database.types';
-import type { DeckDTO, DecksListDTO, DbDeck } from '../../types';
+import type { DeckDTO, DecksListDTO, DbDeck } from '../../../types';
 
 export interface ListDecksOptions {
   limit: number;
@@ -1028,7 +1028,7 @@ import {
   type DecksListDTO,
   type ErrorResponse,
   type ValidationErrorResponse 
-} from '../../../../types';
+} from '../../../types';
 
 /**
  * Validation schema for GET /api/v1/decks query parameters

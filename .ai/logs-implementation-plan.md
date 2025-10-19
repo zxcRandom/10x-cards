@@ -879,7 +879,7 @@ describe('listAILogsQuerySchema', () => {
 
 ```typescript
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DbAILog, AILogDTO, AILogsListDTO } from '../../types';
+import type { DbAILog, AILogDTO, AILogsListDTO } from '../../../types';
 import { mapAILogToDTO } from './mappers';
 
 export interface CreateAILogData {

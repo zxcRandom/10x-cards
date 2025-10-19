@@ -875,7 +875,7 @@ npx supabase db push
 
 ```typescript
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DbProfile, ProfileDTO, UpdateProfileCommand } from '@/types';
+import type { DbProfile, ProfileDTO, UpdateProfileCommand } from '../../../types';
 
 // Custom error classes
 export class ConflictError extends Error {

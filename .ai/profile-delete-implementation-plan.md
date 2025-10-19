@@ -771,7 +771,7 @@ CHECK (deleted_at IS NULL OR deleted_at <= NOW())
 
 ```typescript
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ProfileDeletedDTO } from '@/types';
+import type { ProfileDeletedDTO } from '../../../types';
 
 export class ProfileService {
   // ... existing methods (getProfile, updateProfile) ...
