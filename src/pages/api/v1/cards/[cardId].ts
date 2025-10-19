@@ -416,12 +416,12 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 
       const errorResponse: ErrorResponse = {
         error: {
-          code: "CARD_NOT_FOUND",
-          message: "Card not found",
+          code: "BAD_REQUEST",
+          message: "Invalid cardId format",
         },
       };
       return new Response(JSON.stringify(errorResponse), {
-        status: 404,
+        status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }

@@ -15,6 +15,9 @@ import {
 } from "../../../../../lib/validation/card.schemas";
 import { formatZodErrors } from "../../../../../lib/utils/zod-errors";
 
+// Disable prerendering for API route
+export const prerender = false;
+
 /**
  * Query parameters validation schema for GET /api/v1/decks/{deckId}/cards
  */
@@ -486,6 +489,3 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     });
   }
 };
-
-// Disable prerendering for API route
-export const prerender = false;

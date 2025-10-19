@@ -403,7 +403,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     if (!deckId || !isValidUUID(deckId)) {
       const errorResponse: ErrorResponse = {
         error: {
-          code: "VALIDATION_ERROR" as ErrorCode,
+          code: "BAD_REQUEST" as ErrorCode,
           message: "Invalid deck ID format",
         },
       };
@@ -463,16 +463,9 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       timestamp: new Date().toISOString(),
     });
 
-    // Step 6: Return success response with JSON body
-    const successResponse = {
-      status: "deleted",
-    };
-
-    return new Response(JSON.stringify(successResponse), {
-      status: 200 as HttpStatus,
-      headers: {
-        "Content-Type": "application/json",
-      },
+    // Step 6: Return 204 No Content on successful deletion
+    return new Response(null, {
+      status: 204 as HttpStatus,
     });
   } catch (error) {
     // Handle unexpected errors

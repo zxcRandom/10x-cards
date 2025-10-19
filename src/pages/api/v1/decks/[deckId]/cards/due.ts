@@ -206,8 +206,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // =========================================================================
     // STEP 5: Query Due Cards with Pagination
     // =========================================================================
-    const dbSortColumn =
-      sort === "nextReviewDate" ? "next_review_date" : "next_review_date";
+    const dbSortColumn = "next_review_date";
     const ascending = order === "asc";
 
     // Get due cards with pagination
