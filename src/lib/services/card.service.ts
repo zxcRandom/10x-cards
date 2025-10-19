@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "../../db/supabase.client";
 import type {
   CardDTO,
+  CardsListDTO,
   CreateCardCommand,
   DbCard,
   ErrorCode,
@@ -323,6 +324,142 @@ export const CardService = {
     } catch (error) {
       console.error("[CardService.updateCard] Unexpected error:", {
         cardId,
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { error: "INTERNAL_SERVER_ERROR" as ErrorCode };
+    }
+  },
+
+  /**
+   * Lists all cards in a deck with pagination, sorting, and filtering
+   *
+   * @param supabase - Supabase client instance
+   * @param deckId - UUID of the deck
+   * @param userId - UUID of the authenticated user (for ownership verification)
+   * @param options - Query options (pagination, sorting, search)
+   * @returns Promise<CardsListDTO | { error: ErrorCode }>
+   *
+   * @example
+   * const result = await CardService.listCards(
+   *   supabase,
+   *   "550e8400-e29b-41d4-a716-446655440000",
+   *   "bee8997e-9e30-4a76-b675-15917059c46a",
+   *   { limit: 20, offset: 0, sort: 'createdAt', order: 'desc', q: 'JavaScript' }
+   * );
+   */
+  async listCards(
+    supabase: SupabaseClient,
+    deckId: string,
+    userId: string,
+    options: {
+      limit: number;
+      offset: number;
+      sort:
+        | "createdAt"
+        | "updatedAt"
+        | "nextReviewDate"
+        | "easeFactor"
+        | "intervalDays"
+        | "repetitions";
+      order: "asc" | "desc";
+      q?: string;
+    }
+  ): Promise<CardsListDTO | { error: ErrorCode }> {
+    try {
+      // Verify deck ownership
+      const { exists, owned } = await this.verifyDeckOwnership(
+        supabase,
+        deckId,
+        userId
+      );
+
+      if (!exists) {
+        return { error: "DECK_NOT_FOUND" as ErrorCode };
+      }
+
+      if (!owned) {
+        return { error: "FORBIDDEN" as ErrorCode };
+      }
+
+      // Map sort field to database column
+      const sortFieldMap: Record<string, string> = {
+        createdAt: "created_at",
+        updatedAt: "updated_at",
+        nextReviewDate: "next_review_date",
+        easeFactor: "ease_factor",
+        intervalDays: "interval_days",
+        repetitions: "repetitions",
+      };
+
+      const sortField = sortFieldMap[options.sort];
+
+      // Build query for cards
+      let query = supabase
+        .from("cards")
+        .select("*")
+        .eq("deck_id", deckId);
+
+      // Add search filter if provided
+      if (options.q) {
+        query = query.ilike("question", `%${options.q}%`);
+      }
+
+      // Add sorting
+      query = query.order(sortField, { ascending: options.order === "asc" });
+
+      // Add pagination
+      query = query.range(
+        options.offset,
+        options.offset + options.limit - 1
+      );
+
+      // Execute query
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("[CardService.listCards] Database error:", {
+          deckId,
+          userId,
+          error: error.message,
+          code: error.code,
+        });
+        return { error: "DATABASE_ERROR" as ErrorCode };
+      }
+
+      // Get total count
+      let countQuery = supabase
+        .from("cards")
+        .select("*", { count: "exact", head: true })
+        .eq("deck_id", deckId);
+
+      if (options.q) {
+        countQuery = countQuery.ilike("question", `%${options.q}%`);
+      }
+
+      const { count, error: countError } = await countQuery;
+
+      if (countError) {
+        console.error("[CardService.listCards] Count query error:", {
+          deckId,
+          userId,
+          error: countError.message,
+        });
+        return { error: "DATABASE_ERROR" as ErrorCode };
+      }
+
+      // Map to DTOs
+      const items = (data || []).map(mapCardToDTO);
+
+      return {
+        items,
+        total: count || 0,
+        limit: options.limit,
+        offset: options.offset,
+      };
+    } catch (error) {
+      console.error("[CardService.listCards] Unexpected error:", {
+        deckId,
         userId,
         error: error instanceof Error ? error.message : String(error),
       });
