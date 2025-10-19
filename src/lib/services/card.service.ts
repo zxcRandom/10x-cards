@@ -123,6 +123,100 @@ export const CardService = {
   },
 
   /**
+   * Creates multiple cards in a deck (batch operation)
+   * Used primarily for AI-generated card creation
+   *
+   * @param supabase - Supabase client instance
+   * @param deckId - UUID of the deck to add cards to
+   * @param userId - UUID of the authenticated user (for ownership check)
+   * @param cards - Array of card creation data
+   * @returns Promise<CardDTO[] | { error: ErrorCode }>
+   *
+   * @example
+   * const result = await CardService.createCardsBatch(
+   *   supabase,
+   *   "550e8400-e29b-41d4-a716-446655440000",
+   *   "user-123",
+   *   [
+   *     { question: "Q1", answer: "A1" },
+   *     { question: "Q2", answer: "A2" }
+   *   ]
+   * );
+   */
+  async createCardsBatch(
+    supabase: SupabaseClient,
+    deckId: string,
+    userId: string,
+    cards: CreateCardCommand[]
+  ): Promise<CardDTO[] | { error: ErrorCode }> {
+    try {
+      // Verify deck ownership first
+      const { exists, owned } = await CardService.verifyDeckOwnership(
+        supabase,
+        deckId,
+        userId
+      );
+
+      if (!exists) {
+        return { error: "DECK_NOT_FOUND" as ErrorCode };
+      }
+
+      if (!owned) {
+        return { error: "FORBIDDEN" as ErrorCode };
+      }
+
+      // Prepare batch insert data
+      const now = new Date().toISOString();
+      const cardInserts = cards.map((card) => ({
+        deck_id: deckId,
+        question: card.question.trim(),
+        answer: card.answer.trim(),
+        ease_factor: SM2_DEFAULTS.easeFactor,
+        interval_days: SM2_DEFAULTS.intervalDays,
+        repetitions: SM2_DEFAULTS.repetitions,
+        next_review_date: now,
+      }));
+
+      // Insert all cards in one query
+      const { data, error } = await supabase
+        .from("cards")
+        .insert(cardInserts)
+        .select();
+
+      if (error) {
+        console.error("[CardService.createCardsBatch] Database error:", {
+          deckId,
+          userId,
+          cardsCount: cards.length,
+          error: error.message,
+          code: error.code,
+        });
+        return { error: "DATABASE_ERROR" as ErrorCode };
+      }
+
+      if (!data || data.length === 0) {
+        console.error("[CardService.createCardsBatch] No data returned:", {
+          deckId,
+          userId,
+          cardsCount: cards.length,
+        });
+        return { error: "DATABASE_ERROR" as ErrorCode };
+      }
+
+      console.log(`[CardService.createCardsBatch] Created ${data.length} cards for deck ${deckId}`);
+      return data.map(mapCardToDTO);
+    } catch (error) {
+      console.error("[CardService.createCardsBatch] Unexpected error:", {
+        deckId,
+        userId,
+        cardsCount: cards.length,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { error: "INTERNAL_SERVER_ERROR" as ErrorCode };
+    }
+  },
+
+  /**
    * Retrieves a card by ID
    *
    * @param supabase - Supabase client instance
