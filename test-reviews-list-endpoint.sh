@@ -90,14 +90,12 @@ test_endpoint \
     "Authorization: Bearer $AUTH_TOKEN"
 
 # TEST 6: Filter by date range
-test_endpoint \
-    "Filter reviews by date range" \
-    "# TEST 6: Filter by date range
 # Use relative dates to avoid test failures when year changes
 FROM_DATE="$(date -u +"%Y-01-01T00:00:00Z")"
 TO_DATE="$(date -u +"%Y-12-31T23:59:59Z")"
-RESPONSE=$(curl -s -w "\n%{http_code}" \
-    "$BASE_URL/api/v1/reviews?from=$FROM_DATE&to=$TO_DATE" \" \
+test_endpoint \
+    "Filter reviews by date range" \
+    "$BASE_URL/api/v1/reviews?from=$FROM_DATE&to=$TO_DATE" \
     "200" \
     "Authorization: Bearer $AUTH_TOKEN"
 

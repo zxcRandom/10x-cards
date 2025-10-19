@@ -45,6 +45,25 @@ interface CardWithDeck {
 }
 
 /**
+ * Type guard to validate CardWithDeck structure
+ */
+function isCardWithDeck(data: unknown): data is CardWithDeck {
+  if (!data || typeof data !== 'object') return false;
+  const card = data as Record<string, unknown>;
+  return (
+    typeof card.id === 'string' &&
+    typeof card.deck_id === 'string' &&
+    typeof card.ease_factor === 'number' &&
+    typeof card.interval_days === 'number' &&
+    typeof card.repetitions === 'number' &&
+    typeof card.next_review_date === 'string' &&
+    typeof card.deck === 'object' &&
+    card.deck !== null &&
+    typeof (card.deck as Record<string, unknown>).user_id === 'string'
+  );
+}
+
+/**
  * Maps database review row (snake_case) to ReviewDTO (camelCase)
  *
  * @param dbReview - Review row from database
@@ -206,13 +225,22 @@ export const ReviewService = {
         return { error: "CARD_NOT_FOUND" as ErrorCode };
       }
 
-      // Check ownership via JOIN - properly typed
-      const deck = (card as CardWithDeck).deck;
-      if (!deck || deck.user_id !== userId) {
+      // Validate card structure with runtime type checking
+      if (!isCardWithDeck(card)) {
+        console.error("[ReviewService.createReview] Invalid card structure:", {
+          cardId,
+          userId,
+          cardStructure: card,
+        });
+        return { error: "DATABASE_ERROR" as ErrorCode };
+      }
+
+      // Check ownership via JOIN - safely typed with runtime validation
+      if (!card.deck || card.deck.user_id !== userId) {
         console.warn("[ReviewService.createReview] Access denied:", {
           cardId,
           userId,
-          deckUserId: deck?.user_id,
+          deckUserId: card.deck?.user_id,
         });
         return { error: "FORBIDDEN" as ErrorCode };
       }

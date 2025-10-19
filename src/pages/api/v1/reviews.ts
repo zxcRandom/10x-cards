@@ -44,17 +44,17 @@ export const GET: APIRoute = async ({ url, locals }) => {
 		const queryParams = Object.fromEntries(url.searchParams.entries());
 		const validated = reviewsQuerySchema.parse(queryParams);
 
-		// STEP 3: Build database query with filters
-		let query = locals.supabase
-			.from('reviews')
-			.select('*')
+	// STEP 3: Build database query with filters
+	let query = locals.supabase
+		.from('reviews')
+		.select('*')
 		.eq('user_id', user.id);
 
 	// Cache cardIds for reuse in count query (avoid duplicate DB call)
 	let cardIds: string[] | null = null;
 
 	// Apply optional filters
-		if (validated.cardId) {
+	if (validated.cardId) {
 			query = query.eq('card_id', validated.cardId);
 		}
 
@@ -151,7 +151,9 @@ export const GET: APIRoute = async ({ url, locals }) => {
 	}
 	if (validated.to) {
 		countQuery = countQuery.lte('review_date', validated.to);
-	}		const { count, error: countError } = await countQuery;
+	}
+
+	const { count, error: countError } = await countQuery;
 
 		if (countError) {
 			console.error('Failed to count reviews:', countError);
