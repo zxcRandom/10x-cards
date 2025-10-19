@@ -48,9 +48,12 @@ export const GET: APIRoute = async ({ url, locals }) => {
 		let query = locals.supabase
 			.from('reviews')
 			.select('*')
-			.eq('user_id', user.id);
+		.eq('user_id', user.id);
 
-		// Apply optional filters
+	// Cache cardIds for reuse in count query (avoid duplicate DB call)
+	let cardIds: string[] | null = null;
+
+	// Apply optional filters
 		if (validated.cardId) {
 			query = query.eq('card_id', validated.cardId);
 		}
@@ -77,8 +80,8 @@ export const GET: APIRoute = async ({ url, locals }) => {
 				);
 			}
 
-			// Filter reviews by card IDs in this deck
-			const cardIds = (cardsInDeck || []).map((card) => card.id);
+			// Filter reviews by card IDs in this deck (store for reuse)
+			cardIds = (cardsInDeck || []).map((card) => card.id);
 			if (cardIds.length > 0) {
 				query = query.in('card_id', cardIds);
 			} else {
@@ -133,30 +136,22 @@ export const GET: APIRoute = async ({ url, locals }) => {
 			.select('*', { count: 'exact', head: true })
 			.eq('user_id', user.id);
 
-		// Apply same filters to count query
-		if (validated.cardId) {
-			countQuery = countQuery.eq('card_id', validated.cardId);
+	// Apply same filters to count query
+	if (validated.cardId) {
+		countQuery = countQuery.eq('card_id', validated.cardId);
+	}
+	if (validated.deckId && cardIds) {
+		// Reuse cached cardIds from earlier query (avoid duplicate DB call)
+		if (cardIds.length > 0) {
+			countQuery = countQuery.in('card_id', cardIds);
 		}
-		if (validated.deckId) {
-			// Reuse the card IDs from the main query
-			const { data: cardsInDeck } = await locals.supabase
-				.from('cards')
-				.select('id')
-				.eq('deck_id', validated.deckId);
-
-			const cardIds = (cardsInDeck || []).map((card) => card.id);
-			if (cardIds.length > 0) {
-				countQuery = countQuery.in('card_id', cardIds);
-			}
-		}
-		if (validated.from) {
-			countQuery = countQuery.gte('review_date', validated.from);
-		}
-		if (validated.to) {
-			countQuery = countQuery.lte('review_date', validated.to);
-		}
-
-		const { count, error: countError } = await countQuery;
+	}
+	if (validated.from) {
+		countQuery = countQuery.gte('review_date', validated.from);
+	}
+	if (validated.to) {
+		countQuery = countQuery.lte('review_date', validated.to);
+	}		const { count, error: countError } = await countQuery;
 
 		if (countError) {
 			console.error('Failed to count reviews:', countError);
