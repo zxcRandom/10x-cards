@@ -212,5 +212,187 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   }
 };
 
+/**
+ * DELETE /api/v1/cards/{cardId}
+ *
+ * Permanently deletes a card from the database (hard delete).
+ * Automatically cascades to delete related reviews via foreign key constraint.
+ *
+ * Authentication: Required (Bearer token)
+ * Authorization: User must own the card (via deck ownership)
+ *
+ * Success Response: 200 OK
+ * {
+ *   "status": "deleted"
+ * }
+ *
+ * Error Responses:
+ * - 401 Unauthorized: Missing or invalid token
+ * - 404 Not Found: Card doesn't exist or doesn't belong to user
+ * - 500 Internal Server Error: Unexpected error
+ */
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  try {
+    // =========================================================================
+    // STEP 1: Authentication Check
+    // =========================================================================
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.warn("[DELETE /api/v1/cards/{cardId}] Authentication failed:", {
+        error: authError?.message,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // =========================================================================
+    // STEP 2: Path Parameter Validation
+    // =========================================================================
+    const cardIdValidation = cardIdParamSchema.safeParse(params.cardId);
+
+    if (!cardIdValidation.success) {
+      console.warn("[DELETE /api/v1/cards/{cardId}] Invalid cardId format:", {
+        cardId: params.cardId,
+        userId: user.id,
+        error: cardIdValidation.error.errors[0]?.message,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "CARD_NOT_FOUND",
+          message: "Card not found",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const cardId = cardIdValidation.data;
+
+    // =========================================================================
+    // STEP 3: Card Ownership Verification
+    // =========================================================================
+    // Verify card exists and belongs to user by joining with decks table
+    const { data: card, error: cardError } = await locals.supabase
+      .from("cards")
+      .select(
+        `
+        id,
+        deck:decks!inner(user_id)
+      `
+      )
+      .eq("id", cardId)
+      .eq("deck.user_id", user.id)
+      .single();
+
+    if (cardError || !card) {
+      console.warn(
+        "[DELETE /api/v1/cards/{cardId}] Card not found or access denied:",
+        {
+          cardId,
+          userId: user.id,
+          error: cardError?.message,
+          code: cardError?.code,
+          timestamp: new Date().toISOString(),
+        }
+      );
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "CARD_NOT_FOUND",
+          message: "Card not found",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // =========================================================================
+    // STEP 4: Delete Card from Database
+    // =========================================================================
+    // Hard delete - will cascade to reviews table via FK constraint
+    const { error: deleteError } = await locals.supabase
+      .from("cards")
+      .delete()
+      .eq("id", cardId);
+
+    if (deleteError) {
+      console.error("[DELETE /api/v1/cards/{cardId}] Delete failed:", {
+        cardId,
+        userId: user.id,
+        error: deleteError.message,
+        code: deleteError.code,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete card",
+          details: "Database delete operation failed",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // =========================================================================
+    // STEP 5: Return Success Response
+    // =========================================================================
+    console.info("[DELETE /api/v1/cards/{cardId}] Card deleted successfully:", {
+      cardId,
+      userId: user.id,
+      timestamp: new Date().toISOString(),
+    });
+
+    const response = {
+      status: "deleted",
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("[DELETE /api/v1/cards/{cardId}] Unexpected error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+
+    const errorResponse: ErrorResponse = {
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred",
+      },
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
+
 // Disable prerendering for API route
 export const prerender = false;
