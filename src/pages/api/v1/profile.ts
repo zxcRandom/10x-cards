@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 import { ConflictError, ProfileService, UnprocessableError } from "@/lib/services/profile.service";
 import { UpdateProfileSchema } from "@/lib/validation/profile.schemas";
 import { formatZodErrors } from "@/lib/utils/zod-errors";
-import type { ErrorCode, ErrorResponse, HttpStatus, ProfileDTO } from "@/types";
+import type { ErrorCode, ErrorResponse, HttpStatus, ProfileDTO, ProfileDeletedDTO } from "@/types";
 
 /**
  * GET /api/v1/profile
@@ -325,6 +325,127 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify(errorResponse), {
       status: 500 as HttpStatus,
       headers: { "Content-Type": "application/json" },
+    });
+  }
+};
+
+/**
+ * DELETE /api/v1/profile
+ *
+ * Soft deletes the profile of the authenticated user.
+ *
+ * Features:
+ * - Requires authentication (Supabase JWT token)
+ * - Soft delete: sets deleted_at timestamp, doesn't physically remove data
+ * - Idempotent: multiple calls return success (true REST semantics)
+ * - User can only delete their own profile (authorization enforced)
+ * - Profile can be restored later with PATCH /api/v1/profile {restore: true}
+ * - Historical data (decks, cards, reviews) is preserved for data integrity
+ *
+ * @returns {ProfileDeletedDTO} 200 OK - Profile soft deleted successfully
+ * @returns {ErrorResponse} 401 Unauthorized - Missing or invalid authentication token
+ * @returns {ErrorResponse} 404 Not Found - Profile not found
+ * @returns {ErrorResponse} 500 Internal Server Error - Database error or unexpected exception
+ */
+export const DELETE: APIRoute = async ({ locals }) => {
+  try {
+    // Step 1: Authentication check (double-check after middleware)
+    // Get user from Supabase auth using the JWT token
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
+
+    // If authentication failed or user doesn't exist, return 401 Unauthorized
+    if (authError || !user) {
+      console.error("[DELETE /api/v1/profile] Authentication failed:", {
+        error: authError?.message,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "UNAUTHORIZED" as ErrorCode,
+          message: "Authentication required. Please provide a valid access token.",
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 401 as HttpStatus,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    // Step 2: Execute soft delete through service
+    // User ID comes from verified JWT token (secure - cannot be manipulated)
+    const deleteResult = await ProfileService.deleteProfile(user.id, locals.supabase);
+
+    // Step 3: Log success (optional, for audit)
+    console.info("[DELETE /api/v1/profile] Profile deleted:", {
+      userId: user.id,
+      deletedAt: deleteResult.deletedAt,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Step 4: Success - return deletion confirmation
+    const successResponse: ProfileDeletedDTO = deleteResult;
+
+    return new Response(JSON.stringify(successResponse), {
+      status: 200 as HttpStatus,
+      headers: {
+        "Content-Type": "application/json",
+        // No caching for deletion confirmations
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+      },
+    });
+  } catch (error) {
+    // Handle profile not found (should be rare - indicates data integrity issue)
+    if (error instanceof Error && error.message === "Profile not found") {
+      console.error("[DELETE /api/v1/profile] Profile not found for user:", {
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: "PROFILE_NOT_FOUND" as ErrorCode,
+          message: "User profile not found. Please contact support if this issue persists.",
+        },
+      };
+
+      return new Response(JSON.stringify(errorResponse), {
+        status: 404 as HttpStatus,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    // Handle unexpected errors (database errors, exceptions)
+    console.error("[DELETE /api/v1/profile] Unexpected error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+
+    const errorResponse: ErrorResponse = {
+      error: {
+        code: "INTERNAL_SERVER_ERROR" as ErrorCode,
+        message: "An unexpected error occurred. Please try again later.",
+        // Include details only in development mode for debugging
+        ...(import.meta.env.DEV && {
+          details: error instanceof Error ? error.message : String(error),
+        }),
+      },
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500 as HttpStatus,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }
 };

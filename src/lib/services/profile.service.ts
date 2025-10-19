@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/db/database.types";
-import type { DbProfile, ProfileDTO, UpdateProfileCommand } from "@/types";
+import type { DbProfile, ProfileDTO, ProfileDeletedDTO, UpdateProfileCommand } from "@/types";
 
 /**
  * Type for Supabase client with proper typing
@@ -163,5 +163,51 @@ export const ProfileService = {
         'Please restore the profile first or include "restore": true in the request'
       );
     }
+  },
+
+  /**
+   * Soft deletes a user profile by setting deleted_at timestamp
+   * Enables idempotent deletion: multiple calls return success without changing data
+   *
+   * @param userId - User UUID from JWT token
+   * @param supabase - Supabase client instance tied to the request
+   * @returns ProfileDeletedDTO with deleted_at timestamp
+   * @throws Error - When profile is not found or database error occurs
+   */
+  async deleteProfile(
+    userId: string,
+    supabase: TypedSupabaseClient
+  ): Promise<ProfileDeletedDTO> {
+    // Step 1: Retrieve current profile to ensure it exists
+    const currentProfile = await this.getProfile(userId, supabase);
+
+    if (!currentProfile) {
+      throw new Error("Profile not found");
+    }
+
+    // Step 2: Perform soft delete (Strategia A: true idempotency)
+    // If already deleted, this returns the existing deleted_at timestamp
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({
+        deleted_at: currentProfile.deletedAt || new Date().toISOString(),
+      })
+      .eq("id", userId)
+      .select("deleted_at")
+      .single();
+
+    if (error) {
+      throw new Error(`Database error: ${error.message}`);
+    }
+
+    if (!data || !data.deleted_at) {
+      throw new Error("Delete failed: no data returned");
+    }
+
+    // Step 3: Return deletion response with timestamp
+    return {
+      status: "deleted" as const,
+      deletedAt: data.deleted_at,
+    };
   },
 } as const;
