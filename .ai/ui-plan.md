@@ -10,6 +10,7 @@ Główna struktura opiera się na kilku kluczowych widokach, które prowadzą u�
 
 ### Widok: Logowanie
 - **Ścieżka widoku**: `/login`
+- **Status**: Poza MVP (placeholder)
 - **Główny cel**: Umożliwienie użytkownikowi zalogowania się na swoje konto.
 - **Kluczowe informacje do wyświetlenia**: Formularz z polami na e-mail i hasło, link do resetowania hasła.
 - **Kluczowe komponenty widoku**: `Card`, `Input`, `Button`, `Toast` (dla błędów).
@@ -17,17 +18,26 @@ Główna struktura opiera się na kilku kluczowych widokach, które prowadzą u�
 
 ### Widok: Rejestracja
 - **Ścieżka widoku**: `/register`
+- **Status**: Poza MVP (placeholder)
 - **Główny cel**: Umożliwienie nowemu użytkownikowi założenia konta.
 - **Kluczowe informacje do wyświetlenia**: Formularz z polami na e-mail i hasło (z potwierdzeniem).
 - **Kluczowe komponenty widoku**: `Card`, `Input`, `Button`, `Toast`.
 - **UX, dostępność i względy bezpieczeństwa**: Walidacja formatu e-mail i wymagań dotyczących siły hasła. Jasne komunikaty o błędach (np. zajęty e-mail).
+
+### Widok: Reset hasła
+- **Ścieżka widoku**: `/reset-password`
+- **Status**: Poza MVP (placeholder)
+- **Główny cel**: Umożliwienie ustawienia nowego hasła z linku.
+- **Kluczowe informacje do wyświetlenia**: Pola nowe hasło + potwierdzenie.
+- **Kluczowe komponenty widoku**: `Card`, `Input`, `Button`, `Toast`.
+- **UX, dostępność i względy bezpieczeństwa**: Jasny komunikat o powodzeniu i link do logowania.
 
 ### Widok: Dashboard (Panel główny)
 - **Ścieżka widoku**: `/`
 - **Główny cel**: Centralny punkt aplikacji, umożliwiający szybki dostęp do generowania fiszek AI i przeglądania istniejących talii.
 - **Kluczowe informacje do wyświetlenia**: Komponent do generowania fiszek z tekstu, lista ostatnio używanych/stworzonych talii.
 - **Kluczowe komponenty widoku**: `Card`, `Input` (dla tekstu do AI), `Button`, `Toast`.
-- **UX, dostępność i względy bezpieczeństwa**: Prosty, jednokolumnowy układ. Stan ładowania podczas generowania fiszek przez AI. Obsługa stanu pustego (brak talii).
+- **UX, dostępność i względy bezpieczeństwa**: Prosty, jednokolumnowy układ. Stan ładowania podczas generowania fiszek przez AI. Obsługa stanu pustego (brak talii). Jeden przycisk „Generuj/Anuluj” (toggle w trakcie przetwarzania); bez paska progresu — tylko spinner i zwięzły komunikat.
 
 ### Widok: Recenzja fiszek AI
 - **Ścieżka widoku**: `/generate/review`
@@ -53,9 +63,9 @@ Główna struktura opiera się na kilku kluczowych widokach, które prowadzą u�
 ### Widok: Sesja nauki
 - **Ścieżka widoku**: `/decks/[deckId]/study`
 - **Główny cel**: Przeprowadzenie sesji powtórkowej z wykorzystaniem algorytmu SM-2.
-- **Kluczowe informacje do wyświetlenia**: Pytanie z fiszki, przycisk do pokazania odpowiedzi, przyciski oceny (0-5).
+- **Kluczowe informacje do wyświetlenia**: Pytanie z fiszki, przycisk do pokazania odpowiedzi, przyciski oceny (0-5). Po zakończeniu sesji — stan „done” w tej samej trasie z podsumowaniem: liczba ocenionych kart, średnia ocena oraz CTA „Powrót do talii”.
 - **Kluczowe komponenty widoku**: `Card`, `Button`.
-- **UX, dostępność i względy bezpieczeństwa**: Minimalistyczny interfejs skupiający uwagę na jednej fiszce. Po zakończeniu sesji proste podsumowanie z gratulacjami.
+- **UX, dostępność i względy bezpieczeństwa**: Minimalistyczny interfejs skupiający uwagę na jednej fiszce. Podsumowanie bez dodatkowej nawigacji (ten sam widok), wyraźne CTA „Powrót do talii”.
 
 ## 3. Mapa podróży użytkownika
 
