@@ -287,7 +287,7 @@ async function handleFlashcardGeneration(
       userId,
       deckId: deck.id,
       inputTextLength: input.inputText.length,
-  generatedCardsCount: createdCards.length,
+      generatedCardsCount: createdCards.length,
       errorMessage: null,
     });
 
@@ -297,7 +297,7 @@ async function handleFlashcardGeneration(
 
     const response: AIDeckResponseDTO = {
       deck,
-  cards: createdCards.map((card: CardDTO) => ({
+      cards: createdCards.map((card: CardDTO) => ({
         id: card.id,
         question: card.question,
         answer: card.answer,
