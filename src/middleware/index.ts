@@ -3,20 +3,89 @@ import { defineMiddleware } from "astro:middleware";
 import { createServerClient } from "../db/supabase.client.ts";
 
 /**
+ * Public paths that don't require authentication
+ * Includes both server-rendered pages and API endpoints
+ */
+const PUBLIC_PATHS = [
+  // Public pages
+  "/",
+  "/privacy-policy",
+  
+  // Auth pages
+  "/auth/login",
+  "/auth/register",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  
+  // Auth API endpoints
+  "/api/v1/auth/sign-in",
+  "/api/v1/auth/sign-up",
+  "/api/v1/auth/sign-out",
+  "/api/v1/auth/password/request-reset",
+  "/api/v1/auth/password/reset",
+  
+  // Health check
+  "/api/v1/health",
+];
+
+/**
  * Middleware that initializes Supabase client for each request
  * Creates a request-specific client that handles user sessions via cookies or Authorization header
  * Supports both cookie-based auth (for web) and Bearer token auth (for API)
+ * 
+ * Also handles authentication and redirects for protected routes
  */
-export const onRequest = defineMiddleware((context, next) => {
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { cookies, request, url, redirect, locals } = context;
+  
   // Get the Cookie header from the request for parsing existing cookies
-  const cookieHeader = context.request.headers.get("Cookie");
+  const cookieHeader = request.headers.get("Cookie");
   
   // Get Authorization header for Bearer token auth (API routes)
-  const authHeader = context.request.headers.get("Authorization");
+  const authHeader = request.headers.get("Authorization");
 
   // Create a Supabase client tied to this specific request
   // This ensures proper session handling and cookie management
-  context.locals.supabase = createServerClient(context.cookies, cookieHeader, authHeader);
+  locals.supabase = createServerClient(cookies, cookieHeader, authHeader);
+
+  // Check if current path is public
+  const isPublicPath = PUBLIC_PATHS.some(path => url.pathname === path || url.pathname.startsWith(path));
+
+  // Always get user session for authenticated requests
+  const {
+    data: { user },
+    error: authError,
+  } = await locals.supabase.auth.getUser();
+
+  // DEBUG: Log auth state for debugging
+  if (url.pathname !== "/api/v1/health") {
+    console.log(`[MIDDLEWARE] ${url.pathname}`);
+    console.log(`  Cookie header: ${cookieHeader ? 'present' : 'missing'}`);
+    console.log(`  User: ${user ? user.email : 'null'}`);
+    if (authError) {
+      console.log(`  Auth error: ${authError.message}`);
+    }
+  }
+
+  // Store user in locals for easy access in pages/endpoints
+  if (user) {
+    locals.user = {
+      id: user.id,
+      email: user.email ?? undefined,
+    };
+  }
+
+  // Redirect logic for protected routes
+  if (!isPublicPath && !user) {
+    // Save the original URL for redirect after login
+    const nextUrl = url.pathname + url.search;
+    return redirect(`/auth/login?next=${encodeURIComponent(nextUrl)}`);
+  }
+
+  // Redirect logged-in users away from auth pages
+  if (user && url.pathname.startsWith("/auth/")) {
+    return redirect("/decks");
+  }
 
   return next();
 });

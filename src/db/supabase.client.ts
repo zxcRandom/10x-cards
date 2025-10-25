@@ -24,18 +24,19 @@ export type SupabaseClient<T = Database> = ReturnType<typeof createSupabaseClien
  * @param cookies - Astro cookies object from the request context
  * @param cookieHeader - Optional raw Cookie header string for parsing existing cookies
  * @param authHeader - Optional Authorization header with Bearer token (for API routes)
- * @returns SupabaseClient instance configured for the current request
+ * @returns SupabaseClient instance configured for the current request along with cookies to set
  */
 export function createServerClient(
   cookies: AstroCookies,
   cookieHeader?: string | null,
   authHeader?: string | null
-): SupabaseClient<Database> {
+): SupabaseClient<Database> & { __cookiesToSet?: Array<{ name: string; value: string; options: any }> } {
+  const cookiesToSet: Array<{ name: string; value: string; options: any }> = [];
+  
   const client = createSSRClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         // Parse all cookies from the Cookie header if provided
-        // Filter out cookies with undefined values and ensure type compatibility
         if (cookieHeader) {
           return parseCookieHeader(cookieHeader)
             .filter((cookie): cookie is { name: string; value: string } => cookie.value !== undefined)
@@ -43,8 +44,13 @@ export function createServerClient(
         }
         return [];
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
+      setAll(cookiesToSetBatch) {
+        console.log(`[SUPABASE] Setting ${cookiesToSetBatch.length} cookies:`, 
+          cookiesToSetBatch.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
+        cookiesToSetBatch.forEach(({ name, value, options }) => {
+          // Store cookies for later retrieval
+          cookiesToSet.push({ name, value, options });
+          // Also set in Astro cookies
           cookies.set(name, value, {
             ...options,
             path: options.path ?? "/",
@@ -55,7 +61,10 @@ export function createServerClient(
     global: {
       headers: authHeader ? { Authorization: authHeader } : {},
     },
-  }) as SupabaseClient<Database>;
+  }) as SupabaseClient<Database> & { __cookiesToSet?: Array<{ name: string; value: string; options: any }> };
+
+  // Attach the cookies array to the client for retrieval in endpoints
+  client.__cookiesToSet = cookiesToSet;
 
   return client;
 }

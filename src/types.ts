@@ -403,6 +403,64 @@ export interface HealthDTO {
 }
 
 // =============================================================================
+// Auth DTOs and Commands
+// =============================================================================
+
+/**
+ * Sign In Command - POST /api/v1/auth/sign-in
+ */
+export interface SignInCommand {
+  email: string;
+  password: string;
+}
+
+/**
+ * Sign Up Command - POST /api/v1/auth/sign-up
+ */
+export interface SignUpCommand {
+  email: string;
+  password: string;
+}
+
+/**
+ * Password Reset Request Command - POST /api/v1/auth/password/request-reset
+ */
+export interface PasswordResetRequestCommand {
+  email: string;
+}
+
+/**
+ * Password Reset Command - POST /api/v1/auth/password/reset
+ */
+export interface PasswordResetCommand {
+  newPassword: string;
+}
+
+/**
+ * Change Password Command - POST /api/v1/auth/password/change
+ */
+export interface ChangePasswordCommand {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+/**
+ * Delete Account Command - DELETE /api/v1/auth/account/delete
+ */
+export interface DeleteAccountCommand {
+  confirm: string;
+}
+
+/**
+ * Auth Success Response - POST /api/v1/auth/sign-in, sign-up
+ */
+export interface AuthSuccessDTO {
+  status: "ok";
+  redirect?: string; // Optional redirect URL after successful auth
+}
+
+// =============================================================================
 // Utility Types for Entity Transformations
 // =============================================================================
 

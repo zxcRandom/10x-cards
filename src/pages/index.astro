@@ -2,30 +2,98 @@
 import Layout from "../layouts/Layout.astro";
 import { AIFlashcardGenerator } from "../components/dashboard/AIFlashcardGenerator";
 import { RecentDecksList } from "../components/dashboard/RecentDecksList";
+import AuthNav from "../components/auth/AuthNav";
+
+// Check authentication status
+const { data: { user } } = await Astro.locals.supabase.auth.getUser();
+
+// Set page title based on auth status
+const pageTitle = user ? "Dashboard - 10x Cards" : "10x Cards - Inteligentne fiszki do nauki";
 ---
 
-<Layout title="Dashboard - 10x Cards">
-  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-    <div class="container max-w-6xl mx-auto px-4 py-8 space-y-8">
-      <!-- Header -->
-      <div class="text-center space-y-2">
-        <h1 class="text-4xl font-bold tracking-tight">
-          Witaj w <span class="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">10x Cards</span>
-        </h1>
-        <p class="text-muted-foreground text-lg">
-          Twoje inteligentne fiszki do nauki
-        </p>
-      </div>
+<Layout title={pageTitle}>
+  {user ? (
+    <!-- Dashboard for authenticated users -->
+    <>
+      <AuthNav userEmail={user.email} client:load />
+      <div class="container mx-auto py-8 space-y-8 max-w-6xl">
+        <!-- Welcome Header -->
+        <div>
+          <h1 class="text-3xl font-bold">Dashboard</h1>
+          <p class="text-muted-foreground mt-1">
+            Witaj, {user.email}! Wygeneruj nowe fiszki lub kontynuuj naukę.
+          </p>
+        </div>
 
-      <!-- AI Generator Section -->
-      <div class="max-w-3xl mx-auto">
+        <!-- AI Generator Section -->
         <AIFlashcardGenerator client:load />
-      </div>
 
-      <!-- Recent Decks Section -->
-      <div class="pt-8">
-        <RecentDecksList client:load />
+        <!-- Recent Decks Section -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-semibold">Ostatnio używane talie</h2>
+            <a
+              href="/decks"
+              class="text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-2 py-1"
+            >
+              Zobacz wszystkie →
+            </a>
+          </div>
+          <RecentDecksList client:load />
+        </div>
+      </div>
+    </>
+  ) : (
+    <!-- Landing page for unauthenticated users -->
+    <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div class="container max-w-6xl mx-auto px-4 py-8 space-y-8">
+        <!-- Header -->
+        <div class="text-center space-y-4">
+          <h1 class="text-5xl font-bold tracking-tight">
+            Witaj w <span class="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">10x Cards</span>
+          </h1>
+          <p class="text-muted-foreground text-xl max-w-2xl mx-auto">
+            Twoje inteligentne fiszki do nauki. Przyspiesz naukę dzięki AI i metodzie powtórek.</p>
+          
+          <!-- CTA Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+            <a
+              href="/auth/register"
+              class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+            >
+              Rozpocznij za darmo
+            </a>
+            <a
+              href="/auth/login"
+              class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8"
+            >
+              Zaloguj się
+            </a>
+          </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="grid md:grid-cols-3 gap-6 pt-12 max-w-5xl mx-auto">
+          <div class="p-6 rounded-lg border border-border bg-card">
+            <h3 class="text-lg font-semibold mb-2">🤖 AI Generator</h3>
+            <p class="text-muted-foreground text-sm">
+              Wklej tekst, a AI automatycznie utworzy fiszki dla Ciebie
+            </p>
+          </div>
+          <div class="p-6 rounded-lg border border-border bg-card">
+            <h3 class="text-lg font-semibold mb-2">📊 Inteligentne powtórki</h3>
+            <p class="text-muted-foreground text-sm">
+              System SM-2 optymalizuje harmonogram nauki dla maksymalnej retencji
+            </p>
+          </div>
+          <div class="p-6 rounded-lg border border-border bg-card">
+            <h3 class="text-lg font-semibold mb-2">📚 Organizacja</h3>
+            <p class="text-muted-foreground text-sm">
+              Twórz talie, śledź postępy i ucz się efektywniej
+            </p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  )}
 </Layout>
