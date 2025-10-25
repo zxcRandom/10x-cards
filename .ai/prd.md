@@ -22,6 +22,25 @@ Głównym problemem, który rozwiązuje 10x-cards, jest fakt, że manualne tworz
 - Użytkownik musi mieć możliwość zmiany swojego hasła.
 - Użytkownik musi mieć możliwość trwałego usunięcia swojego konta wraz ze wszystkimi danymi.
 
+#### 3.1.1. Rejestracja i logowanie (MVP)
+- Dostawca autentykacji: Supabase Auth (e-mail + hasło).
+- Rejestracja:
+    - Formularz: e-mail (weryfikacja formatu) + hasło.
+    - Minimalne wymagania hasła: ≥ 8 znaków (bez dodatkowych reguł złożoności w MVP).
+    - Po sukcesie użytkownik jest automatycznie zalogowany i przekierowany do panelu.
+    - Weryfikacja e-mail (opcjonalna w MVP) – jeśli włączona, konto wymaga potwierdzenia linkiem.
+- Logowanie:
+    - Formularz: e-mail + hasło.
+    - Komunikaty błędów są neutralne (bez ujawniania, czy e-mail istnieje).
+    - Ograniczenie prób (rate limit): np. max 5 nieudanych prób na 10 minut per IP i per e-mail.
+- Wylogowanie: unieważnienie sesji i przekierowanie do ekranu logowania/strony głównej.
+- Reset hasła: link jednorazowy ważny 60 min (zgodnie z US-014).
+- Sesje i tokeny:
+    - Przechowywanie w bezpiecznych ciasteczkach HTTP-only, Secure, SameSite=Lax/Strict.
+    - Brak przechowywania tokenów w localStorage/sessionStorage.
+    - Czas życia sesji w MVP: np. 7 dni; możliwość ręcznego wylogowania.
+    - Mutujące endpointy wymagają ochrony przed CSRF (token lub SameSite=Strict + double-submit).
+
 ### 3.2. Zarządzanie taliami fiszek
 - Użytkownik musi mieć możliwość stworzenia nowej, pustej talii fiszek i nadania jej nazwy.
 - Użytkownik musi mieć możliwość zmiany nazwy istniejącej talii.
@@ -241,3 +260,54 @@ Kluczowe wskaźniki efektywności (KPIs) dla MVP będą mierzone w celu oceny pr
     - Zdarzenie `card_created_ai`: śledzone, gdy fiszka pochodząca z AI jest zapisywana w talii.
     - Zdarzenie `card_created_manual`: śledzone, gdy użytkownik manualnie tworzy i zapisuje nową fiszkę.
 - Formuła: `card_created_ai` / ( `card_created_ai` + `card_created_manual` ) >= 0.75
+
+## 7. Wymagania bezpieczeństwa (MVP)
+
+### 7.1. Założenia i zakres
+- Celem jest minimalny, praktyczny poziom zabezpieczeń adekwatny do MVP, z jasną ścieżką rozszerzeń po walidacji produktu.
+
+### 7.2. Kontrola dostępu i autoryzacja
+- Supabase Row-Level Security (RLS) włączone dla wszystkich tabel powiązanych z użytkownikiem (np. `user_id`).
+- Polityki RLS egzekwują dostęp wyłącznie do danych właściciela.
+- W środowisku developerskim dopuszczalne czasowe wyłączenie RLS, ale produkcja wymaga RLS włączonego.
+
+### 7.3. Sesje i uwierzytelnianie
+- Autentykacja przez Supabase Auth (e-mail + hasło).
+- Tokeny/sesje przechowywane w HttpOnly Secure cookies, SameSite=Lax/Strict.
+- Neutralne komunikaty błędów przy logowaniu i resecie hasła.
+- Rate limiting na krytyczne ścieżki (rejestracja, logowanie, reset hasła).
+
+### 7.4. Walidacja i limity
+- Walidacja wejścia (Zod) na wszystkich API, w tym limity długości tekstu wejściowego do AI (np. 10 000 znaków w MVP).
+- Odrzucanie danych binarnych/HTML – edytory akceptują wyłącznie plaintext.
+
+### 7.5. Komunikacja z dostawcami zewnętrznymi (AI)
+- Dane tekstowe użytkownika mogą być przesyłane do OpenRouter/wybranego modelu – wyraźnie opisane w Polityce Prywatności.
+- Nie wysyłać danych wrażliwych/PII innych niż treść wklejona przez użytkownika.
+- Klucze API tylko po stronie serwera (nigdy w kliencie), poprzez zmienne środowiskowe.
+
+### 7.6. Ochrona API i infrastruktury
+- CORS ograniczony do zaufanych originów środowiska produkcyjnego.
+- Bazowy Content Security Policy (CSP) dopasowany do Astro/React:
+    - `default-src 'self'`;
+    - `script-src 'self' 'unsafe-inline'` (MVP – do zaostrzenia po stabilizacji);
+    - `connect-src 'self' https://*.supabase.co https://api.openrouter.ai`;
+    - `img-src 'self' data:`;
+    - `style-src 'self' 'unsafe-inline'`;
+    - `frame-ancestors 'none'`.
+- HTTPS wszędzie (HSTS na warstwie hostingowej po wdrożeniu prod).
+- Rate limiting na endpointach generowania AI i zapisów (ochrona kosztów i stabilności).
+
+### 7.7. Logowanie i błędy
+- Logi aplikacyjne bez danych wrażliwych i bez treści haseł/tokenów.
+- Przy błędach zwracane ogólne komunikaty; szczegóły techniczne tylko w logach serwera.
+
+### 7.8. Zarządzanie zależnościami i CI/CD
+- Automatyczne skany podatności (np. `npm audit`/Dependabot) w pipeline CI.
+- Zasada least privilege dla sekretów CI/CD (GitHub Actions, DigitalOcean).
+
+### 7.9. Poza MVP (następne kroki)
+- Weryfikacja e-mail jako obowiązkowa, 2FA (TOTP/WebAuthn).
+- Dokładniejsza polityka haseł (złożoność, wykluczenia najczęstszych haseł, zliczanie reuse).
+- Silniejszy CSP bez `unsafe-inline`, raportowanie CSP.
+- Audit logi bezpieczeństwa (logins, password changes, account deletions) i alerty anomalii.
