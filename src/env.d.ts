@@ -17,8 +17,11 @@ interface ImportMetaEnv {
 
   // OpenRouter Configuration
   readonly OPENROUTER_API_KEY: string;
-  readonly OPENROUTER_MODEL: string;
-  readonly OPENROUTER_BASE_URL: string;
+  readonly OPENROUTER_DEFAULT_MODEL?: string;
+  readonly OPENROUTER_MODEL?: string; // legacy fallback until OpenRouterService integration is complete
+  readonly OPENROUTER_BASE_URL?: string;
+  readonly OPENROUTER_REFERRER?: string;
+  readonly OPENROUTER_TITLE?: string;
 
   // AI Generation Limits
   readonly AI_RATE_LIMIT_PER_MINUTE: string;

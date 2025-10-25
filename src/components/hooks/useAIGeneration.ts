@@ -54,7 +54,7 @@ export function useAIGeneration(): UseAIGenerationResult {
     abortControllerRef.current = new AbortController();
 
     try {
-      const response = await fetch('/api/v1/ai/decks/from-text', {
+      const response = await fetch('/api/v1/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,6 +69,7 @@ export function useAIGeneration(): UseAIGenerationResult {
         
         if (contentType?.includes('application/json')) {
           const errorData = await response.json();
+          const errorCode = errorData?.error?.code;
           
           switch (response.status) {
             case 400:
@@ -87,8 +88,16 @@ export function useAIGeneration(): UseAIGenerationResult {
             case 429:
               setError('Przekroczono limit żądań. Spróbuj ponownie później.');
               break;
+            case 503:
+              setError('Usługa AI jest chwilowo niedostępna. Spróbuj ponownie za kilka minut.');
+              break;
             case 500:
-              setError('Wystąpił błąd serwera. Spróbuj ponownie później.');
+            case 504:
+              setError(
+                errorCode === 'TOO_MANY_REQUESTS'
+                  ? 'Limit zapytań do usługi AI został osiągnięty. Spróbuj ponownie później.'
+                  : 'Wystąpił błąd serwera. Spróbuj ponownie później.'
+              );
               break;
             default:
               const genericError = errorData as ErrorResponse;

@@ -29,7 +29,7 @@ export class RateLimitService {
 	 * @param userId - User ID to check
 	 * @returns Object with allowed status and remaining requests
 	 */
-	async checkAIRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
+	async checkAIRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
 		const key = `ai_gen:${userId}`;
 		const now = Date.now();
 		const limit = this.limits.aiGeneration;
@@ -46,9 +46,11 @@ export class RateLimitService {
 
 		// Check if limit exceeded
 		const remaining = Math.max(0, limit.requests - entry.count);
+		const resetInMs = Math.max(0, entry.resetAt - now);
 		return {
 			allowed: entry.count < limit.requests,
 			remaining,
+			resetInMs,
 		};
 	}
 

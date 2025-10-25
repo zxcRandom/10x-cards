@@ -40,9 +40,15 @@ export function useReviewSubmit(): UseReviewSubmitResult {
           },
         }));
 
-        toast.error(
-          errorData.error?.message || "Nie udało się zapisać oceny"
-        );
+        if (response.status === 429) {
+          toast.error("Przekroczono limit ocen. Spróbuj ponownie później.");
+        } else if (response.status === 503) {
+          toast.error("Serwis recenzji jest chwilowo niedostępny. Odczekaj i spróbuj ponownie.");
+        } else {
+          toast.error(
+            errorData.error?.message || "Nie udało się zapisać oceny"
+          );
+        }
         setIsSubmitting(false);
         return null;
       }
