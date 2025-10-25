@@ -177,6 +177,33 @@ export function AIFlashcardGenerator() {
                 {errors.inputText}
               </p>
             )}
+            {/* Privacy Notice */}
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
+              <svg 
+                className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                />
+              </svg>
+              <p className="text-xs text-amber-900 dark:text-amber-100">
+                Treść jest wysyłana do dostawcy AI w celu przetworzenia.{' '}
+                <a 
+                  href="/privacy-policy" 
+                  className="underline hover:no-underline font-medium"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Polityka prywatności
+                </a>
+              </p>
+            </div>
           </div>
 
           {/* Deck Name (Optional) */}

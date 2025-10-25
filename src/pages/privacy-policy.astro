@@ -1,0 +1,303 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+---
+
+<Layout title="Polityka prywatności - 10x Cards">
+  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div class="container max-w-prose mx-auto px-4 py-8">
+      <!-- Breadcrumb / Back Button -->
+      <div class="mb-6">
+        <a 
+          href="/" 
+          class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <svg 
+            class="w-4 h-4 mr-2" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Powrót do Dashboard
+        </a>
+      </div>
+
+      <!-- Main Content Card -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="text-3xl">Polityka prywatności</CardTitle>
+          <p class="text-sm text-muted-foreground mt-2">
+            Ostatnia aktualizacja: 25 października 2025
+          </p>
+        </CardHeader>
+        
+        <CardContent class="prose prose-neutral dark:prose-invert max-w-none">
+          <!-- 1. Wprowadzenie -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">1. Wprowadzenie</h2>
+            <p class="mb-4">
+              Aplikacja <strong>10x Cards</strong> to narzędzie do nauki oparte na fiszkach i inteligentnej sztucznej inteligencji. 
+              Zobowiązujemy się do ochrony Twojej prywatności i przejrzystego informowania o tym, jak przetwarzamy Twoje dane osobowe.
+            </p>
+            <p class="mb-4">
+              Niniejsza polityka prywatności wyjaśnia, jakie dane zbieramy, w jaki sposób je wykorzystujemy, 
+              przechowujemy i chronimy, oraz jakie masz prawa w zakresie swoich danych osobowych.
+            </p>
+          </section>
+
+          <!-- 2. Dane zbierane przez aplikację -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">2. Dane zbierane przez aplikację</h2>
+            <p class="mb-4">W ramach świadczenia usług zbieramy i przetwarzamy następujące kategorie danych:</p>
+            
+            <h3 class="text-xl font-semibold mb-3">Dane konta użytkownika</h3>
+            <ul class="list-disc ml-6 mb-4 space-y-2">
+              <li><strong>Adres e-mail</strong> – używany do identyfikacji konta i komunikacji</li>
+              <li><strong>Hasło</strong> – przechowywane w formie zaszyfrowanej (bcrypt/hash)</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold mb-3">Dane użytkowe</h3>
+            <ul class="list-disc ml-6 mb-4 space-y-2">
+              <li><strong>Talie fiszek</strong> – nazwy i opisy talii utworzonych przez użytkownika</li>
+              <li><strong>Fiszki</strong> – pytania i odpowiedzi dodane ręcznie lub wygenerowane przez AI</li>
+              <li><strong>Postępy w nauce</strong> – historia przeglądów, oceny fiszek, statystyki algorytmu powtórek (SM-2)</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold mb-3">Dane sesyjne</h3>
+            <ul class="list-disc ml-6 mb-4 space-y-2">
+              <li><strong>Tokeny uwierzytelniania</strong> – używane do zarządzania sesją użytkownika</li>
+              <li><strong>Pliki cookie</strong> – techniczne pliki cookie niezbędne do działania aplikacji</li>
+            </ul>
+          </section>
+
+          <!-- 3. Przetwarzanie przez AI (kluczowa sekcja) -->
+          <section class="mb-8 bg-amber-50 dark:bg-amber-950/20 p-6 rounded-lg border border-amber-200 dark:border-amber-900">
+            <h2 class="text-2xl font-semibold mb-4 text-amber-900 dark:text-amber-100">
+              3. Przetwarzanie przez AI ⚠️
+            </h2>
+            
+            <div class="space-y-4">
+              <div class="bg-white dark:bg-neutral-900 p-4 rounded border border-amber-300 dark:border-amber-800">
+                <p class="font-semibold mb-2">
+                  📤 Przesyłanie danych do dostawcy AI
+                </p>
+                <p class="mb-2">
+                  <strong>Teksty wklejane do generatora fiszek AI są przesyłane do zewnętrznego dostawcy AI 
+                  (OpenRouter/modele Gemini) w celu wygenerowania fiszek.</strong>
+                </p>
+                <p>
+                  Przesyłamy wyłącznie treść tekstu wprowadzoną przez Ciebie w polu generatora. 
+                  <strong>Nie przesyłamy Twoich danych osobowych</strong> (adres e-mail, hasło, historia nauki) 
+                  do dostawcy AI.
+                </p>
+              </div>
+
+              <div class="bg-white dark:bg-neutral-900 p-4 rounded border border-amber-300 dark:border-amber-800">
+                <p class="font-semibold mb-2">
+                  🔒 Zakres przetwarzania przez dostawcę AI
+                </p>
+                <p class="mb-2">
+                  Dostawca AI (OpenRouter/Gemini) może tymczasowo przetwarzać przesłany tekst 
+                  w celu wygenerowania odpowiedzi (par pytanie-odpowiedź dla fiszek).
+                </p>
+                <p>
+                  Szczegóły dotyczące przetwarzania, przechowywania i polityki prywatności dostawcy AI 
+                  znajdziesz w dokumentacji:
+                </p>
+                <ul class="list-disc ml-6 mt-2 space-y-1">
+                  <li>
+                    <a 
+                      href="https://openrouter.ai/privacy" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      class="text-primary hover:underline"
+                    >
+                      Polityka prywatności OpenRouter
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="https://ai.google.dev/gemini-api/terms" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      class="text-primary hover:underline"
+                    >
+                      Warunki usługi Google Gemini API
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="bg-white dark:bg-neutral-900 p-4 rounded border border-amber-300 dark:border-amber-800">
+                <p class="font-semibold mb-2">
+                  ✅ Twoja kontrola
+                </p>
+                <p>
+                  Korzystając z generatora AI, akceptujesz przesłanie treści do zewnętrznego dostawcy. 
+                  Jeśli nie chcesz przesyłać danych do AI, możesz tworzyć fiszki ręcznie bez korzystania z generatora.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. Przechowywanie danych -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">4. Przechowywanie danych</h2>
+            
+            <h3 class="text-xl font-semibold mb-3">Baza danych</h3>
+            <p class="mb-4">
+              Twoje dane (konto, talie, fiszki, historia nauki) są przechowywane w bezpiecznej bazie danych 
+              <strong>Supabase</strong>, która zapewnia szyfrowanie danych w tranzycie (HTTPS) oraz w spoczynku.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3">Okres przechowywania</h3>
+            <ul class="list-disc ml-6 mb-4 space-y-2">
+              <li>Dane są przechowywane <strong>do momentu usunięcia konta</strong> przez użytkownika</li>
+              <li>Po usunięciu konta wszystkie dane są trwale usuwane z systemu</li>
+              <li>Logi AI (historia generowania fiszek) są przechowywane dla celów diagnostycznych przez maksymalnie 90 dni</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold mb-3">Bezpieczeństwo</h3>
+            <ul class="list-disc ml-6 mb-4 space-y-2">
+              <li>Hasła są szyfrowane za pomocą algorytmu bcrypt przed zapisem do bazy danych</li>
+              <li>Wszystkie połączenia z aplikacją są zabezpieczone protokołem HTTPS</li>
+              <li>Stosujemy ograniczenia dostępu do danych (Row-Level Security w Supabase)</li>
+              <li>Regularnie monitorujemy bezpieczeństwo systemu i aktualizujemy zależności</li>
+            </ul>
+          </section>
+
+          <!-- 5. Prawa użytkownika (RODO) -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">5. Twoje prawa (RODO)</h2>
+            <p class="mb-4">
+              Zgodnie z Ogólnym Rozporządzeniem o Ochronie Danych (RODO) przysługują Ci następujące prawa:
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3">Prawo dostępu do danych</h3>
+            <p class="mb-4">
+              Masz prawo do uzyskania informacji o tym, jakie dane osobowe przetwarzamy na Twój temat. 
+              Możesz w każdej chwili wyświetlić swoje dane w ustawieniach konta.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3">Prawo do usunięcia danych (prawo do bycia zapomnianym)</h3>
+            <p class="mb-4">
+              Możesz w każdej chwili usunąć swoje konto i wszystkie powiązane dane za pomocą opcji 
+              w ustawieniach konta. Po usunięciu dane są trwale usuwane z systemu.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3">Prawo do sprostowania danych</h3>
+            <p class="mb-4">
+              Możesz w każdej chwili edytować i aktualizować swoje dane konta, talie oraz fiszki.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3">Prawo do ograniczenia przetwarzania</h3>
+            <p class="mb-4">
+              Możesz zrezygnować z korzystania z funkcji generatora AI, aby uniknąć przesyłania danych 
+              do zewnętrznych dostawców.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3">Prawo do przenoszenia danych</h3>
+            <p class="mb-4">
+              W przyszłości planujemy dodać funkcję eksportu danych konta w formacie JSON/CSV.
+            </p>
+
+            <h3 class="text-xl font-semibold mb-3">Prawo do wniesienia sprzeciwu</h3>
+            <p class="mb-4">
+              Możesz w każdej chwili wnieść sprzeciw wobec przetwarzania swoich danych, 
+              kontaktując się z nami pod adresem wskazanym poniżej.
+            </p>
+          </section>
+
+          <!-- 6. Dane kontaktowe -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">6. Kontakt w sprawie prywatności</h2>
+            <p class="mb-4">
+              Jeśli masz pytania dotyczące niniejszej polityki prywatności, przetwarzania Twoich danych 
+              lub chcesz skorzystać ze swoich praw, skontaktuj się z nami:
+            </p>
+            <div class="bg-muted p-4 rounded-lg">
+              <p class="font-semibold">Dane kontaktowe administratora danych:</p>
+              <p class="mt-2">
+                📧 E-mail: <a href="mailto:privacy@10x-cards.app" class="text-primary hover:underline">privacy@10x-cards.app</a>
+              </p>
+            </div>
+            <p class="mt-4 text-sm text-muted-foreground">
+              Odpowiemy na Twoje zapytanie w ciągu <strong>30 dni</strong> od otrzymania wiadomości.
+            </p>
+          </section>
+
+          <!-- 7. Zmiany w polityce prywatności -->
+          <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">7. Zmiany w polityce prywatności</h2>
+            <p class="mb-4">
+              Zastrzegamy sobie prawo do wprowadzania zmian w niniejszej polityce prywatności. 
+              O wszelkich istotnych zmianach poinformujemy Cię za pośrednictwem powiadomienia w aplikacji 
+              lub wiadomości e-mail.
+            </p>
+            <p class="mb-4">
+              Zachęcamy do regularnego przeglądania tej strony, aby być na bieżąco z aktualną polityką prywatności.
+            </p>
+          </section>
+
+          <!-- Footer with date -->
+          <footer class="mt-12 pt-6 border-t border-border">
+            <p class="text-sm text-muted-foreground text-center">
+              Data ostatniej aktualizacji: <strong>25 października 2025</strong>
+            </p>
+          </footer>
+        </CardContent>
+      </Card>
+
+      <!-- Bottom Back Button -->
+      <div class="mt-8 text-center">
+        <a href="/">
+          <Button variant="outline" class="inline-flex items-center">
+            <svg 
+              class="w-4 h-4 mr-2" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Powrót do Dashboard
+          </Button>
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* Ensure proper prose styling for dark mode */
+  .prose {
+    @apply text-foreground;
+  }
+  
+  .prose h2 {
+    @apply text-foreground;
+  }
+  
+  .prose h3 {
+    @apply text-foreground;
+  }
+  
+  .prose p {
+    @apply text-foreground/90;
+  }
+  
+  .prose ul {
+    @apply text-foreground/90;
+  }
+  
+  .prose a {
+    @apply text-primary hover:underline;
+  }
+  
+  .prose strong {
+    @apply font-semibold text-foreground;
+  }
+</style>
