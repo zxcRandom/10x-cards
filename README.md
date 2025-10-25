@@ -51,6 +51,22 @@ A modern web application built with Astro, React, and TypeScript for creating an
    cp .env.example .env
    ```
 
+   | Variable | Required | Description |
+   | --- | --- | --- |
+   | `SUPABASE_URL` | ✅ | Project URL from Supabase dashboard |
+   | `SUPABASE_KEY` | ✅ | Service role key (server-side only) |
+   | `OPENROUTER_API_KEY` | ✅ | Server-only key obtained from OpenRouter |
+   | `OPENROUTER_DEFAULT_MODEL` | ✅ | Default model alias, e.g. `openrouter/anthropic/claude-3.5-sonnet` |
+   | `OPENROUTER_BASE_URL` | ➖ | Override for the chat completions endpoint (defaults to `https://openrouter.ai/api/v1`) |
+   | `OPENROUTER_REFERRER` | ✅ | Origin sent in `HTTP-Referer` header to satisfy OpenRouter policy |
+   | `OPENROUTER_TITLE` | ✅ | App name shown in OpenRouter logs |
+   | `AI_TIMEOUT_MS` | ➖ | Server-side timeout (ms) for OpenRouter calls, defaults to 30000 |
+   | `AI_RATE_LIMIT_PER_MINUTE` | ➖ | Soft quota enforced per user per minute |
+   | `AI_RATE_LIMIT_PER_DAY` | ➖ | Daily quota enforced per user |
+   | `AI_MAX_INPUT_LENGTH` | ➖ | Maximum characters accepted from user input |
+   | `AI_DEFAULT_MAX_CARDS` | ➖ | Default card batch size for flashcard generation |
+   | `AI_MAX_CARDS_LIMIT` | ➖ | Hard ceiling for generated cards in a single request |
+
 4. **Run the development server**:
 
    ```bash
@@ -73,6 +89,89 @@ A modern web application built with Astro, React, and TypeScript for creating an
 - `npm run lint` - Run ESLint to check for code issues
 - `npm run lint:fix` - Automatically fix ESLint issues where possible
 - `npm run format` - Format code with Prettier
+
+## AI Integration
+
+The application uses OpenRouter to power AI-assisted flashcard workflows. All requests are served through a single server route: `POST /api/v1/ai/chat`.
+
+### Flashcard generation
+
+Send plain text to the endpoint and the server will create a deck, persist generated cards, and return metadata.
+
+```bash
+curl -X POST http://localhost:5173/api/v1/ai/chat \\
+   -H "Content-Type: application/json" \\
+   -H "Authorization: Bearer <YOUR_SUPABASE_ACCESS_TOKEN>" \\
+   -d '{
+      "inputText": "Explain the basics of Newtonian mechanics...",
+      "deckName": "Newton",
+      "maxCards": 12
+   }'
+```
+
+Successful responses (`201 Created`) include:
+
+- `deck`: Newly created deck metadata
+- `cards`: Array of generated cards capped by `AI_MAX_CARDS_LIMIT`
+- `log`: Audit record saved to `ai_generation_logs`
+- Headers `X-RateLimit-Remaining` and optional `Retry-After` for quota feedback
+
+### Direct chat access & streaming
+
+To access raw model output or stream tokens to the client, pass a `messages` array in the OpenAI-compatible shape:
+
+```bash
+curl -N -X POST http://localhost:5173/api/v1/ai/chat \\
+   -H "Content-Type: application/json" \\
+   -H "Accept: text/event-stream" \\
+   -H "Authorization: Bearer <YOUR_SUPABASE_ACCESS_TOKEN>" \\
+   -d '{
+      "stream": true,
+      "messages": [
+         { "role": "system", "content": "You are a concise flashcard generator." },
+         { "role": "user", "content": "Create 5 Q/A pairs about the water cycle." }
+      ],
+      "response_format": {
+         "type": "json_schema",
+         "json_schema": {
+            "name": "flashcard_batch",
+            "strict": true,
+            "schema": {
+               "type": "object",
+               "required": ["cards"],
+               "properties": {
+                  "cards": {
+                     "type": "array",
+                     "items": {
+                        "type": "object",
+                        "required": ["question", "answer"],
+                        "properties": {
+                           "question": { "type": "string" },
+                           "answer": { "type": "string" },
+                           "hint": { "type": "string" }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }'
+```
+
+When `stream` is `true` the route emits Server-Sent Events (`data: {...}`) followed by `data: [DONE]`. For non-streaming requests the handler returns a JSON body with the assistant message and token usage.
+
+### Error handling
+
+The API communicates throttling and upstream failures using standard HTTP status codes:
+
+- `400` – Payload validation failed (Zod)
+- `401` – Missing or invalid Supabase session / OpenRouter rejection
+- `422` – Model produced an invalid payload (schema mismatch)
+- `429` – Rate limit exceeded (`Retry-After` header provided when possible)
+- `503`/`504` – Upstream service temporarily unavailable or timed out
+
+Clients should leverage the response headers (`X-RateLimit-Remaining`, `Retry-After`) to pace follow-up requests.
 
 ## Project Scope
 

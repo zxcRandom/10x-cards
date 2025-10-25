@@ -1,0 +1,18 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import ReviewAICardsView from "@/components/generate/ReviewAICardsView";
+
+// Pobierz deckId z query params
+const deckId = Astro.url.searchParams.get("deckId");
+
+// Jeśli brak deckId, przekieruj do dashboard
+if (!deckId) {
+  return Astro.redirect("/");
+}
+
+export const prerender = false;
+---
+
+<Layout title="Recenzja fiszek AI - 10x Cards">
+  <ReviewAICardsView client:load deckId={deckId} />
+</Layout>

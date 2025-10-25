@@ -1,8 +1,31 @@
 ---
-import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
+import { AIFlashcardGenerator } from "../components/dashboard/AIFlashcardGenerator";
+import { RecentDecksList } from "../components/dashboard/RecentDecksList";
 ---
 
-<Layout>
-  <Welcome />
+<Layout title="Dashboard - 10x Cards">
+  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div class="container max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <!-- Header -->
+      <div class="text-center space-y-2">
+        <h1 class="text-4xl font-bold tracking-tight">
+          Witaj w <span class="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">10x Cards</span>
+        </h1>
+        <p class="text-muted-foreground text-lg">
+          Twoje inteligentne fiszki do nauki
+        </p>
+      </div>
+
+      <!-- AI Generator Section -->
+      <div class="max-w-3xl mx-auto">
+        <AIFlashcardGenerator client:load />
+      </div>
+
+      <!-- Recent Decks Section -->
+      <div class="pt-8">
+        <RecentDecksList client:load />
+      </div>
+    </div>
+  </div>
 </Layout>
