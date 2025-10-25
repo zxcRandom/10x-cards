@@ -5,7 +5,6 @@ import type { DeckDTO } from '@/types';
 import { Toolbar } from './Toolbar';
 import { CardsList } from './CardsList';
 import { SaveBar } from './SaveBar';
-import { DEMO_MODE, mockReviewData, mockDecks } from '@/lib/demo-data';
 
 interface ReviewAICardsViewProps {
   deckId: string;
@@ -44,29 +43,6 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
   const loadDeckData = async () => {
     try {
       setState('loading');
-
-      // Use demo data in demo mode
-      if (DEMO_MODE) {
-        setTimeout(() => {
-          setSourceDeckName(mockReviewData.deck.name);
-          setDestination(prev => ({ ...prev, newName: mockReviewData.deck.name }));
-
-          const loadedCards: ReviewCardVM[] = mockReviewData.cards.map((card) => ({
-            id: card.id,
-            question: card.question,
-            answer: card.answer,
-            selected: true,
-            edited: false,
-            discarded: false,
-            originalQuestion: card.question,
-            originalAnswer: card.answer,
-          }));
-
-          setCards(loadedCards);
-          setState('idle');
-        }, 500); // Simulate loading
-        return;
-      }
 
       // Fetch deck details
       const deckResponse = await fetch(`/api/v1/decks/${deckId}`);
@@ -116,16 +92,6 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
   const loadAvailableDecks = async () => {
     try {
       setAvailableDecksLoading(true);
-
-      // Use demo data in demo mode
-      if (DEMO_MODE) {
-        setTimeout(() => {
-          const decks = mockDecks.filter((d: DeckDTO) => d.id !== deckId);
-          setAvailableDecks(decks);
-          setAvailableDecksLoading(false);
-        }, 300);
-        return;
-      }
 
       const response = await fetch('/api/v1/decks?limit=50');
       if (!response.ok) {
@@ -219,21 +185,6 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
 
       const selectedCards = cards.filter(c => c.selected && !c.discarded);
       const discardedCards = cards.filter(c => c.discarded || !c.selected);
-
-      // Demo mode - just show success message
-      if (DEMO_MODE) {
-        setTimeout(() => {
-          if (destination.mode === 'new') {
-            toast.success(`Zapisano ${selectedCards.length} fiszek w talii "${destination.newName}"`);
-          } else {
-            toast.success(`Skopiowano ${selectedCards.length} fiszek do wybranej talii`);
-          }
-          // In real app, would redirect to deck view
-          // For demo, just reset to idle
-          setState('idle');
-        }, 1000);
-        return;
-      }
 
       if (destination.mode === 'new') {
         // Update deck name if changed
