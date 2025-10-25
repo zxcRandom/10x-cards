@@ -1,0 +1,416 @@
+---
+title: 10x-cards Authentication Process - Complete Flow
+---
+sequenceDiagram
+    autonumber
+    
+    box Client Side
+    participant User as User Browser
+    participant UI as React Forms
+    end
+    
+    box Server Side (Astro SSR)
+    participant MW as Middleware
+    participant Page as Astro Page
+    participant API as Auth API
+    end
+    
+    box External Services
+    participant SB as Supabase Auth
+    participant DB as Supabase DB
+    end
+
+    %% ========================================
+    %% REGISTRATION FLOW (US-001)
+    %% ========================================
+    
+    rect rgb(230, 240, 255)
+    Note over User,DB: 1. REGISTRATION FLOW (US-001)
+    
+    User->>UI: Navigate to /auth/register
+    UI->>Page: Request page
+    Page->>MW: Initialize request
+    MW->>Page: Create Supabase client (locals.supabase)
+    Page-->>UI: Render RegisterForm
+    
+    User->>UI: Enter email + password (min 8 chars)
+    UI->>UI: Validate with Zod (client-side)
+    
+    alt Client validation fails
+        UI-->>User: Show validation errors
+    else Client validation passes
+        UI->>API: POST /api/v1/auth/sign-up<br/>{email, password}
+        activate API
+        API->>API: Rate limit check (5/10min per IP + email)
+        
+        alt Rate limit exceeded
+            API-->>UI: 429 TOO_MANY_REQUESTS
+            deactivate API
+            UI-->>User: Show error: "Too many attempts"
+        else Rate limit OK
+            API->>API: Validate with Zod (server-side)
+            
+            alt Server validation fails
+                API-->>UI: 400 BAD_REQUEST + ValidationErrorResponse
+                deactivate API
+                UI-->>User: Show validation errors
+            else Server validation passes
+                API->>SB: auth.signUp(email, password)
+                activate SB
+                
+                alt Email already exists
+                    SB-->>API: Error: Email exists
+                    deactivate SB
+                    API-->>UI: 409 CONFLICT (neutral message)
+                    deactivate API
+                    UI-->>User: "Cannot create account"
+                else Registration successful
+                    SB->>DB: Create user in auth.users
+                    SB->>DB: Trigger creates profile in public.profiles
+                    SB-->>API: Return session + user
+                    deactivate SB
+                    API->>API: Set HttpOnly cookies (sb-access-token, sb-refresh-token)<br/>Secure, SameSite=Lax, Path=/, 7 days
+                    API-->>UI: 201 CREATED {status: "ok"}
+                    deactivate API
+                    UI->>UI: Show success message
+                    UI->>Page: Redirect to /decks (auto-login in MVP)
+                    Page->>MW: Initialize request
+                    MW->>SB: Verify session from cookies
+                    SB-->>MW: User authenticated
+                    MW->>Page: Set locals.supabase with session
+                    Page-->>User: Dashboard view
+                end
+            end
+        end
+    end
+    end
+
+    %% ========================================
+    %% LOGIN FLOW (US-002)
+    %% ========================================
+    
+    rect rgb(240, 255, 240)
+    Note over User,DB: 2. LOGIN FLOW (US-002)
+    
+    User->>UI: Navigate to /auth/login
+    UI->>Page: Request page
+    Page->>MW: Initialize request
+    MW->>Page: Create Supabase client
+    Page-->>UI: Render LoginForm
+    
+    User->>UI: Enter email + password
+    UI->>UI: Validate with Zod (client-side)
+    
+    alt Client validation fails
+        UI-->>User: Show validation errors
+    else Client validation passes
+        UI->>API: POST /api/v1/auth/sign-in<br/>{email, password}
+        activate API
+        API->>API: Rate limit check (5/10min per IP + email)
+        
+        alt Rate limit exceeded
+            API-->>UI: 429 TOO_MANY_REQUESTS
+            deactivate API
+            UI-->>User: "Too many login attempts"
+        else Rate limit OK
+            API->>API: Validate with Zod
+            API->>SB: auth.signInWithPassword(email, password)
+            activate SB
+            
+            alt Invalid credentials
+                SB-->>API: Error: Invalid credentials
+                deactivate SB
+                API-->>UI: 401 UNAUTHORIZED (neutral message)
+                deactivate API
+                UI-->>User: "Invalid email or password" (no details)
+            else Login successful
+                SB->>SB: Verify credentials
+                SB-->>API: Return session + user
+                deactivate SB
+                API->>API: Set HttpOnly cookies<br/>(sb-access-token, sb-refresh-token)
+                API-->>UI: 200 OK {status: "ok"}
+                deactivate API
+                UI->>UI: Show success message
+                UI->>Page: Redirect to ?next or /decks
+                Page->>MW: Initialize request
+                MW->>SB: Verify session from cookies
+                SB-->>MW: User authenticated
+                MW->>Page: Set locals.supabase with session
+                Page-->>User: Dashboard view
+            end
+        end
+    end
+    end
+
+    %% ========================================
+    %% LOGOUT FLOW (US-013)
+    %% ========================================
+    
+    rect rgb(255, 240, 240)
+    Note over User,DB: 3. LOGOUT FLOW (US-013)
+    
+    User->>UI: Click "Logout" in navigation
+    UI->>API: POST /api/v1/auth/sign-out
+    activate API
+    API->>SB: auth.signOut()
+    activate SB
+    SB->>SB: Invalidate session
+    SB-->>API: Session invalidated
+    deactivate SB
+    API->>API: Clear cookies (maxAge: 0)
+    API-->>UI: 204 NO_CONTENT
+    deactivate API
+    UI->>Page: Redirect to /auth/login or /
+    Page-->>User: Show login page
+    end
+
+    %% ========================================
+    %% PASSWORD RESET REQUEST (US-014)
+    %% ========================================
+    
+    rect rgb(255, 250, 230)
+    Note over User,DB: 4. PASSWORD RESET REQUEST (US-014)
+    
+    User->>UI: Navigate to /auth/forgot-password
+    UI->>Page: Request page
+    Page-->>UI: Render ForgotPasswordForm
+    
+    User->>UI: Enter email
+    UI->>UI: Validate email format (Zod)
+    UI->>API: POST /api/v1/auth/password/request-reset<br/>{email}
+    activate API
+    API->>API: Rate limit check
+    API->>API: Validate with Zod
+    API->>SB: auth.resetPasswordForEmail(email,<br/>{redirectTo: BASE_URL/auth/reset})
+    activate SB
+    
+    alt Email exists
+        SB->>SB: Generate one-time code (valid 60 min)
+        SB->>SB: Send email with reset link
+        SB-->>API: Email sent
+    else Email doesn't exist
+        SB-->>API: Neutral response (no error)
+    end
+    deactivate SB
+    
+    API-->>UI: 200 OK (always neutral:<br/>"If email exists, we sent instructions")
+    deactivate API
+    UI-->>User: Show neutral success message
+    end
+
+    %% ========================================
+    %% PASSWORD RESET COMPLETION (US-014)
+    %% ========================================
+    
+    rect rgb(255, 245, 230)
+    Note over User,DB: 5. PASSWORD RESET COMPLETION (US-014)
+    
+    User->>User: Click link in email
+    User->>Page: GET /auth/reset?code=xxx
+    Page->>MW: Initialize request
+    MW->>Page: Create Supabase client
+    Page->>SB: auth.exchangeCodeForSession(code)
+    activate SB
+    
+    alt Code valid and not expired (< 60 min)
+        SB->>SB: Exchange code for session
+        SB->>Page: Set session cookies
+        SB-->>Page: Session established
+        deactivate SB
+        Page-->>UI: Render ResetPasswordForm (logged in temporarily)
+        
+        User->>UI: Enter new password + confirm
+        UI->>UI: Validate with Zod (min 8 chars, passwords match)
+        UI->>API: POST /api/v1/auth/password/reset<br/>{newPassword}
+        activate API
+        API->>API: Verify session exists (from cookies)
+        API->>API: Validate with Zod
+        API->>SB: auth.updateUser({password: newPassword})
+        activate SB
+        SB->>DB: Update password hash in auth.users
+        SB-->>API: Password updated
+        deactivate SB
+        API-->>UI: 200 OK {status: "ok"}
+        deactivate API
+        UI->>UI: Show success message
+        UI->>Page: Redirect to /auth/login
+        Page-->>User: "Password changed successfully"
+    else Code expired or invalid
+        SB-->>Page: Error: Invalid or expired code
+        deactivate SB
+        Page-->>User: "Link expired, request new reset"
+    end
+    end
+
+    %% ========================================
+    %% CHANGE PASSWORD (US-003)
+    %% ========================================
+    
+    rect rgb(240, 245, 255)
+    Note over User,DB: 6. CHANGE PASSWORD (US-003)
+    
+    User->>UI: Navigate to /account/settings (protected)
+    UI->>Page: Request page
+    Page->>MW: Check authentication
+    MW->>SB: auth.getUser() from cookies
+    activate SB
+    
+    alt Not authenticated
+        SB-->>MW: No user
+        deactivate SB
+        MW->>Page: Redirect to /auth/login?next=/account/settings
+        Page-->>User: Login required
+    else Authenticated
+        SB-->>MW: User session valid
+        deactivate SB
+        MW->>Page: Set locals.supabase with session
+        Page-->>UI: Render ChangePasswordForm
+        
+        User->>UI: Enter current password, new password, confirm new
+        UI->>UI: Validate with Zod<br/>(min 8 chars, passwords match)
+        UI->>API: POST /api/v1/auth/password/change<br/>{currentPassword, newPassword, confirmNewPassword}
+        activate API
+        API->>API: Rate limit check (5/10min)
+        API->>API: Validate with Zod
+        API->>SB: auth.signInWithPassword(email, currentPassword)<br/>(re-authentication)
+        activate SB
+        
+        alt Current password invalid
+            SB-->>API: Error: Invalid credentials
+            deactivate SB
+            API-->>UI: 401 UNAUTHORIZED (neutral)
+            deactivate API
+            UI-->>User: "Current password incorrect"
+        else Re-authentication successful
+            SB-->>API: Re-auth OK
+            deactivate SB
+            API->>SB: auth.updateUser({password: newPassword})
+            activate SB
+            SB->>DB: Update password hash
+            SB-->>API: Password updated
+            deactivate SB
+            API-->>UI: 200 OK {status: "ok"}
+            deactivate API
+            UI-->>User: "Password changed successfully"
+            Note over UI: Optional: Force re-login
+        end
+    end
+    end
+
+    %% ========================================
+    %% DELETE ACCOUNT (US-004)
+    %% ========================================
+    
+    rect rgb(255, 235, 235)
+    Note over User,DB: 7. DELETE ACCOUNT (US-004)
+    
+    User->>UI: Navigate to /account/settings
+    UI->>Page: Request page (protected)
+    Page->>MW: Check authentication
+    MW->>SB: auth.getUser() from cookies
+    activate SB
+    SB-->>MW: User session valid
+    deactivate SB
+    MW->>Page: Set locals.supabase
+    Page-->>UI: Render DeleteAccountSection
+    
+    User->>UI: Click "Delete Account"
+    UI->>UI: Show confirmation modal<br/>"Type DELETE to confirm"
+    User->>UI: Type "DELETE" (or email)
+    UI->>UI: Validate confirmation with Zod
+    UI->>API: DELETE /api/v1/auth/account/delete<br/>{confirm: "DELETE"}
+    activate API
+    API->>API: Rate limit check (3/60min)
+    API->>API: Validate confirmation
+    API->>API: Get user ID from session
+    API->>SB: admin.auth.admin.deleteUser(userId)<br/>(using SUPABASE_SERVICE_ROLE_KEY)
+    activate SB
+    SB->>DB: CASCADE DELETE from auth.users
+    Note over DB: ON DELETE CASCADE triggers:<br/>- Delete from public.profiles<br/>- Delete from decks (user_id)<br/>- Delete from cards (via deck FK)<br/>- Delete from reviews (via card FK)<br/>- Delete from ai_generation_logs (user_id)
+    SB-->>API: User deleted permanently
+    deactivate SB
+    API->>SB: auth.signOut() (cleanup current session)
+    activate SB
+    SB-->>API: Session invalidated
+    deactivate SB
+    API->>API: Clear all cookies
+    API-->>UI: 204 NO_CONTENT
+    deactivate API
+    UI->>Page: Redirect to /
+    Page-->>User: Account deleted, logged out
+    end
+
+    %% ========================================
+    %% PROTECTED ROUTE ACCESS (Middleware)
+    %% ========================================
+    
+    rect rgb(245, 245, 250)
+    Note over User,DB: 8. PROTECTED ROUTE ACCESS (Middleware)
+    
+    User->>Page: Navigate to /decks or /generate or /study
+    Page->>MW: onRequest middleware intercepts
+    MW->>MW: Check if route is protected<br/>(match /decks, /generate, /study, /account)
+    
+    alt Route is protected
+        MW->>SB: auth.getUser() from cookies or Bearer token
+        activate SB
+        
+        alt No valid session
+            SB-->>MW: No user / expired token
+            deactivate SB
+            MW->>Page: Redirect to /auth/login?next=<pathname>
+            Page-->>User: Login required
+        else Valid session
+            SB-->>MW: User authenticated
+            deactivate SB
+            MW->>MW: Set locals.supabase with session
+            MW->>Page: Continue to page
+            Page->>DB: Query user's data (RLS enforces user_id)
+            DB-->>Page: User's decks/cards/reviews
+            Page-->>User: Protected content
+        end
+    else Route is public
+        MW->>Page: Continue without auth check
+        Page-->>User: Public content
+    end
+    end
+
+    %% ========================================
+    %% API ENDPOINT AUTHENTICATION
+    %% ========================================
+    
+    rect rgb(250, 245, 255)
+    Note over User,DB: 9. API ENDPOINT AUTHENTICATION (Protected APIs)
+    
+    User->>UI: Action requiring API call<br/>(e.g., create deck, review card)
+    UI->>API: POST /api/v1/decks<br/>Authorization: Bearer <token> OR cookies
+    activate API
+    API->>MW: Middleware creates locals.supabase
+    MW->>API: Continue
+    API->>SB: locals.supabase.auth.getUser()
+    activate SB
+    
+    alt No valid session
+        SB-->>API: No user / invalid token
+        deactivate SB
+        API-->>UI: 401 UNAUTHORIZED<br/>{code: "UNAUTHORIZED", message: "Authentication required"}
+        deactivate API
+        UI-->>User: Show error: "Please login"
+    else Valid session
+        SB-->>API: User object with ID
+        deactivate SB
+        API->>API: Use user.id for queries
+        API->>DB: INSERT/UPDATE/DELETE with user_id<br/>(RLS enforces access)
+        
+        alt RLS allows operation
+            DB-->>API: Operation successful
+            API-->>UI: 200/201 OK with data
+            UI-->>User: Success feedback
+        else RLS denies operation
+            DB-->>API: Permission denied
+            API-->>UI: 403 FORBIDDEN
+            UI-->>User: "Access denied"
+        end
+        deactivate API
+    end
+    end
