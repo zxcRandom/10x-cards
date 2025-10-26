@@ -1,8 +1,13 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import DecksPage from '@/components/decks/DecksPage';
+import AuthNav from '@/components/auth/AuthNav';
+
+// User is already authenticated (middleware ensures this)
+const user = Astro.locals.user;
 ---
 
 <Layout title="Moje talie">
+  <AuthNav userEmail={user?.email} client:load />
   <DecksPage client:load />
 </Layout>

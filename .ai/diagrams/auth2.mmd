@@ -1,0 +1,313 @@
+---
+title: 10x-cards Authentication Process - Complete Flow
+description: Diagram przedstawiający wszystkie procesy autentykacji w systemie 10x-cards zgodnie z PRD i specyfikacją auth-spec.md
+---
+sequenceDiagram
+    autonumber
+    
+    box Client Side
+    participant User as User Browser
+    participant UI as React Forms
+    end
+    
+    box Server Side (Astro SSR)
+    participant MW as Middleware
+    participant Page as Astro Page
+    participant API as Auth API
+    end
+    
+    box External Services
+    participant SB as Supabase Auth
+    participant DB as Supabase DB
+    end
+
+    %% ========================================
+    %% REGISTRATION FLOW (US-001)
+    %% ========================================
+    
+    rect rgb(230, 240, 255)
+    Note over User,DB: 1. REGISTRATION FLOW (US-001)
+    
+    User->>UI: Navigate to /auth/register
+    UI->>Page: Request page
+    Page->>MW: Initialize request
+    MW->>Page: Create Supabase client (locals.supabase)
+    Page-->>UI: Render RegisterForm
+    
+    User->>UI: Enter email + password (min 8 chars)
+    UI->>UI: Validate with Zod (client-side)
+    UI->>API: POST /api/v1/auth/sign-up
+    activate API
+    API->>API: Rate limit check (5/10min per IP + email)
+    API->>API: Validate with Zod (server-side)
+    API->>SB: auth.signUp(email, password)
+    activate SB
+    SB->>DB: Create user in auth.users
+    SB->>DB: Trigger creates profile in public.profiles
+    SB-->>API: Return session + user
+    deactivate SB
+    API->>API: Set HttpOnly cookies<br/>(Secure, SameSite=Lax, Path=/, 7 days)
+    API-->>UI: 201 CREATED {status: ok}
+    deactivate API
+    UI->>UI: Show success message
+    UI->>Page: Redirect to /decks (auto-login in MVP)
+    Page->>MW: Initialize request with cookies
+    MW->>SB: Verify session from cookies
+    SB-->>MW: User authenticated
+    MW->>Page: Set locals.supabase with session
+    Page-->>User: Dashboard view
+    end
+
+    %% ========================================
+    %% LOGIN FLOW (US-002)
+    %% ========================================
+    
+    rect rgb(240, 255, 240)
+    Note over User,DB: 2. LOGIN FLOW (US-002)
+    
+    User->>UI: Navigate to /auth/login
+    UI->>Page: Request page
+    Page->>MW: Initialize request
+    MW->>Page: Create Supabase client
+    Page-->>UI: Render LoginForm
+    
+    User->>UI: Enter email + password
+    UI->>UI: Validate with Zod (client-side)
+    UI->>API: POST /api/v1/auth/sign-in
+    activate API
+    API->>API: Rate limit check (5/10min per IP + email)
+    API->>API: Validate with Zod
+    API->>SB: auth.signInWithPassword(email, password)
+    activate SB
+    SB->>SB: Verify credentials
+    SB-->>API: Return session + user
+    deactivate SB
+    API->>API: Set HttpOnly cookies
+    API-->>UI: 200 OK {status: ok}
+    deactivate API
+    UI->>UI: Show success message
+    UI->>Page: Redirect to ?next or /decks
+    Page->>MW: Initialize request with cookies
+    MW->>SB: Verify session from cookies
+    SB-->>MW: User authenticated
+    MW->>Page: Set locals.supabase with session
+    Page-->>User: Dashboard view
+    end
+
+    %% ========================================
+    %% LOGOUT FLOW (US-013)
+    %% ========================================
+    
+    rect rgb(255, 240, 240)
+    Note over User,DB: 3. LOGOUT FLOW (US-013)
+    
+    User->>UI: Click Logout in navigation
+    UI->>API: POST /api/v1/auth/sign-out
+    activate API
+    API->>SB: auth.signOut()
+    activate SB
+    SB->>SB: Invalidate session
+    SB-->>API: Session invalidated
+    deactivate SB
+    API->>API: Clear cookies (maxAge 0)
+    API-->>UI: 204 NO_CONTENT
+    deactivate API
+    UI->>Page: Redirect to /auth/login or /
+    Page-->>User: Show login page
+    end
+
+    %% ========================================
+    %% PASSWORD RESET REQUEST (US-014)
+    %% ========================================
+    
+    rect rgb(255, 250, 230)
+    Note over User,DB: 4. PASSWORD RESET REQUEST (US-014)
+    
+    User->>UI: Navigate to /auth/forgot-password
+    UI->>Page: Request page
+    Page-->>UI: Render ForgotPasswordForm
+    
+    User->>UI: Enter email
+    UI->>UI: Validate email format (Zod)
+    UI->>API: POST /api/v1/auth/password/request-reset
+    activate API
+    API->>API: Rate limit check
+    API->>API: Validate with Zod
+    API->>SB: auth.resetPasswordForEmail(email, {redirectTo: BASE_URL/auth/reset})
+    activate SB
+    SB->>SB: Generate one-time code (valid 60 min)
+    SB->>SB: Send email with reset link
+    SB-->>API: Email sent (or neutral response)
+    deactivate SB
+    API-->>UI: 200 OK (always neutral message)
+    deactivate API
+    UI-->>User: Show neutral success message
+    end
+
+    %% ========================================
+    %% PASSWORD RESET COMPLETION (US-014)
+    %% ========================================
+    
+    rect rgb(255, 245, 230)
+    Note over User,DB: 5. PASSWORD RESET COMPLETION (US-014)
+    
+    User->>User: Click link in email
+    User->>Page: GET /auth/reset?code=xxx
+    Page->>MW: Initialize request
+    MW->>Page: Create Supabase client
+    Page->>SB: auth.exchangeCodeForSession(code)
+    activate SB
+    SB->>SB: Exchange code for session
+    SB->>Page: Set session cookies
+    SB-->>Page: Session established
+    deactivate SB
+    Page-->>UI: Render ResetPasswordForm
+    
+    User->>UI: Enter new password + confirm
+    UI->>UI: Validate with Zod (min 8 chars, passwords match)
+    UI->>API: POST /api/v1/auth/password/reset
+    activate API
+    API->>API: Verify session exists (from cookies)
+    API->>API: Validate with Zod
+    API->>SB: auth.updateUser({password: newPassword})
+    activate SB
+    SB->>DB: Update password hash in auth.users
+    SB-->>API: Password updated
+    deactivate SB
+    API-->>UI: 200 OK {status: ok}
+    deactivate API
+    UI->>UI: Show success message
+    UI->>Page: Redirect to /auth/login
+    Page-->>User: Password changed successfully
+    end
+
+    %% ========================================
+    %% CHANGE PASSWORD (US-003)
+    %% ========================================
+    
+    rect rgb(240, 245, 255)
+    Note over User,DB: 6. CHANGE PASSWORD (US-003)
+    
+    User->>UI: Navigate to /account/settings (protected)
+    UI->>Page: Request page
+    Page->>MW: Check authentication
+    MW->>SB: auth.getUser() from cookies
+    activate SB
+    SB-->>MW: User session valid
+    deactivate SB
+    MW->>Page: Set locals.supabase with session
+    Page-->>UI: Render ChangePasswordForm
+    
+    User->>UI: Enter current password, new password, confirm new
+    UI->>UI: Validate with Zod (min 8 chars, passwords match)
+    UI->>API: POST /api/v1/auth/password/change
+    activate API
+    API->>API: Rate limit check (5/10min)
+    API->>API: Validate with Zod
+    API->>SB: auth.signInWithPassword(email, currentPassword)
+    activate SB
+    SB-->>API: Re-authentication OK
+    deactivate SB
+    API->>SB: auth.updateUser({password: newPassword})
+    activate SB
+    SB->>DB: Update password hash
+    SB-->>API: Password updated
+    deactivate SB
+    API-->>UI: 200 OK {status: ok}
+    deactivate API
+    UI-->>User: Password changed successfully
+    Note over UI: Optional: Force re-login
+    end
+
+    %% ========================================
+    %% DELETE ACCOUNT (US-004)
+    %% ========================================
+    
+    rect rgb(255, 235, 235)
+    Note over User,DB: 7. DELETE ACCOUNT (US-004)
+    
+    User->>UI: Navigate to /account/settings
+    UI->>Page: Request page (protected)
+    Page->>MW: Check authentication
+    MW->>SB: auth.getUser() from cookies
+    activate SB
+    SB-->>MW: User session valid
+    deactivate SB
+    MW->>Page: Set locals.supabase
+    Page-->>UI: Render DeleteAccountSection
+    
+    User->>UI: Click Delete Account
+    UI->>UI: Show confirmation modal (Type DELETE to confirm)
+    User->>UI: Type DELETE (or email)
+    UI->>UI: Validate confirmation with Zod
+    UI->>API: DELETE /api/v1/auth/account/delete
+    activate API
+    API->>API: Rate limit check (3/60min)
+    API->>API: Validate confirmation
+    API->>API: Get user ID from session
+    API->>SB: admin.auth.admin.deleteUser(userId)
+    activate SB
+    Note over SB: Using SUPABASE_SERVICE_ROLE_KEY
+    SB->>DB: CASCADE DELETE from auth.users
+    Note over DB: ON DELETE CASCADE triggers:<br/>- public.profiles<br/>- decks (user_id)<br/>- cards (via deck FK)<br/>- reviews (via card FK)<br/>- ai_generation_logs (user_id)
+    SB-->>API: User deleted permanently
+    deactivate SB
+    API->>SB: auth.signOut() (cleanup session)
+    activate SB
+    SB-->>API: Session invalidated
+    deactivate SB
+    API->>API: Clear all cookies
+    API-->>UI: 204 NO_CONTENT
+    deactivate API
+    UI->>Page: Redirect to /
+    Page-->>User: Account deleted, logged out
+    end
+
+    %% ========================================
+    %% PROTECTED ROUTE ACCESS (Middleware)
+    %% ========================================
+    
+    rect rgb(245, 245, 250)
+    Note over User,DB: 8. PROTECTED ROUTE ACCESS (Middleware)
+    
+    User->>Page: Navigate to /decks or /generate or /study
+    Page->>MW: onRequest middleware intercepts
+    MW->>MW: Check if route is protected<br/>(match /decks, /generate, /study, /account)
+    MW->>SB: auth.getUser() from cookies or Bearer token
+    activate SB
+    SB-->>MW: User authenticated
+    deactivate SB
+    MW->>MW: Set locals.supabase with session
+    MW->>Page: Continue to page
+    Page->>DB: Query user's data (RLS enforces user_id)
+    activate DB
+    DB-->>Page: User's decks/cards/reviews
+    deactivate DB
+    Page-->>User: Protected content
+    end
+
+    %% ========================================
+    %% API ENDPOINT AUTHENTICATION
+    %% ========================================
+    
+    rect rgb(250, 245, 255)
+    Note over User,DB: 9. API ENDPOINT AUTHENTICATION (Protected APIs)
+    
+    User->>UI: Action requiring API call<br/>(e.g., create deck, review card)
+    UI->>API: POST /api/v1/decks<br/>Authorization: Bearer token OR cookies
+    activate API
+    API->>MW: Middleware creates locals.supabase
+    MW->>API: Continue
+    API->>SB: locals.supabase.auth.getUser()
+    activate SB
+    SB-->>API: User object with ID
+    deactivate SB
+    API->>API: Use user.id for queries
+    API->>DB: INSERT/UPDATE/DELETE with user_id (RLS enforces access)
+    activate DB
+    DB-->>API: Operation successful
+    deactivate DB
+    API-->>UI: 200/201 OK with data
+    deactivate API
+    UI-->>User: Success feedback
+    end

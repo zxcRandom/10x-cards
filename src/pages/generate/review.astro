@@ -1,18 +1,23 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import ReviewAICardsView from "@/components/generate/ReviewAICardsView";
+import AuthNav from "@/components/auth/AuthNav";
+
+// User is already authenticated (middleware ensures this)
+const user = Astro.locals.user;
 
 // Pobierz deckId z query params
 const deckId = Astro.url.searchParams.get("deckId");
 
 // Jeśli brak deckId, przekieruj do dashboard
 if (!deckId) {
-  return Astro.redirect("/");
+  return Astro.redirect("/decks");
 }
 
 export const prerender = false;
 ---
 
 <Layout title="Recenzja fiszek AI - 10x Cards">
+  <AuthNav userEmail={user?.email} client:load />
   <ReviewAICardsView client:load deckId={deckId} />
 </Layout>

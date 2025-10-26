@@ -7,7 +7,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { DecksListDTO, DeckDTO, ErrorResponse } from '@/types';
-import { DEMO_MODE, mockDecks } from '@/lib/demo-data';
 
 interface UseDecksParams {
   limit?: number;
@@ -42,24 +41,6 @@ export function useDecks(params: UseDecksParams = {}): UseDecksResult {
   const fetchDecks = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-
-    // Demo mode - return mock data
-    if (DEMO_MODE) {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      const sortedDecks = [...mockDecks].sort((a, b) => {
-        if (sort === 'name') {
-          return order === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-        }
-        const aDate = new Date(sort === 'createdAt' ? a.createdAt : a.updatedAt).getTime();
-        const bDate = new Date(sort === 'createdAt' ? b.createdAt : b.updatedAt).getTime();
-        return order === 'asc' ? aDate - bDate : bDate - aDate;
-      });
-      const paginatedDecks = sortedDecks.slice(offset, offset + limit);
-      setData(paginatedDecks);
-      setTotal(mockDecks.length);
-      setIsLoading(false);
-      return;
-    }
 
     try {
       const queryParams = new URLSearchParams({

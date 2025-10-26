@@ -10,7 +10,11 @@
 
 import Layout from '@/layouts/Layout.astro';
 import DeckDetailsView from '@/components/deck/DeckDetailsView';
+import AuthNav from '@/components/auth/AuthNav';
 import type { DeckDTO } from '@/types';
+
+// User is already authenticated (middleware ensures this)
+const user = Astro.locals.user;
 
 const { deckId } = Astro.params;
 
@@ -54,6 +58,7 @@ try {
 ---
 
 <Layout title={deck ? deck.name : 'Szczegóły talii'}>
+  <AuthNav userEmail={user?.email} client:load />
   {error === 'NOT_FOUND' ? (
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-2xl mx-auto text-center space-y-4">

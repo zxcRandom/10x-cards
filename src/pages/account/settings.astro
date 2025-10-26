@@ -1,0 +1,81 @@
+---
+/**
+ * Account Settings Page
+ * 
+ * Authenticated user settings page for password change and account deletion.
+ * This page is protected and requires authentication.
+ */
+
+import Layout from '@/layouts/Layout.astro';
+import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
+import DeleteAccountSection from '@/components/auth/DeleteAccountSection';
+---
+
+<Layout title="Ustawienia konta - 10x Cards">
+  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div class="container max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <!-- Header -->
+      <div class="space-y-2">
+        <h1 class="text-3xl font-bold tracking-tight">Ustawienia konta</h1>
+        <p class="text-muted-foreground">
+          Zarządzaj swoim kontem i ustawieniami bezpieczeństwa
+        </p>
+      </div>
+
+      <!-- Navigation Breadcrumb -->
+      <nav class="flex gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
+        <a 
+          href="/decks" 
+          class="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+        >
+          Moje talie
+        </a>
+        <span>/</span>
+        <span class="text-foreground font-medium" aria-current="page">Ustawienia konta</span>
+      </nav>
+
+      <!-- Settings Sections -->
+      <div class="space-y-6">
+        <!-- Change Password Section -->
+        <section class="rounded-lg border border-border bg-card shadow-sm p-6 space-y-4">
+          <div class="space-y-2">
+            <h2 class="text-xl font-semibold">Zmień hasło</h2>
+            <p class="text-sm text-muted-foreground">
+              Zaktualizuj hasło do swojego konta. Musisz podać obecne hasło.
+            </p>
+          </div>
+          <ChangePasswordForm client:load />
+        </section>
+
+        <!-- Delete Account Section -->
+        <section>
+          <DeleteAccountSection client:load />
+        </section>
+      </div>
+
+      <!-- Back to Dashboard -->
+      <div class="pt-4">
+        <a
+          href="/decks"
+          class="inline-flex items-center gap-2 text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Powrót do moich talii
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>

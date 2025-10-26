@@ -11,7 +11,6 @@
 import { useState, useRef, useCallback } from 'react';
 import type { CreateAIDeckCommand, AIDeckResponseDTO, ErrorResponse, ValidationErrorResponse, UnprocessableErrorResponse } from '@/types';
 import type { AIGeneratorState } from '@/components/dashboard/types';
-import { DEMO_MODE, generateMockAIResponse } from '@/lib/demo-data';
 
 interface UseAIGenerationResult {
   generate: (command: CreateAIDeckCommand) => Promise<AIDeckResponseDTO | null>;
@@ -40,15 +39,6 @@ export function useAIGeneration(): UseAIGenerationResult {
     setError(null);
     setData(null);
     setState('loading');
-
-    // Demo mode - simulate API call
-    if (DEMO_MODE) {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-      const mockResponse = generateMockAIResponse(command.inputText, command.deckName, command.maxCards);
-      setData(mockResponse);
-      setState('success');
-      return mockResponse;
-    }
 
     // Create new AbortController
     abortControllerRef.current = new AbortController();
