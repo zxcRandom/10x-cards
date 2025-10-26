@@ -12,6 +12,12 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { signUpSchema, type SignUpInput } from '@/lib/validation/auth.schemas';
 
+/**
+ * Delay before redirect to ensure browser saves cookies before page reload
+ * This prevents authentication issues from race conditions
+ */
+const COOKIE_SAVE_DELAY_MS = 500;
+
 export default function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -91,7 +97,7 @@ export default function RegisterForm() {
       const redirectUrl = response.headers.get('Location') || '/decks';
       
       // Important: Wait a bit to ensure browser saves cookies before reload
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, COOKIE_SAVE_DELAY_MS));
       
       // Full page reload to load with fresh cookies
       window.location.href = redirectUrl;

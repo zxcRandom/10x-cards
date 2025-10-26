@@ -21,6 +21,7 @@ import type { APIRoute } from "astro";
 import { signUpSchema } from "@/lib/validation/auth.schemas";
 import { formatZodErrors } from "@/lib/utils/zod-errors";
 import { RateLimitService } from "@/lib/services/rate-limit.service";
+import { hasCookiesToSet } from "@/db/supabase.client";
 import { HttpStatus, ErrorCode } from "@/types";
 import type { AuthSuccessDTO, ErrorResponse, ValidationErrorResponse } from "@/types";
 
@@ -151,19 +152,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // DEBUG: Log successful registration
-    console.log(`[SIGN-UP] User registered: ${data.user.email}`);
-    console.log(`[SIGN-UP] Session created: ${data.session ? 'yes' : 'no'}`);
-
     // IMPORTANT: We need to manually add Set-Cookie headers from Supabase to the Response
     // because Astro API routes don't automatically serialize cookies
     const responseHeaders = new Headers();
     
     // Get cookies that were set by Supabase during signUp
-    const cookiesToSet = (locals.supabase as any).__cookiesToSet || [];
-    console.log(`[SIGN-UP] Adding ${cookiesToSet.length} Set-Cookie headers to response`);
+    const cookiesToSet = hasCookiesToSet(locals.supabase)
+      ? locals.supabase.__cookiesToSet!
+      : [];
     
-    cookiesToSet.forEach(({ name, value, options }: any) => {
+    cookiesToSet.forEach(({ name, value, options }) => {
       // Serialize cookie with proper options
       let cookieString = `${name}=${value}`;
       if (options.path) cookieString += `; Path=${options.path}`;
@@ -172,7 +170,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
       if (options.secure) cookieString += `; Secure`;
       if (options.sameSite) cookieString += `; SameSite=${options.sameSite}`;
       
-      console.log(`[SIGN-UP] Cookie: ${name} (${cookieString.substring(0, 50)}...)`);
       responseHeaders.append("Set-Cookie", cookieString);
     });
 

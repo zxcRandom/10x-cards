@@ -12,6 +12,12 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { signInSchema, type SignInInput } from '@/lib/validation/auth.schemas';
 
+/**
+ * Delay before redirect to allow cookies to be set by the browser
+ * and toast message to be displayed to the user
+ */
+const REDIRECT_DELAY_MS = 500;
+
 interface LoginFormProps {
   nextUrl?: string;
 }
@@ -93,7 +99,7 @@ export default function LoginForm({ nextUrl }: LoginFormProps) {
         // Delay to allow cookies to be set and toast to show
         setTimeout(() => {
           window.location.href = redirectUrl;
-        }, 500);
+        }, REDIRECT_DELAY_MS);
       });
     } catch (err) {
       const errorMessage =

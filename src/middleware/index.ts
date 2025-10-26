@@ -4,9 +4,9 @@ import { createServerClient } from "../db/supabase.client.ts";
 
 /**
  * Public paths that don't require authentication
- * Includes both server-rendered pages and API endpoints
+ * Split into exact matches and prefix matches for efficient lookup
  */
-const PUBLIC_PATHS = [
+const PUBLIC_EXACT_PATHS = new Set([
   // Public pages
   "/",
   "/privacy-policy",
@@ -26,7 +26,34 @@ const PUBLIC_PATHS = [
   
   // Health check
   "/api/v1/health",
+]);
+
+/**
+ * Public path prefixes for pattern matching
+ * Use when exact path match is not sufficient
+ */
+const PUBLIC_PATH_PREFIXES: string[] = [
+  // Add prefix patterns here if needed in the future
+  // Example: "/public/"
 ];
+
+/**
+ * Check if a path is public (doesn't require authentication)
+ * Uses Set lookup for O(1) performance on exact matches
+ */
+function isPublicPath(pathname: string): boolean {
+  // Fast O(1) lookup for exact matches
+  if (PUBLIC_EXACT_PATHS.has(pathname)) {
+    return true;
+  }
+  
+  // Only check prefixes if needed (empty by default)
+  if (PUBLIC_PATH_PREFIXES.length > 0) {
+    return PUBLIC_PATH_PREFIXES.some(prefix => pathname.startsWith(prefix));
+  }
+  
+  return false;
+}
 
 /**
  * Middleware that initializes Supabase client for each request
@@ -49,7 +76,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   locals.supabase = createServerClient(cookies, cookieHeader, authHeader);
 
   // Check if current path is public
-  const isPublicPath = PUBLIC_PATHS.some(path => url.pathname === path || url.pathname.startsWith(path));
+  const pathIsPublic = isPublicPath(url.pathname);
 
   // Always get user session for authenticated requests
   const {
@@ -76,7 +103,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Redirect logic for protected routes
-  if (!isPublicPath && !user) {
+  if (!pathIsPublic && !user) {
     // Save the original URL for redirect after login
     const nextUrl = url.pathname + url.search;
     return redirect(`/auth/login?next=${encodeURIComponent(nextUrl)}`);

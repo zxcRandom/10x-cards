@@ -12,6 +12,7 @@
  */
 
 import type { APIRoute } from "astro";
+import { hasCookiesToSet } from "@/db/supabase.client";
 import { HttpStatus, ErrorCode } from "@/types";
 import type { ErrorResponse } from "@/types";
 
@@ -39,18 +40,16 @@ export const POST: APIRoute = async ({ locals, cookies }) => {
       );
     }
 
-    // DEBUG: Log sign-out
-    console.log(`[SIGN-OUT] User signed out`);
-
     // IMPORTANT: We need to manually add Set-Cookie headers to clear cookies
     // because Astro API routes don't automatically serialize cookie deletions
     const responseHeaders = new Headers();
     
     // Get cookies that were set/cleared by Supabase during signOut
-    const cookiesToSet = (locals.supabase as any).__cookiesToSet || [];
-    console.log(`[SIGN-OUT] Adding ${cookiesToSet.length} Set-Cookie headers to response`);
+    const cookiesToSet = hasCookiesToSet(locals.supabase)
+      ? locals.supabase.__cookiesToSet!
+      : [];
     
-    cookiesToSet.forEach(({ name, value, options }: any) => {
+    cookiesToSet.forEach(({ name, value, options }) => {
       // Serialize cookie with proper options (usually MaxAge=0 for deletion)
       let cookieString = `${name}=${value}`;
       if (options.path) cookieString += `; Path=${options.path}`;
@@ -59,7 +58,6 @@ export const POST: APIRoute = async ({ locals, cookies }) => {
       if (options.secure) cookieString += `; Secure`;
       if (options.sameSite) cookieString += `; SameSite=${options.sameSite}`;
       
-      console.log(`[SIGN-OUT] Cookie: ${name} (MaxAge=${options.maxAge})`);
       responseHeaders.append("Set-Cookie", cookieString);
     });
 
