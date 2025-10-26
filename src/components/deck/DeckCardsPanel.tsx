@@ -9,7 +9,10 @@ import { useState } from 'react';
 import { useDeckDetails } from '@/components/hooks/useDeckDetails';
 import CardsToolbar from './CardsToolbar';
 import CardsTable from './CardsTable';
+import CardDialog from './CardDialog';
+import CardConfirmDialog from './CardConfirmDialog';
 import PaginationControls from '@/components/decks/PaginationControls';
+import { toast } from 'sonner';
 import type { DeckDTO, CardDTO } from '@/types';
 import type { CardDialogState } from './types';
 
@@ -30,6 +33,14 @@ export default function DeckCardsPanel({
   const [dialogState, setDialogState] = useState<CardDialogState>({
     open: false,
     mode: 'create',
+    card: null,
+  });
+
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    card: CardDTO | null;
+  }>({
+    open: false,
     card: null,
   });
 
@@ -57,9 +68,49 @@ export default function DeckCardsPanel({
     });
   };
 
-  const handleDeleteClick = async (card: CardDTO) => {
-    // Will be implemented with ConfirmDialog
-    console.log('Delete card:', card.id);
+  const handleDeleteClick = (card: CardDTO) => {
+    setDeleteDialog({
+      open: true,
+      card,
+    });
+  };
+
+  const handleCardSuccess = (card: CardDTO) => {
+    const message = dialogState.mode === 'create'
+      ? 'Fiszka została dodana'
+      : 'Fiszka została zaktualizowana';
+    
+    toast.success(message);
+    setDialogState({ open: false, mode: 'create', card: null });
+    actions.refreshCards();
+  };
+
+  const handleDeleteConfirm = async (cardId: string) => {
+    try {
+      const response = await fetch(`/api/v1/cards/${cardId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Twoja sesja wygasła. Zaloguj się ponownie.');
+        }
+        if (response.status === 404) {
+          throw new Error('Karta nie została znaleziona. Mogła zostać już usunięta.');
+        }
+        if (response.status === 403) {
+          throw new Error('Nie masz uprawnień do usunięcia tej karty');
+        }
+        throw new Error('Wystąpił błąd podczas usuwania karty');
+      }
+
+      toast.success('Fiszka została usunięta');
+      setDeleteDialog({ open: false, card: null });
+      actions.refreshCards();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Nieznany błąd';
+      toast.error(errorMessage);
+    }
   };
 
   const handlePaginationChange = ({ limit, offset }: { limit: number; offset: number }) => {
@@ -129,6 +180,32 @@ export default function DeckCardsPanel({
           />
         </>
       )}
+
+      {/* Card Create/Edit Dialog */}
+      <CardDialog
+        open={dialogState.open}
+        mode={dialogState.mode}
+        card={dialogState.card}
+        deckId={deck.id}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDialogState({ open: false, mode: 'create', card: null });
+          }
+        }}
+        onSuccess={handleCardSuccess}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <CardConfirmDialog
+        open={deleteDialog.open}
+        card={deleteDialog.card}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteDialog({ open: false, card: null });
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 }

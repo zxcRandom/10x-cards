@@ -294,11 +294,32 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl p-4 md:p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Recenzja fiszek AI</h1>
-          <p className="text-muted-foreground">
-            Przejrzyj i edytuj wygenerowane fiszki przed zapisaniem
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Recenzja fiszek AI</h1>
+            <p className="text-muted-foreground">
+              Przejrzyj i edytuj wygenerowane fiszki przed zapisaniem
+            </p>
+          </div>
+          <button
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Wróć
+          </button>
         </div>
 
         <Toolbar
