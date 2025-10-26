@@ -518,12 +518,13 @@ function redact(meta?: Record<string, unknown>): Record<string, unknown> | undef
   }
 
   const clone = { ...meta };
-  if (clone.messages) {
-    clone.messages = "[redacted]";
-  }
-  if (clone.payload) {
-    clone.payload = "[redacted]";
-  }
+  // Temporarily show full payload for debugging
+  // if (clone.messages) {
+  //   clone.messages = "[redacted]";
+  // }
+  // if (clone.payload) {
+  //   clone.payload = "[redacted]";
+  // }
   return clone;
 }
 

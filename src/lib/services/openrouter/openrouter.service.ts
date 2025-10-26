@@ -493,6 +493,13 @@ export class OpenRouterService {
       }
 
       try {
+        // DEBUG: Log the payload being sent
+        this.logger.debug("Sending request to OpenRouter", { 
+          url: `${this.config.baseUrl}/chat/completions`,
+          payload: JSON.stringify(payload, null, 2),
+          headers: this.config.headers
+        });
+
         const response = await this.httpClient(`${this.config.baseUrl}/chat/completions`, {
           method: "POST",
           headers: {
@@ -521,7 +528,13 @@ export class OpenRouterService {
         }
 
         if (response.status === 400) {
-          throw new SchemaValidationError("OpenRouter rejected the payload", { status: response.status }, await safeParseBody(response));
+          const errorBody = await safeParseBody(response);
+          this.logger.error("OpenRouter rejected payload (400)", { 
+            status: response.status,
+            errorBody,
+            sentPayload: payload
+          });
+          throw new SchemaValidationError("OpenRouter rejected the payload", { status: response.status, errorBody }, errorBody);
         }
 
         if (response.status >= 500 && response.status < 600) {

@@ -71,33 +71,7 @@ const flashcardBatchSchema = z.object({
 });
 
 const defaultResponseFormat: ResponseFormat = {
-  type: "json_schema",
-  json_schema: {
-    name: "flashcard_batch",
-    strict: true,
-    schema: {
-      type: "object",
-      required: ["cards"],
-      additionalProperties: false,
-      properties: {
-        cards: {
-          type: "array",
-          minItems: 1,
-          maxItems: 100,
-          items: {
-            type: "object",
-            required: ["question", "answer"],
-            additionalProperties: true,
-            properties: {
-              question: { type: "string", minLength: 1, maxLength: 500 },
-              answer: { type: "string", minLength: 1, maxLength: 2000 },
-              hint: { type: "string", minLength: 1, maxLength: 500 },
-            },
-          },
-        },
-      },
-    },
-  },
+  type: "json_object",
 };
 
 function sanitizeMeta(meta?: Record<string, unknown>): Record<string, unknown> | undefined {
@@ -193,12 +167,24 @@ export class AIService {
   }
 
   private buildUserPrompt(input: string, maxCards: number): string {
-    return `Generate up to ${maxCards} high-quality flashcards from the following text. Each flashcard must:
-- Contain a precise question field named \'question\'.
-- Contain an accurate answer field named \'answer\'.
-- Optionally include a concise hint field named \'hint\'.
+    return `Generate up to ${maxCards} high-quality flashcards from the following text.
 
-Return the result as JSON that satisfies the provided json_schema.
+IMPORTANT: Return ONLY a valid JSON object in this exact format:
+{
+  "cards": [
+    {
+      "question": "string (1-500 chars)",
+      "answer": "string (1-2000 chars)",
+      "hint": "string (optional, 1-500 chars)"
+    }
+  ]
+}
+
+Rules:
+- Each card MUST have "question" and "answer" fields
+- "hint" is optional
+- Return at least 1 card, maximum ${maxCards} cards
+- Do not include any text before or after the JSON
 
 Text to analyze:
 """
