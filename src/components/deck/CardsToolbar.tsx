@@ -42,7 +42,7 @@ export default function CardsToolbar({
     if (q !== searchValue) {
       setSearchValue(q);
     }
-  }, [q]);
+  }, [q, searchValue]);
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
