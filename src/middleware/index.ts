@@ -84,16 +84,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
     error: authError,
   } = await locals.supabase.auth.getUser();
 
-  // DEBUG: Log auth state for debugging
-  if (url.pathname !== "/api/v1/health") {
-    console.log(`[MIDDLEWARE] ${url.pathname}`);
-    console.log(`  Cookie header: ${cookieHeader ? 'present' : 'missing'}`);
-    console.log(`  User: ${user ? user.email : 'null'}`);
-    if (authError) {
-      console.log(`  Auth error: ${authError.message}`);
-    }
-  }
-
   // Store user in locals for easy access in pages/endpoints
   if (user) {
     locals.user = {
