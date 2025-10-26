@@ -22,6 +22,7 @@ const PUBLIC_EXACT_PATHS = new Set([
   "/api/v1/auth/sign-up",
   "/api/v1/auth/sign-out",
   "/api/v1/auth/password/request-reset",
+  "/api/v1/auth/password/verify-and-reset",
   "/api/v1/auth/password/reset",
   
   // Health check

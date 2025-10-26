@@ -1,7 +1,9 @@
 /**
  * ForgotPasswordForm Component
  * 
- * Handles password reset requests.
+ * Handles password reset requests using OTP (One-Time Password) flow.
+ * Step 1: Request OTP code via email
+ * Step 2: Enter OTP code + new password (handled by OtpPasswordResetForm)
  * Always shows success message for security (neutral messaging).
  */
 
@@ -11,12 +13,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { passwordResetRequestSchema, type PasswordResetRequestInput } from '@/lib/validation/auth.schemas';
+import OtpPasswordResetForm from './OtpPasswordResetForm';
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof PasswordResetRequestInput, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isOtpSent, setIsOtpSent] = useState(false);
 
   const emailId = useId();
   const emailErrorId = useId();
@@ -69,25 +72,26 @@ export default function ForgotPasswordForm() {
         // For other errors, still show success (neutral messaging)
       }
 
-      // Always show success message (neutral for security)
-      setIsSuccess(true);
-      toast.success('Instrukcje wysłane na podany adres e-mail');
+      // Show OTP input form
+      setIsOtpSent(true);
+      toast.success('Kod weryfikacyjny został wysłany na podany adres e-mail');
     } catch (err) {
       // Even on error, show neutral success message
-      setIsSuccess(true);
-      toast.success('Instrukcje wysłane na podany adres e-mail');
+      setIsOtpSent(true);
+      toast.success('Kod weryfikacyjny został wysłany na podany adres e-mail');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isSuccess) {
+  // Show OTP + password form after email submission
+  if (isOtpSent) {
     return (
       <div className="space-y-6">
-        <div className="rounded-lg border border-border bg-muted/50 p-6 text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary mb-2">
+        <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm space-y-2">
+          <div className="flex items-start gap-2">
             <svg
-              className="w-6 h-6"
+              className="w-5 h-5 text-primary mt-0.5 flex-shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -100,26 +104,30 @@ export default function ForgotPasswordForm() {
                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
               />
             </svg>
+            <div className="flex-1">
+              <p className="font-medium">Sprawdź swoją skrzynkę e-mail</p>
+              <p className="text-muted-foreground">
+                Wysłaliśmy kod weryfikacyjny (6 cyfr) na adres <strong>{email}</strong>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Kod jest ważny przez 60 sekund
+              </p>
+            </div>
           </div>
-          <h3 className="font-semibold text-lg">Sprawdź swoją skrzynkę e-mail</h3>
-          <p className="text-sm text-muted-foreground">
-            Jeśli adres <strong>{email}</strong> istnieje w naszym systemie, wysłaliśmy na niego
-            instrukcje resetowania hasła.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Link będzie ważny przez 60 minut.
-          </p>
         </div>
+
+        {/* OTP + Password Form */}
+        <OtpPasswordResetForm email={email} />
 
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
-            Nie otrzymałeś wiadomości?{' '}
+            Nie otrzymałeś kodu?{' '}
             <button
               type="button"
-              onClick={() => setIsSuccess(false)}
+              onClick={() => setIsOtpSent(false)}
               className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
             >
-              Spróbuj ponownie
+              Wyślij ponownie
             </button>
           </p>
           <p className="text-sm text-muted-foreground">
@@ -157,7 +165,7 @@ export default function ForgotPasswordForm() {
           </p>
         )}
         <p className="text-sm text-muted-foreground">
-          Otrzymasz link do resetowania hasła na podany adres e-mail.
+          Otrzymasz kod weryfikacyjny (6 cyfr) na podany adres e-mail
         </p>
       </div>
 
@@ -166,7 +174,7 @@ export default function ForgotPasswordForm() {
         className="w-full"
         disabled={isSubmitting || !email.trim()}
       >
-        {isSubmitting ? 'Wysyłanie...' : 'Wyślij instrukcje'}
+        {isSubmitting ? 'Wysyłanie...' : 'Wyślij kod weryfikacyjny'}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
