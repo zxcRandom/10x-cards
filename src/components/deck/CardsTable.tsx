@@ -43,10 +43,22 @@ export default function CardsTable({
           <thead className="bg-muted/50">
             <tr>
               <th className="text-left p-4">
-                <div className="font-medium">Pytanie</div>
+                <button
+                  onClick={() => toggleSort('question')}
+                  className="flex items-center gap-2 font-medium hover:text-primary"
+                >
+                  Pytanie
+                  <ArrowUpDown className="h-4 w-4" />
+                </button>
               </th>
               <th className="text-left p-4">
-                <div className="font-medium">Odpowiedź</div>
+                <button
+                  onClick={() => toggleSort('answer')}
+                  className="flex items-center gap-2 font-medium hover:text-primary"
+                >
+                  Odpowiedź
+                  <ArrowUpDown className="h-4 w-4" />
+                </button>
               </th>
               <th className="text-left p-4">
                 <button

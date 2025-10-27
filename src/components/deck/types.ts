@@ -16,7 +16,9 @@ export type CardsSort =
   | 'nextReviewDate'
   | 'easeFactor'
   | 'intervalDays'
-  | 'repetitions';
+  | 'repetitions'
+  | 'question'
+  | 'answer';
 
 /**
  * Sort order options

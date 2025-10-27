@@ -455,7 +455,9 @@ export const CardService = {
         | "nextReviewDate"
         | "easeFactor"
         | "intervalDays"
-        | "repetitions";
+        | "repetitions"
+        | "question"
+        | "answer";
       order: "asc" | "desc";
       q?: string;
     }
@@ -484,6 +486,8 @@ export const CardService = {
         easeFactor: "ease_factor",
         intervalDays: "interval_days",
         repetitions: "repetitions",
+        question: "question",
+        answer: "answer",
       };
 
       const sortField = sortFieldMap[options.sort];
