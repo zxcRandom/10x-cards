@@ -1,6 +1,11 @@
 import { z } from "zod";
 
 /**
+ * Maximum length for card question and answer fields
+ */
+export const MAX_CARD_CONTENT_LENGTH = 10000;
+
+/**
  * Validation schema for creating a new card
  * POST /api/v1/decks/{deckId}/cards
  */
@@ -9,12 +14,12 @@ export const createCardSchema = z.object({
     .string()
     .trim()
     .min(1, "Question cannot be empty")
-    .max(10000, "Question cannot exceed 10,000 characters"),
+    .max(MAX_CARD_CONTENT_LENGTH, `Question cannot exceed ${MAX_CARD_CONTENT_LENGTH} characters`),
   answer: z
     .string()
     .trim()
     .min(1, "Answer cannot be empty")
-    .max(10000, "Answer cannot exceed 10,000 characters"),
+    .max(MAX_CARD_CONTENT_LENGTH, `Answer cannot exceed ${MAX_CARD_CONTENT_LENGTH} characters`),
 });
 
 /**
@@ -28,13 +33,13 @@ export const updateCardSchema = z
       .string()
       .trim()
       .min(1, "Question cannot be empty")
-      .max(10000, "Question cannot exceed 10,000 characters")
+      .max(MAX_CARD_CONTENT_LENGTH, `Question cannot exceed ${MAX_CARD_CONTENT_LENGTH} characters`)
       .optional(),
     answer: z
       .string()
       .trim()
       .min(1, "Answer cannot be empty")
-      .max(10000, "Answer cannot exceed 10,000 characters")
+      .max(MAX_CARD_CONTENT_LENGTH, `Answer cannot exceed ${MAX_CARD_CONTENT_LENGTH} characters`)
       .optional(),
   })
   .refine((data) => data.question !== undefined || data.answer !== undefined, {

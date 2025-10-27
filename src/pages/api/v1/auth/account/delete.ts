@@ -7,7 +7,6 @@
  */
 
 import type { APIRoute } from 'astro';
-import { z } from 'zod';
 import { deleteAccountSchema } from '@/lib/validation/auth.schemas';
 import type { ErrorResponse, ValidationErrorResponse } from '@/types';
 

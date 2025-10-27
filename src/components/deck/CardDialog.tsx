@@ -18,7 +18,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
-import { createCardSchema, updateCardSchema } from '@/lib/validation/card.schemas';
+import { createCardSchema, updateCardSchema, MAX_CARD_CONTENT_LENGTH } from '@/lib/validation/card.schemas';
 import type { CardDTO } from '@/types';
 import type { CardDialogMode } from './types';
 import { z } from 'zod';
@@ -37,8 +37,6 @@ interface FormErrors {
   answer?: string;
   _form?: string;
 }
-
-const MAX_LENGTH = 10000;
 
 export default function CardDialog({
   open,
@@ -214,16 +212,16 @@ export default function CardDialog({
             />
             <div className="flex items-center justify-between text-xs">
               <span id="question-hint" className="text-muted-foreground">
-                Maksymalnie {MAX_LENGTH.toLocaleString()} znaków
+                Maksymalnie {MAX_CARD_CONTENT_LENGTH.toLocaleString()} znaków
               </span>
               <span
                 className={
-                  question.length > MAX_LENGTH
+                  question.length > MAX_CARD_CONTENT_LENGTH
                     ? 'text-destructive'
                     : 'text-muted-foreground'
                 }
               >
-                {question.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}
+                {question.length.toLocaleString()} / {MAX_CARD_CONTENT_LENGTH.toLocaleString()}
               </span>
             </div>
             {errors.question && (
@@ -251,16 +249,16 @@ export default function CardDialog({
             />
             <div className="flex items-center justify-between text-xs">
               <span id="answer-hint" className="text-muted-foreground">
-                Maksymalnie {MAX_LENGTH.toLocaleString()} znaków
+                Maksymalnie {MAX_CARD_CONTENT_LENGTH.toLocaleString()} znaków
               </span>
               <span
                 className={
-                  answer.length > MAX_LENGTH
+                  answer.length > MAX_CARD_CONTENT_LENGTH
                     ? 'text-destructive'
                     : 'text-muted-foreground'
                 }
               >
-                {answer.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}
+                {answer.length.toLocaleString()} / {MAX_CARD_CONTENT_LENGTH.toLocaleString()}
               </span>
             </div>
             {errors.answer && (

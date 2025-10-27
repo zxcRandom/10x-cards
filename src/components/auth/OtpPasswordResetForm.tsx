@@ -131,8 +131,8 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
             maxLength={6}
             value={otp}
             onChange={(e) => {
-              // Only allow digits
-              const value = e.target.value.replace(/\D/g, '');
+              // Only allow digits and enforce max length of 6
+              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
               setOtp(value);
             }}
             placeholder="123456"
