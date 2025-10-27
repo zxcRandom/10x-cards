@@ -1,6 +1,6 @@
 # Status implementacji: 10x Cards MVP
 
-**Data analizy**: 26 października 2025  
+**Data analizy**: 27 października 2025  
 **Analizowane**: Codebase + PRD + UI Plan + API Plan
 
 ---
@@ -84,19 +84,24 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 ---
 
 ### 4. **Password Reset Flow**
-**Status**: ❌ **NIEZAIMPLEMENTOWANE**  
-**Priorytet**: 🔴 **WYSOKI**  
+**Status**: ✅ **ZAIMPLEMENTOWANE**  
+**Priorytet**: ✅ **COMPLETED**  
 **Plan**: [`password-reset-flow-implementation-plan.md`](.ai/password-reset-flow-implementation-plan.md)
 
-**Problem**:
-- Brak endpoint: `POST /api/v1/auth/password/request-reset`
-- Brak endpoint: `POST /api/v1/auth/password/reset`
-- Komponenty frontendowe istnieją, ale wywołują nieistniejące API
-- Wymaga konfiguracji Supabase Email Templates
+**Zaimplementowane**:
+- ✅ `POST /api/v1/auth/password/request-reset` - żądanie kodu OTP
+- ✅ `POST /api/v1/auth/password/verify-and-reset` - weryfikacja OTP + reset hasła
+- ✅ OtpPasswordResetForm - komponent do wprowadzania OTP + nowego hasła
+- ✅ Rate limiting (3 żądania/min na email)
+- ✅ Neutral messaging dla bezpieczeństwa
+- ✅ Walidacja Zod (6-cyfrowy kod, hasła)
+- ✅ Dokumentacja konfiguracji email template
+- ✅ Skrypt testowy `test-password-reset-otp.sh`
+- ✅ Obsługa błędów i timeout (60 sekund)
 
-**User Stories**: US-014
+**User Stories**: US-014 ✅
 
-**Estymacja**: 3-4 godziny + konfiguracja Supabase
+**Estymacja**: 3-4 godziny + konfiguracja Supabase (zrealizowane)
 
 ---
 
@@ -139,10 +144,13 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
    - Change password ✅
    - Delete account ✅
 
-### 🟡 POZOSTAŁO (Password Reset)
-5. ❌ **Password Reset Flow** - 3-4h + config **PENDING**
-   - Odzyskiwanie dostępu do konta
-   - Wymaga konfiguracji e-mail Supabase
+5. ✅ **Password Reset Flow** - 3-4h **COMPLETED**
+   - OTP-based password reset
+   - Email template configuration
+   - Rate limiting & security
+
+### 🟡 POZOSTAŁO (Brak - MVP Complete!)
+**Wszystkie funkcjonalności MVP zostały zaimplementowane!** 🎉
 
 ---
 
@@ -153,11 +161,11 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 ✅ 2️⃣ Card CRUD (4-6h) - COMPLETED  
 ✅ 3️⃣ Navigation & Layout (2h) - COMPLETED (Uproszczone)
 ✅ 4️⃣ Auth Endpoints (3-4h) - COMPLETED
-❌ 5️⃣ Password Reset Flow (3-4h + config) - PENDING
+✅ 5️⃣ Password Reset Flow (3-4h + config) - COMPLETED
 ```
 
-**Zrealizowany czas**: ~15-18 godzin  
-**Pozostało do MVP**: ~3-4 godziny + konfiguracja Supabase
+**Zrealizowany czas**: ~18-22 godziny  
+**Pozostało do MVP**: 0 godzin ✅ MVP COMPLETE!
 
 ---
 
@@ -174,8 +182,8 @@ Checklist końcowy:
 ### Account Management
 - [x] Użytkownik może zmienić hasło ✅
 - [x] Użytkownik może usunąć konto ✅
-- [ ] Użytkownik może zresetować zapomniane hasło ⏳ **PENDING**
-- [ ] E-maile resetowania hasła są wysyłane ⏳ **PENDING**
+- [x] Użytkownik może zresetować zapomniane hasło ✅
+- [x] E-maile resetowania hasła są wysyłane ✅
 
 ### User Stories (PRD)
 - [x] US-003: Zmiana hasła ✅
@@ -184,7 +192,7 @@ Checklist końcowy:
 - [x] US-006: Recenzja i zapisywanie fiszek ✅
 - [x] US-009: Manualne dodawanie fiszki ✅
 - [x] US-010: Przeglądanie i edycja fiszek ✅
-- [ ] US-014: Reset zapomnianego hasła ⏳ **PENDING**
+- [x] US-014: Reset zapomnianego hasła ✅
 - [x] US-017: Anulowanie generowania AI ✅
 
 ---
@@ -210,8 +218,8 @@ Każdy plan zawiera:
 
 ## 🎯 MVP Completion Status
 
-**Obecny stan**: ~90% ukończone (4/5 tasków) 🎉  
-**Pozostało do MVP**: 1 task (Password Reset Flow - 3-4h + config)  
+**Obecny stan**: 100% ukończone (5/5 tasków) 🎉  
+**Pozostało do MVP**: 0 tasków ✅ MVP COMPLETE!  
 **Po implementacji**: 100% zgodność z PRD + UI Plan
 
 **Zrealizowane w tej sesji**:
@@ -219,19 +227,21 @@ Każdy plan zawiera:
 - ✅ Card CRUD Implementation (~5h)
 - ✅ Navigation & Layout (~2h, uproszczone)
 - ✅ Auth Endpoints (~3h)
+- ✅ Password Reset Flow (~4h + config)
 
 ---
 
 ## 📝 Notatki
 
-### Zrealizowane w tej sesji (26 października 2025):
+### Zrealizowane w tej sesji (26-27 października 2025):
 1. ✅ **AI Generation Flow** - naprawione przekierowanie do review view
 2. ✅ **Card CRUD** - pełna funkcjonalność dodawania/edycji/usuwania kart
 3. ✅ **Navigation** - top bar z wszystkimi linkami (uproszczone dla MVP)
 4. ✅ **Auth Endpoints** - zmiana hasła i usuwanie konta
+5. ✅ **Password Reset Flow** - kompletny OTP-based flow z dokumentacją
 
 ### Pozostało:
-- ⏳ **Password Reset Flow** (US-014) - 3-4h + konfiguracja Supabase Email Templates
+- ✅ **Wszystko ukończone!** 🎉
 
 ### Decyzje architektoniczne MVP:
 - 📌 **Navigation**: Top bar zamiast Sidebar (prostsze, wystarczające dla MVP)
