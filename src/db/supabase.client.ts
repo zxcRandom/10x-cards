@@ -27,7 +27,7 @@ export interface CookieOptions {
     maxAge?: number;
     httpOnly?: boolean;
     secure?: boolean;
-    sameSite?: "Strict" | "Lax" | "None";
+    sameSite?: boolean | "strict" | "lax" | "none";
   };
 }
 

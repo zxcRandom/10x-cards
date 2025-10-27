@@ -1,7 +1,7 @@
 # Plan implementacji: CRUD kart w Deck Details View
 
 ## Status
-❌ **Niezaimplementowane** - Brakuje dialogów i pełnej funkcjonalności CRUD dla pojedynczych kart
+✅ **ZAIMPLEMENTOWANE** - Pełna funkcjonalność CRUD kart z dialogami i walidacją
 
 ## Kontekst
 W widoku szczegółów talii (`/decks/[deckId]`) użytkownik powinien móc:

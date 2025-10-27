@@ -1,7 +1,7 @@
 # Plan implementacji: Password Reset Flow (Forgot/Reset)
 
 ## Status
-❌ **Niezaimplementowane** - Brakuje API endpoints dla reset hasła
+✅ **ZAIMPLEMENTOWANE** - Kompletny OTP-based password reset flow
 
 ## ✅ Weryfikacja z dokumentacją Supabase Auth
 
