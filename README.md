@@ -20,6 +20,8 @@ A modern web application built with Astro, React, and TypeScript for creating an
 - **Components**: [Shadcn/ui](https://ui.shadcn.com/) - Modern UI components
 - **Icons**: [Lucide React](https://lucide.dev/) - Beautiful & consistent icon toolkit
 - **Runtime**: [@astrojs/node](https://docs.astro.build/en/guides/integrations-guide/node/) - Node.js runtime for Astro
+- **Testing (Unit)**: [Vitest](https://vitest.dev/) + Testing Library ([React](https://testing-library.com/docs/react-testing-library/intro/), [Astro](https://docs.astro.build/en/guides/testing/))
+- **Testing (E2E)**: [Playwright](https://playwright.dev/) (+ [@axe-core/playwright](https://github.com/abhinaba-ghosh/axe-core-playwright) for a11y checks)
 
 ## Getting Started Locally
 
