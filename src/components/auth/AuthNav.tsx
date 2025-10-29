@@ -11,9 +11,10 @@ import { toast } from 'sonner';
 
 interface AuthNavProps {
   userEmail?: string;
+  currentPath?: string;
 }
 
-export default function AuthNav({ userEmail }: AuthNavProps) {
+export default function AuthNav({ userEmail, currentPath = '/' }: AuthNavProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -37,12 +38,31 @@ export default function AuthNav({ userEmail }: AuthNavProps) {
     }
   };
 
+  // Helper to determine if link is active
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return currentPath === '/';
+    }
+    return currentPath?.startsWith(path);
+  };
+
+  const linkClass = (path: string) =>
+    `text-sm font-medium transition-colors ${
+      isActive(path)
+        ? 'text-foreground font-semibold'
+        : 'text-muted-foreground hover:text-foreground'
+    }`;
+
   return (
     <nav className="border-b border-border bg-background">
       <div className="container max-w-6xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo/Brand */}
-          <a href="/decks" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          {/* Logo/Brand - Links to Dashboard (/) */}
+          <a 
+            href="/" 
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            aria-label="Strona główna - Dashboard"
+          >
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               10x Cards
             </span>
@@ -51,16 +71,25 @@ export default function AuthNav({ userEmail }: AuthNavProps) {
           {/* Navigation Links */}
           <div className="flex items-center gap-6">
             <a
+              href="/"
+              className={`${linkClass('/')} hidden sm:inline`}
+              aria-current={isActive('/') ? 'page' : undefined}
+            >
+              Dashboard
+            </a>
+            <a
               href="/decks"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className={linkClass('/decks')}
+              aria-current={isActive('/decks') ? 'page' : undefined}
             >
               Moje talie
             </a>
             <a
-              href="/generate"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              href="/account/settings"
+              className={`${linkClass('/account/settings')} hidden md:inline`}
+              aria-current={isActive('/account/settings') ? 'page' : undefined}
             >
-              Generator AI
+              Ustawienia
             </a>
 
             {/* User Menu */}

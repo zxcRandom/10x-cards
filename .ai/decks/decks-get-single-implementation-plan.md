@@ -1287,14 +1287,14 @@ export async function GET(context: APIContext): Promise<Response> {
   // ... (już gotowe)
 }
 
-// PATCH - do implementacji w kolejnym planie
+// PATCH - IMPLEMENTED ✅
 export async function PATCH(context: APIContext): Promise<Response> {
-  // TODO: Update deck
+  // Implementation completed - see [deckId].ts
 }
 
-// DELETE - do implementacji w kolejnym planie
+// DELETE - IMPLEMENTED ✅
 export async function DELETE(context: APIContext): Promise<Response> {
-  // TODO: Delete deck
+  // Implementation completed - see [deckId].ts
 }
 ```
 

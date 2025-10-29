@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { createAIDeckSchema } from "./from-text.schema";
-import { aiService, AIServiceError, AITimeoutError, AIParsingError } from "../../../../../lib/services/ai.service";
+import { aiService, AIServiceError, AIParsingError } from "../../../../../lib/services/ai.service";
 import { DeckService } from "../../../../../lib/services/deck.service";
 import { CardService } from "../../../../../lib/services/card.service";
 import { AILogService } from "../../../../../lib/services/ai-log.service";
@@ -224,22 +224,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
         } satisfies UnprocessableErrorResponse),
         {
           status: 422,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    if (error instanceof AITimeoutError) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "INTERNAL_SERVER_ERROR",
-            message: "AI request timed out",
-            details: "Please try again with shorter input text or fewer cards",
-          },
-        } satisfies ErrorResponse),
-        {
-          status: 500,
           headers: { "Content-Type": "application/json" },
         }
       );

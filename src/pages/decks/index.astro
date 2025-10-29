@@ -8,6 +8,6 @@ const user = Astro.locals.user;
 ---
 
 <Layout title="Moje talie">
-  <AuthNav userEmail={user?.email} client:load />
+  <AuthNav userEmail={user?.email} currentPath={Astro.url.pathname} client:load />
   <DecksPage client:load />
 </Layout>

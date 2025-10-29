@@ -79,33 +79,32 @@ export function AIFlashcardGenerator() {
     const result = await generate(command);
 
     if (result) {
-      // Success
+      // Success - redirect to review page
       const cardsCount = result.cards.length;
       toast.success(
-        `Wygenerowano ${cardsCount} ${cardsCount === 1 ? 'fiszkę' : 'fiszek'} w talii "${result.deck.name}"`,
-        {
-          action: {
-            label: 'Otwórz',
-            onClick: () => {
-              window.location.href = `/decks/${result.deck.id}`;
-            },
-          },
-        }
+        `Wygenerowano ${cardsCount} ${cardsCount === 1 ? 'fiszkę' : 'fiszek'}. Przejdź do recenzji.`
       );
 
-      // Reset form
-      setForm({
-        inputText: '',
-        deckName: '',
-        maxCards: DEFAULT_MAX_CARDS,
-      });
-      setErrors({});
+      // Redirect to review page for user to review generated cards
+      window.location.href = `/generate/review?deckId=${result.deck.id}`;
+      
+      // Don't reset form - user might want to go back
     }
   };
 
   const handleCancel = () => {
     cancel();
-    toast.info('Generowanie anulowane');
+    toast('Generowanie anulowane', {
+      description: 'Możesz edytować tekst i spróbować ponownie.',
+      action: {
+        label: 'Spróbuj ponownie',
+        onClick: () => {
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+          }
+        },
+      },
+    });
   };
 
   const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {

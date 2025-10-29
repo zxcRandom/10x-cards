@@ -58,7 +58,7 @@ try {
 ---
 
 <Layout title={deck ? deck.name : 'Szczegóły talii'}>
-  <AuthNav userEmail={user?.email} client:load />
+  <AuthNav userEmail={user?.email} currentPath={Astro.url.pathname} client:load />
   {error === 'NOT_FOUND' ? (
     <div class="container mx-auto px-4 py-8">
       <div class="max-w-2xl mx-auto text-center space-y-4">

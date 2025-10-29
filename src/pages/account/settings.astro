@@ -7,11 +7,16 @@
  */
 
 import Layout from '@/layouts/Layout.astro';
+import AuthNav from '@/components/auth/AuthNav';
 import ChangePasswordForm from '@/components/auth/ChangePasswordForm';
 import DeleteAccountSection from '@/components/auth/DeleteAccountSection';
+
+// User is already authenticated (middleware ensures this)
+const user = Astro.locals.user;
 ---
 
 <Layout title="Ustawienia konta - 10x Cards">
+  <AuthNav userEmail={user?.email} currentPath={Astro.url.pathname} client:load />
   <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
     <div class="container max-w-4xl mx-auto px-4 py-8 space-y-8">
       <!-- Header -->

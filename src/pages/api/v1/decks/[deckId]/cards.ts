@@ -44,6 +44,8 @@ const cardsListQuerySchema = z.object({
         "easeFactor",
         "intervalDays",
         "repetitions",
+        "question",
+        "answer",
       ])
     )
     .default("createdAt"),

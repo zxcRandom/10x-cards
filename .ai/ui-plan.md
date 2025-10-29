@@ -4,7 +4,9 @@
 
 Architektura interfejsu użytkownika (UI) dla aplikacji 10x-cards została zaprojektowana z myślą o prostocie, szybkości wdrożenia i skupieniu na kluczowych funkcjonalnościach MVP. UI będzie minimalistyczne i responsywne, zbudowane w oparciu o Astro (dla statycznych layoutów) i React (dla interaktywnych komponentów), z wykorzystaniem biblioteki komponentów Shadcn/ui i stylizacji Tailwind CSS.
 
-Główna struktura opiera się na kilku kluczowych widokach, które prowadzą użytkownika przez podstawowe przepływy: od generowania fiszek za pomocą AI, przez zarządzanie taliami, aż po sesję nauki. Nawigacja jest prosta i intuicyjna, wykorzystując kombinację paska bocznego (desktop) lub menu hamburgerowego (mobile) oraz nawigacji okruszkowej ("breadcrumb") w widokach zagnieżdżonych. Zarządzanie stanem po stronie klienta będzie realizowane za pomocą wbudowanych hooków React (`useState`, `useEffect`), a obsługa błędów zostanie uproszczona do globalnego komponentu `Toast`.
+Główna struktura opiera się na kilku kluczowych widokach, które prowadzą użytkownika przez podstawowe przepływy: od generowania fiszek za pomocą AI, przez zarządzanie taliami, aż po sesję nauki. Nawigacja jest prosta i intuicyjna, wykorzystując **górny pasek nawigacyjny (top bar)** zamiast sidebara - prostsze rozwiązanie wystarczające dla MVP. Zarządzanie stanem po stronie klienta będzie realizowane za pomocą wbudowanych hooków React (`useState`, `useEffect`), a obsługa błędów zostanie uproszczona do globalnego komponentu `Toast`.
+
+**Nota MVP (26.10.2025)**: Pierwotnie planowano sidebar (desktop) + hamburger menu (mobile), ale dla MVP zaimplementowano prosty top bar z wszystkimi potrzebnymi linkami. Breadcrumbs zostały pominięte jako niepotrzebne dla obecnych widoków.
 
 ## 2. Lista widoków
 
@@ -82,16 +84,32 @@ Główny przepływ użytkownika (happy path) koncentruje się na jak najszybszym
 
 ## 4. Układ i struktura nawigacji
 
-Nawigacja została zaprojektowana z myślą o prostocie i łatwości dostępu do kluczowych sekcji.
+### Decyzja MVP (Zaimplementowane - 26 października 2025):
+**Top bar navigation zamiast Sidebar** ⭐
 
-- **Główny układ**: Aplikacja wykorzystuje stały, boczny pasek nawigacyjny (sidebar) na urządzeniach desktopowych i ukryte menu (hamburger) na urządzeniach mobilnych. Główna treść strony wyświetlana jest w centralnej części layoutu.
-- **Pasek nawigacyjny**: Zawiera linki do głównych widoków:
+Nawigacja została **uproszczona dla MVP** z myślą o szybkiej implementacji i wystarczającej funkcjonalności.
+
+- **Główny układ**: Aplikacja wykorzystuje **górny pasek nawigacyjny (top bar)** zamiast bocznego sidebara. Jest to prostsze rozwiązanie wystarczające dla MVP (4-5 głównych linków).
+- **Pasek nawigacyjny (AuthNav)**: Horizontal top bar zawierający:
+    - **Logo "10x Cards"** (link do Dashboard)
     - **Dashboard** (`/`)
     - **Moje talie** (`/decks`)
-    - **Ustawienia** (w przyszłości)
-    - **Wyloguj**
-- **Nawigacja okruszkowa (Breadcrumb)**: W widokach zagnieżdżonych, takich jak szczegóły talii, na górze strony pojawi się nawigacja okruszkowa (np. `Moje talie > Nazwa talii`), która ułatwia powrót do widoku nadrzędnego.
+    - **Ustawienia** (`/account/settings`) - ukryte na mobile (<768px)
+    - **Email użytkownika** (display only, ukryty na małych ekranach)
+    - **Wyloguj** (zawsze widoczny)
+- **Responsive design**: 
+    - Desktop (>1024px): wszystkie linki widoczne
+    - Tablet (768-1024px): "Ustawienia" ukryte
+    - Mobile (<768px): tylko logo, Dashboard, Moje talie, Wyloguj
+- **Nawigacja okruszkowa (Breadcrumb)**: ❌ **Pominięte w MVP** (nie wymagane dla obecnych widoków)
 - **Przekierowania**: Kluczowe akcje, takie jak utworzenie talii czy zakończenie sesji nauki, kończą się automatycznym przekierowaniem do odpowiedniego widoku, aby zapewnić płynność przepływu.
+
+### Przyszłe rozbudowy (Post-MVP):
+- **Sidebar (desktop)**: Dla lepszego UX gdy będzie więcej linków nawigacyjnych
+- **Hamburger menu (mobile)**: Slide-in menu z pełną listą linków
+- **Breadcrumbs**: W zagnieżdżonych widokach dla lepszej hierarchii
+
+**Notatka**: Pierwotny plan zakładał sidebar + hamburger, ale dla MVP wystarczający jest prosty top bar.
 
 ## 5. Kluczowe komponenty
 

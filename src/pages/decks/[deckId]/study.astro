@@ -1,6 +1,10 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import AuthNav from "@/components/auth/AuthNav";
 import StudySession from "@/components/study/StudySession";
+
+// User is already authenticated (middleware ensures this)
+const user = Astro.locals.user;
 
 const { deckId } = Astro.params;
 
@@ -10,6 +14,7 @@ const isValidUUID = deckId && uuidRegex.test(deckId);
 ---
 
 <Layout title="Sesja nauki">
+  <AuthNav userEmail={user?.email} currentPath={Astro.url.pathname} client:load />
   <div class="container mx-auto px-4 py-8">
     <header class="mb-8">
       <h1 class="text-3xl font-bold">Sesja nauki</h1>

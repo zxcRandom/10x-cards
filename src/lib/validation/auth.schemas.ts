@@ -64,6 +64,23 @@ export const passwordResetSchema = z.object({
 });
 
 /**
+ * OTP Password Reset Schema - POST /api/v1/auth/password/verify-and-reset
+ * Validates OTP code + new password for OTP-based password reset flow
+ */
+export const otpPasswordResetSchema = z.object({
+  email: emailSchema,
+  otp: z
+    .string()
+    .length(6, "Kod musi mieć 6 cyfr")
+    .regex(/^\d+$/, "Kod musi zawierać tylko cyfry"),
+  newPassword: passwordSchema,
+  confirmNewPassword: passwordSchema,
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+  message: "Hasła nie są identyczne",
+  path: ["confirmNewPassword"],
+});
+
+/**
  * Change Password Schema - POST /api/v1/auth/password/change
  */
 export const passwordChangeSchema = z.object({
@@ -97,5 +114,6 @@ export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchema>;
 export type PasswordResetInput = z.infer<typeof passwordResetSchema>;
+export type OtpPasswordResetInput = z.infer<typeof otpPasswordResetSchema>;
 export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;
 export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
