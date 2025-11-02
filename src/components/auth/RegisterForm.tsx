@@ -93,8 +93,8 @@ export default function RegisterForm() {
       // Server returns 303 with Location header
       toast.success('Konto utworzone pomyślnie');
       
-      // Get redirect location from response headers or default to /decks
-      const redirectUrl = response.headers.get('Location') || '/decks';
+      // Get redirect location from response headers or default to dashboard
+      const redirectUrl = response.headers.get('Location') || '/';
       
       // Important: Wait a bit to ensure browser saves cookies before reload
       await new Promise(resolve => setTimeout(resolve, COOKIE_SAVE_DELAY_MS));

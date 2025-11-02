@@ -1,0 +1,323 @@
+---
+description: Playwright Selectors and Page Object Model - Best Practices
+globs:
+alwaysApply: false
+---
+
+## PLAYWRIGHT - SELECTORS & PAGE OBJECT MODEL
+
+### Selector Hierarchy (Priority Order)
+
+Use selectors in this order of preference:
+
+1. **`getByRole()`** - Most resilient, reflects how users perceive the page
+   ```typescript
+   await page.getByRole('button', { name: 'Submit' }).click();
+   await page.getByRole('heading', { name: 'Sign up' }).toBeVisible();
+   ```
+
+2. **`getByLabel()`** - For form fields associated with labels
+   ```typescript
+   await page.getByLabel('Email address').fill('test@example.com');
+   await page.getByLabel('Password').fill('secret-password');
+   ```
+
+3. **`getByPlaceholder()`** - For inputs with placeholder text
+   ```typescript
+   await page.getByPlaceholder('Enter your name').fill('John Doe');
+   ```
+
+4. **`getByText()`** - For elements with specific text content
+   ```typescript
+   await page.getByText('Welcome').click();
+   await page.getByText(/welcome/i).click(); // Case insensitive
+   ```
+
+5. **`getByTestId()`** - For elements with `data-testid` attributes
+   ```typescript
+   await page.getByTestId('submit-button').click();
+   ```
+
+6. **CSS/XPath selectors** - Last resort, avoid long/brittle selectors
+   ```typescript
+   await page.locator('css=button').click();
+   await page.locator('xpath=//button').click();
+   ```
+
+### Using `data-testid` Attributes
+
+**Convention:**
+- Use kebab-case for test IDs: `data-testid="submit-button"`
+- Add to elements that lack semantic selectors
+- Never use long, nested CSS/XPath selectors (they're fragile)
+
+**Locating elements:**
+```typescript
+// HTML
+<button data-testid="submit-button">Submit</button>
+
+// Test
+await page.getByTestId('submit-button').click();
+```
+
+**Custom test ID attribute** (if needed):
+```typescript
+// playwright.config.ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  use: {
+    testIdAttribute: 'data-pw' // Default is 'data-testid'
+  }
+});
+```
+
+### Locator Best Practices
+
+**Chain locators for better specificity:**
+```typescript
+const product = page
+  .getByRole('listitem')
+  .filter({ hasText: 'Product 1' })
+  .getByRole('button', { name: 'Add to cart' });
+await product.click();
+```
+
+**Select from multiple matches:**
+```typescript
+// First, last, or nth element
+await page.getByRole('button').first().click();
+await page.getByRole('button').last().click();
+await page.getByRole('button').nth(2).click();
+```
+
+**Combine locators:**
+```typescript
+await page.locator('tag=div').getByText('Click me').click();
+```
+
+**Working with iframes:**
+```typescript
+const locator = page
+  .frameLocator('#my-iframe')
+  .getByRole('button', { name: 'Sign in' });
+await locator.click();
+```
+
+**Iterate through elements:**
+```typescript
+const items = page.getByRole('listitem');
+await expect(items).toHaveCount(5);
+
+for (const item of await items.all()) {
+  console.log(await item.textContent());
+}
+```
+
+### Page Object Model (POM)
+
+**Directory structure:**
+```
+./tests/e2e/page-objects/
+  ├── LoginPage.ts
+  ├── DashboardPage.ts
+  └── DecksPage.ts
+```
+
+**POM Class Template:**
+```typescript
+import type { Page, Locator } from '@playwright/test';
+
+export class LoginPage {
+  readonly page: Page;
+  readonly emailInput: Locator;
+  readonly passwordInput: Locator;
+  readonly submitButton: Locator;
+  readonly errorMessage: Locator;
+  
+  constructor(page: Page) {
+    this.page = page;
+    // Define all locators in constructor
+    this.emailInput = page.getByLabel('Email');
+    this.passwordInput = page.getByLabel('Password');
+    this.submitButton = page.getByRole('button', { name: 'Sign in' });
+    this.errorMessage = page.getByTestId('error-message');
+  }
+  
+  async goto() {
+    await this.page.goto('/auth/login');
+  }
+  
+  async login(email: string, password: string) {
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+    await this.submitButton.click();
+  }
+  
+  async getErrorMessage() {
+    return await this.errorMessage.textContent();
+  }
+}
+```
+
+**Using POM in tests:**
+```typescript
+import { test, expect } from '@playwright/test';
+import { LoginPage } from './page-objects/LoginPage';
+
+test('user can login with valid credentials', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  
+  // Arrange
+  await loginPage.goto();
+  
+  // Act
+  await loginPage.login('user@example.com', 'password123');
+  
+  // Assert
+  await expect(page.getByText('Welcome back!')).toBeVisible();
+});
+
+test('shows error with invalid credentials', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  
+  // Arrange
+  await loginPage.goto();
+  
+  // Act
+  await loginPage.login('invalid@example.com', 'wrong');
+  
+  // Assert
+  await expect(loginPage.errorMessage).toBeVisible();
+  const message = await loginPage.getErrorMessage();
+  expect(message).toContain('Invalid credentials');
+});
+```
+
+### Assertions & Actions
+
+**Common assertions:**
+```typescript
+// Visibility
+await expect(page.getByText('Hello')).toBeVisible();
+await expect(page.getByText('Hidden')).toBeHidden();
+
+// Text content
+await expect(page.locator('.status')).toHaveText('Submitted');
+await expect(page.locator('.message')).toContainText('Success');
+
+// Form values
+await expect(page.getByLabel('Email')).toHaveValue('test@example.com');
+await expect(page.getByRole('checkbox')).toBeChecked();
+
+// State
+await expect(page.getByRole('button')).toBeEnabled();
+await expect(page.getByRole('button')).toBeDisabled();
+
+// Count
+await expect(page.getByRole('listitem')).toHaveCount(5);
+```
+
+**Auto-waiting:**
+Playwright automatically waits for elements to be actionable before interaction:
+- Element is attached to DOM
+- Element is visible
+- Element is stable (not animating)
+- Element receives events (not obscured)
+- Element is enabled (for inputs/buttons)
+
+### Test Structure (AAA Pattern)
+
+```typescript
+test('descriptive test name', async ({ page }) => {
+  // Arrange - Set up test preconditions
+  const loginPage = new LoginPage(page);
+  await loginPage.goto();
+  
+  // Act - Perform the action being tested
+  await loginPage.login('user@example.com', 'password');
+  
+  // Assert - Verify the expected outcome
+  await expect(page.getByText('Welcome')).toBeVisible();
+});
+```
+
+### Test Hooks
+
+```typescript
+import { test } from '@playwright/test';
+import { TodoPage } from './page-objects/TodoPage';
+
+test.describe('todo tests', () => {
+  let todoPage: TodoPage;
+
+  test.beforeEach(async ({ page }) => {
+    todoPage = new TodoPage(page);
+    await todoPage.goto();
+    await todoPage.addToDo('item1');
+    await todoPage.addToDo('item2');
+  });
+
+  test.afterEach(async () => {
+    await todoPage.removeAll();
+  });
+
+  test('should add an item', async () => {
+    await todoPage.addToDo('my item');
+    // Assert...
+  });
+
+  test('should remove an item', async () => {
+    await todoPage.remove('item1');
+    // Assert...
+  });
+});
+```
+
+### Debugging
+
+**Use `page.pause()` for debugging:**
+```typescript
+test('debug test', async ({ page }) => {
+  await page.goto('/');
+  await page.pause(); // Opens Playwright Inspector
+  await page.click('button');
+});
+```
+
+**Generate tests with codegen:**
+```bash
+npx playwright codegen http://localhost:4321
+```
+
+**View trace:**
+```bash
+npx playwright show-trace trace.zip
+```
+
+### Anti-patterns to Avoid
+
+❌ **Long, nested CSS selectors (fragile):**
+```typescript
+await page.locator('#tsf > div:nth-child(2) > div.A8SBwf').click();
+```
+
+✅ **Use semantic selectors:**
+```typescript
+await page.getByRole('button', { name: 'Search' }).click();
+```
+
+❌ **Multiple separate locator calls:**
+```typescript
+await page.locator('button').click();
+await page.locator('button').click();
+await page.locator('button').click();
+```
+
+✅ **Use `.all()` or specific selectors:**
+```typescript
+const buttons = await page.getByRole('button').all();
+for (const button of buttons) {
+  await button.click();
+}
+```

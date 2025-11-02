@@ -14,6 +14,7 @@ import type {
  */
 const SM2_CONSTANTS = {
   MIN_EASE_FACTOR: 1.3,
+  MAX_EASE_FACTOR: 2.5,
   EASE_FACTOR_DECREASE: 0.2,
   EASE_FACTOR_INCREASE: 0.1,
   GRADE_PENALTY: 0.08,
@@ -110,7 +111,10 @@ function calculateSM2Parameters(
     newIntervalDays = 1;
     newEaseFactor = Math.max(
       SM2_CONSTANTS.MIN_EASE_FACTOR,
-      currentEaseFactor - SM2_CONSTANTS.EASE_FACTOR_DECREASE
+      Math.min(
+        SM2_CONSTANTS.MAX_EASE_FACTOR,
+        currentEaseFactor - SM2_CONSTANTS.EASE_FACTOR_DECREASE
+      )
     );
   } else {
     // Success - increase progress
@@ -128,9 +132,12 @@ function calculateSM2Parameters(
     // Adjust ease factor based on grade difficulty
     newEaseFactor = Math.max(
       SM2_CONSTANTS.MIN_EASE_FACTOR,
-      currentEaseFactor +
-        SM2_CONSTANTS.EASE_FACTOR_INCREASE -
-        (5 - grade) * SM2_CONSTANTS.GRADE_PENALTY
+      Math.min(
+        SM2_CONSTANTS.MAX_EASE_FACTOR,
+        currentEaseFactor +
+          SM2_CONSTANTS.EASE_FACTOR_INCREASE -
+          (5 - grade) * SM2_CONSTANTS.GRADE_PENALTY
+      )
     );
   }
 

@@ -157,8 +157,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
       responseHeaders.append("Set-Cookie", cookieString);
     });
 
-    // Success - redirect to decks with cookies
-    responseHeaders.set("Location", "/decks");
+    // Success - redirect to dashboard
+    responseHeaders.set("Location", "/");
 
     return new Response(null, {
       status: 303, // See Other - redirect after POST
