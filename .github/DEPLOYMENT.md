@@ -129,9 +129,25 @@ npm run lint:fix
 ## Troubleshooting
 
 ### Deployment fails z błędem "MessageChannel is not defined"
-- To jest problem kompatybilności React 19 z Cloudflare Workers
-- **Rozwiązanie:** Dodano `compatibility_flags = ["nodejs_compat"]` w `wrangler.toml`
-- Ta flaga włącza Node.js compatibility APIs w Cloudflare Workers
+
+**⚠️ CRITICAL**: This error occurs because Cloudflare Pages automatic GitHub deployments **do not respect** `compatibility_flags` from `wrangler.toml`.
+
+**REQUIRED MANUAL CONFIGURATION**:
+
+1. **Configure in Cloudflare Dashboard** (See [CLOUDFLARE_SETUP.md](./CLOUDFLARE_SETUP.md) for step-by-step guide):
+   - Go to https://dash.cloudflare.com/
+   - Navigate to: Workers & Pages → 10x-cards → Settings → Functions
+   - **Add compatibility flag**: `nodejs_compat` for both Preview and Production
+   - **Alternative**: Add environment variable `COMPATIBILITY_FLAGS=nodejs_compat`
+
+2. **Why wrangler.toml alone is not enough**:
+   - The `compatibility_flags = ["nodejs_compat"]` in `wrangler.toml` works for local development
+   - Cloudflare Pages automatic deployments from GitHub have limitations
+   - Manual Dashboard configuration takes precedence and is required for production
+
+3. **After Dashboard configuration**: Push a new commit or manually redeploy from Cloudflare Dashboard
+
+**Root cause**: React 19 SSR uses Node.js APIs (MessageChannel) not available in Cloudflare Workers without `nodejs_compat` flag.
 
 ### Deployment fails z błędem "Context access might be invalid"
 - To są tylko ostrzeżenia ESLint, nie błędy
