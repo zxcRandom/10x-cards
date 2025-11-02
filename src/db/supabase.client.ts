@@ -28,12 +28,14 @@ function getSupabaseUrl(runtimeEnv?: Record<string, unknown>): string {
 function getSupabaseAnonKey(runtimeEnv?: Record<string, unknown>): string {
   const key =
     (runtimeEnv?.SUPABASE_KEY as string) ||
+    (runtimeEnv?.SUPABASE_ANON_KEY as string) ||
     (runtimeEnv?.PUBLIC_SUPABASE_ANON_KEY as string) ||
     import.meta.env.SUPABASE_KEY ||
+    import.meta.env.SUPABASE_ANON_KEY ||
     import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
   if (!key) {
-    throw new Error("Missing SUPABASE_KEY environment variable");
+    throw new Error("Missing Supabase anon key. Set SUPABASE_KEY, SUPABASE_ANON_KEY, or PUBLIC_SUPABASE_ANON_KEY.");
   }
   return key;
 }
