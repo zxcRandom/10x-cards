@@ -1,53 +1,53 @@
 # CI/CD Setup - GitHub Actions
 
-## Przegląd
+## Overview
 
-Ten projekt używa GitHub Actions do automatycznej walidacji Pull Requestów do brancha `main`.
+This project uses GitHub Actions for automatic validation of Pull Requests to the `main` branch.
 
 ## Workflow: Pull Request Validation
 
-Plik: `.github/workflows/pr-validation.yml`
+File: `.github/workflows/pr-validation.yml`
 
-### Triggery
+### Triggers
 
-Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `main`.
+The workflow runs automatically on every Pull Request to the `main` branch.
 
 ### Jobs
 
 #### 1. Lint Code
 
-- **Cel**: Sprawdzenie jakości kodu za pomocą ESLint
-- **Komendy**: `npm ci` → `npm run lint`
-- **Czas**: ~1-2 minuty
+- **Purpose**: Check code quality using ESLint
+- **Commands**: `npm ci` → `npm run lint`
+- **Duration**: ~1-2 minutes
 
 #### 2. Unit Tests
 
-- **Cel**: Uruchomienie testów jednostkowych
-- **Komendy**: `npm ci` → `npm run test:unit`
-- **Czas**: ~1-2 minuty
+- **Purpose**: Run unit tests
+- **Commands**: `npm ci` → `npm run test:unit`
+- **Duration**: ~1-2 minutes
 
 #### 3. Build Check
 
-- **Cel**: Weryfikacja, czy projekt buduje się poprawnie
-- **Komendy**: `npm ci` → `npm run build`
-- **Czas**: ~2-3 minuty
+- **Purpose**: Verify that the project builds correctly
+- **Commands**: `npm ci` → `npm run build`
+- **Duration**: ~2-3 minutes
 
-#### 4. E2E Tests (opcjonalne - obecnie wyłączone)
+#### 4. E2E Tests (optional - currently disabled)
 
-- **Cel**: Testy end-to-end z Playwright
-- **Status**: Wyłączone (`if: false`)
-- **Wymaga**: Konfiguracji secrets w GitHub
+- **Purpose**: End-to-end tests with Playwright
+- **Status**: Disabled (`if: false`)
+- **Requires**: Secrets configuration in GitHub
 
-## Najlepsze praktyki zastosowane
+## Best Practices Applied
 
-### ✅ Zastosowane w projekcie:
+### ✅ Implemented in the project:
 
-1. **Używanie `npm ci` zamiast `npm install`**
-   - Szybsza instalacja
-   - Gwarantuje spójność z `package-lock.json`
-   - Czyści `node_modules` przed instalacją
+1. **Using `npm ci` instead of `npm install`**
+   - Faster installation
+   - Guarantees consistency with `package-lock.json`
+   - Cleans `node_modules` before installation
 
-2. **Caching zależności Node.js**
+2. **Node.js dependency caching**
 
    ```yaml
    uses: actions/setup-node@v4
@@ -56,15 +56,15 @@ Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `m
      cache: "npm"
    ```
 
-   - Przyspiesza instalację dependencies
-   - Zmniejsza obciążenie npm registry
+   - Speeds up dependency installation
+   - Reduces load on npm registry
 
-3. **Pinning wersji akcji do konkretnych tagów**
+3. **Pinning action versions to specific tags**
    - `actions/checkout@v5`
    - `actions/setup-node@v4`
-   - Zapewnia stabilność i bezpieczeństwo
+   - Ensures stability and security
 
-4. **Minimalne wymagane uprawnienia**
+4. **Minimal required permissions**
 
    ```yaml
    permissions:
@@ -72,99 +72,99 @@ Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `m
      pull-requests: write
    ```
 
-5. **Równoległe wykonywanie niezależnych jobów**
-   - `lint`, `unit-tests`, i `build` uruchamiają się równolegle
-   - Skraca całkowity czas wykonania workflow
+5. **Parallel execution of independent jobs**
+   - `lint`, `unit-tests`, and `build` run in parallel
+   - Shortens total workflow execution time
 
-6. **Dependency chain dla testów E2E**
+6. **Dependency chain for E2E tests**
 
    ```yaml
    needs: [lint, unit-tests, build]
    ```
 
-   - E2E testy uruchamiają się tylko jeśli podstawowe sprawdzenia przejdą
+   - E2E tests run only if basic checks pass
 
-7. **Upload artifacts dla diagnostyki**
-   - Playwright reports są zachowywane przez 30 dni
-   - `if: always()` zapewnia upload nawet przy błędach
+7. **Upload artifacts for diagnostics**
+   - Playwright reports are retained for 30 days
+   - `if: always()` ensures upload even on errors
 
-8. **Retry logic w Playwright**
-   - Konfiguracja w `playwright.config.ts`: `retries: process.env.CI ? 2 : 0`
+8. **Retry logic in Playwright**
+   - Configuration in `playwright.config.ts`: `retries: process.env.CI ? 2 : 0`
 
-## Jak włączyć testy E2E w CI
+## How to enable E2E tests in CI
 
-### Krok 1: Dodaj Secrets w GitHub
+### Step 1: Add Secrets in GitHub
 
-1. Przejdź do: `Settings` → `Secrets and variables` → `Actions`
-2. Kliknij `New repository secret`
-3. Dodaj następujące secrets:
+1. Go to: `Settings` → `Secrets and variables` → `Actions`
+2. Click `New repository secret`
+3. Add the following secrets:
    - `PUBLIC_SUPABASE_URL`
    - `PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_URL`
    - `SUPABASE_KEY`
 
-### Krok 2: Włącz job E2E
+### Step 2: Enable E2E job
 
-W pliku `.github/workflows/pr-validation.yml` zmień:
+In file `.github/workflows/pr-validation.yml` change:
 
 ```yaml
-if: false # Ustaw na 'true' gdy skonfigurujesz secrets w GitHub
+if: false # Set to 'true' when you configure secrets in GitHub
 ```
 
-na:
+to:
 
 ```yaml
 if: true
 ```
 
-### Krok 3: (Opcjonalnie) Stwórz dedykowaną bazę testową
+### Step 3: (Optional) Create a dedicated test database
 
-Dla bezpieczeństwa, rozważ użycie oddzielnej instancji Supabase dla testów CI/CD.
+For security, consider using a separate Supabase instance for CI/CD tests.
 
-## Testowanie workflow lokalnie
+## Testing workflow locally
 
-Możesz przetestować workflow lokalnie używając [act](https://github.com/nektos/act):
+You can test the workflow locally using [act](https://github.com/nektos/act):
 
 ```bash
-# Instalacja act (Windows)
+# Install act (Windows)
 choco install act-cli
 
-# Uruchom workflow
+# Run workflow
 act pull_request
 ```
 
-## Monitorowanie
+## Monitoring
 
-- Sprawdź status workflows: `Actions` tab w GitHub
-- Każdy PR pokazuje status checków
-- Kliknij na "Details" aby zobaczyć logi
+- Check workflow status: `Actions` tab in GitHub
+- Each PR shows the status of checks
+- Click on "Details" to see logs
 
 ## Troubleshooting
 
-### Problem: npm ci zawodzi
+### Problem: npm ci fails
 
-**Rozwiązanie**: Upewnij się, że `package-lock.json` jest zaktualizowany i commitnięty.
+**Solution**: Make sure `package-lock.json` is updated and committed.
 
 ### Problem: Build timeout
 
-**Rozwiązanie**: Zwiększ timeout w workflow lub zoptymalizuj build.
+**Solution**: Increase timeout in workflow or optimize the build.
 
-### Problem: Testy E2E nie przechodzą w CI
+### Problem: E2E tests fail in CI
 
-**Rozwiązanie**:
+**Solution**:
 
-1. Sprawdź czy secrets są poprawnie skonfigurowane
-2. Uruchom testy lokalnie z `CI=true npm run test:e2e:fast`
-3. Sprawdź logi artifacts (Playwright report)
+1. Check that secrets are correctly configured
+2. Run tests locally with `CI=true npm run test:e2e:fast`
+3. Check artifact logs (Playwright report)
 
-## Rozszerzenia (TODO)
+## Future Enhancements (TODO)
 
-Możliwe usprawnienia:
+Possible improvements:
 
-- [ ] Dodać coverage reporting (Codecov/Coveralls)
-- [ ] Dodać security scanning (Dependabot, Snyk)
-- [ ] Dodać performance budgets
-- [ ] Matrix strategy dla różnych wersji Node.js
-- [ ] Deploy preview dla każdego PR (Vercel/Netlify)
+- [ ] Add coverage reporting (Codecov/Coveralls)
+- [ ] Add security scanning (Dependabot, Snyk)
+- [ ] Add performance budgets
+- [ ] Matrix strategy for different Node.js versions
+- [ ] Deploy preview for each PR (Vercel/Netlify)
 - [ ] Automatic PR labeling
 - [ ] Slack/Discord notifications
