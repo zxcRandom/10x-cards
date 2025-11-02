@@ -1,0 +1,105 @@
+name: Production Deployment
+
+# React to pushes to the main branch
+on:
+  push:
+    branches:
+      - main
+
+# Permissions for GITHUB_TOKEN
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  # Job 1: Lint code
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # Job 2: Run unit tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+  # Job 3: Build and deploy to Cloudflare Pages
+  deploy:
+    name: Build and Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests]
+
+    env:
+      PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+      PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_DEFAULT_MODEL: ${{ secrets.OPENROUTER_DEFAULT_MODEL }}
+      OPENROUTER_BASE_URL: ${{ secrets.OPENROUTER_BASE_URL }}
+      OPENROUTER_REFERRER: ${{ secrets.OPENROUTER_REFERRER }}
+      OPENROUTER_TITLE: ${{ secrets.OPENROUTER_TITLE }}
+      AI_TIMEOUT_MS: ${{ secrets.AI_TIMEOUT_MS }}
+      AI_RATE_LIMIT_PER_MINUTE: ${{ secrets.AI_RATE_LIMIT_PER_MINUTE }}
+      AI_RATE_LIMIT_PER_DAY: ${{ secrets.AI_RATE_LIMIT_PER_DAY }}
+      AI_MAX_INPUT_LENGTH: ${{ secrets.AI_MAX_INPUT_LENGTH }}
+      AI_DEFAULT_MAX_CARDS: ${{ secrets.AI_DEFAULT_MAX_CARDS }}
+      AI_MAX_CARDS_LIMIT: ${{ secrets.AI_MAX_CARDS_LIMIT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          wranglerVersion: '3'
