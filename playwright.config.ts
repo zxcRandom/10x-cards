@@ -34,16 +34,21 @@ export default defineConfig({
   projects: [
     {
       name: 'setup',
-      testMatch: /global\.setup\.ts/,
+      testMatch: /.*\.setup\.ts/,
+      testDir: './tests',
       teardown: 'teardown',
     },
     {
       name: 'teardown',
-      testMatch: /global\.teardown\.ts/,
+      testMatch: /.*\.teardown\.ts/,
+      testDir: './tests',
     },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        storageState: '.auth/user.json', // Reuse auth from setup
+      },
       dependencies: ['setup'],
     },
   ],

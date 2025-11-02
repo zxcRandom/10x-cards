@@ -78,7 +78,7 @@ export class SM2Parameters {
 
     if (this.intervalDays < SM2Parameters.MIN_INTERVAL) {
       throw new Error(
-        `Interval must be at least ${SM2Parameters.MIN_INTERVAL} day, got ${this.intervalDays}`
+        `Interval must be at least ${SM2Parameters.MIN_INTERVAL} days, got ${this.intervalDays}`
       );
     }
 

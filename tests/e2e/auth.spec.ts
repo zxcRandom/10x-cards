@@ -5,6 +5,9 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from './page-objects';
 
+// Reset storage state to test login flow without pre-authenticated session
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test.describe('Authentication', () => {
   
   test('user can login with valid credentials', async ({ page }) => {

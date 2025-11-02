@@ -8,6 +8,9 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from './page-objects';
 
+// Reset storage state for this file to test public pages without authentication
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test.describe('Public Pages - No Auth Required', () => {
   
   test('can view login page', async ({ page }) => {

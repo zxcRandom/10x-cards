@@ -72,8 +72,17 @@ export class AIGeneratorPage {
    */
   async fillInputText(text: string) {
     await this.inputTextArea.waitFor({ state: 'visible' });
-    await this.inputTextArea.fill(text, { force: true });
-    await this.page.waitForTimeout(500); // Wait for React state update
+    await this.inputTextArea.click();
+    
+    // Clear any existing content first
+    await this.inputTextArea.clear();
+    
+    // Use pressSequentially to trigger React onChange events properly
+    // This is slower but ensures React state updates correctly
+    await this.inputTextArea.pressSequentially(text, { delay: 10 });
+    
+    // Wait a bit for React to process the input
+    await this.page.waitForTimeout(300);
   }
   
   /**

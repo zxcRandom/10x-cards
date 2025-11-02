@@ -176,7 +176,7 @@ export class CardRepository {
     cardId: string,
     updates: { question?: string; answer?: string }
   ): Promise<DbCard> {
-    const updateData: Record<string, string> = {};
+    const updateData: Partial<{ question: string; answer: string }> = {};
 
     if (updates.question !== undefined) {
       updateData.question = updates.question.trim();
