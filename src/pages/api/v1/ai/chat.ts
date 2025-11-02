@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { z } from "zod";
 import { RateLimitService } from "../../../../lib/services/rate-limit.service";
 import { DeckService } from "../../../../lib/services/deck.service";
-import { CardService } from "../../../../lib/services/card.service.legacy";
+import { CardService } from "../../../../lib/services/card.service";
 import { AILogService } from "../../../../lib/services/ai-log.service";
 import { createOpenRouterConfig } from "../../../../lib/services/openrouter/openrouter.config";
 import {
@@ -276,11 +276,13 @@ async function handleFlashcardGeneration(
 
     let createdCards: CardDTO[] = [];
     if (cards.length > 0) {
-      const batchResult = await CardService.createCardsBatch(supabase, deck.id, userId, cards);
-      if ("error" in batchResult) {
-        throw new AIServiceError(`Failed to create cards: ${batchResult.error}`);
+      const cardService = new CardService(supabase);
+      const batchResult = await cardService.createCardsBatch(deck.id, userId, cards);
+      const batchResultValue = batchResult.toUnion();
+      if ("error" in batchResultValue) {
+        throw new AIServiceError(`Failed to create cards: ${batchResultValue.error}`);
       }
-      createdCards = batchResult;
+      createdCards = batchResultValue;
     }
 
     const log = await AILogService.createLog(supabase, {

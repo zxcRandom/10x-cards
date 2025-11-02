@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createAIDeckSchema } from "./from-text.schema";
 import { aiService, AIServiceError, AIParsingError } from "../../../../../lib/services/ai.service";
 import { DeckService } from "../../../../../lib/services/deck.service";
-import { CardService } from "../../../../../lib/services/card.service.legacy";
+import { CardService } from "../../../../../lib/services/card.service";
 import { AILogService } from "../../../../../lib/services/ai-log.service";
 import { RateLimitService } from "../../../../../lib/services/rate-limit.service";
 import type { 
@@ -141,18 +141,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
       // Create cards in batch
       if (generatedCards.length > 0) {
-        const cardsResult = await CardService.createCardsBatch(
-          locals.supabase,
+        const cardService = new CardService(locals.supabase);
+        const cardsResult = await cardService.createCardsBatch(
           deckId,
           user.id,
           generatedCards
         );
 
-        if ("error" in cardsResult) {
-          throw new Error(`Failed to create cards: ${cardsResult.error}`);
+        const cardsResultValue = cardsResult.toUnion();
+        if ("error" in cardsResultValue) {
+          throw new Error(`Failed to create cards: ${cardsResultValue.error}`);
         }
 
-        cards = cardsResult;
+        cards = cardsResultValue;
       }
 
       // Create success log

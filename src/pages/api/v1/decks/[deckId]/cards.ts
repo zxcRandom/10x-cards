@@ -8,7 +8,7 @@ import type {
   ValidationErrorResponse,
   HttpStatus,
 } from "../../../../../types";
-import { CardService } from "../../../../../lib/services/card.service.legacy";
+import { CardService } from "../../../../../lib/services/card.service";
 import {
   createCardSchema,
   deckIdParamSchema,
@@ -171,16 +171,18 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // =========================================================================
     // STEP 4: List Cards from Database
     // =========================================================================
-    const result = await CardService.listCards(
-      locals.supabase,
-      deckId,
-      user.id,
-      options
-    );
+    const cardService = new CardService(locals.supabase);
+    const result = await cardService.listCards(deckId, user.id, {
+      ...options,
+      searchTerm: options.q,
+    });
 
-    if ("error" in result) {
+    // Convert Result to union type for easier handling
+    const resultValue = result.toUnion();
+
+    if ("error" in resultValue) {
       // Map service errors to HTTP responses
-      if (result.error === "DECK_NOT_FOUND") {
+      if (resultValue.error === "DECK_NOT_FOUND") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "DECK_NOT_FOUND",
@@ -193,7 +195,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
         });
       }
 
-      if (result.error === "FORBIDDEN") {
+      if (resultValue.error === "FORBIDDEN") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "FORBIDDEN",
@@ -206,7 +208,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
         });
       }
 
-      if (result.error === "DATABASE_ERROR") {
+      if (resultValue.error === "DATABASE_ERROR") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "INTERNAL_SERVER_ERROR",
@@ -236,7 +238,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // =========================================================================
     // STEP 5: Return Success Response
     // =========================================================================
-    const cardsListDTO: CardsListDTO = result;
+    const cardsListDTO: CardsListDTO = resultValue;
 
     return new Response(JSON.stringify(cardsListDTO), {
       status: 200,
@@ -382,8 +384,8 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 4: Deck Ownership Verification
     // =========================================================================
-    const { exists, owned } = await CardService.verifyDeckOwnership(
-      locals.supabase,
+    const cardService = new CardService(locals.supabase);
+    const { exists, owned } = await cardService.verifyDeckOwnership(
       deckId,
       user.id
     );
@@ -417,15 +419,14 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 5: Create Card in Database
     // =========================================================================
-    const result = await CardService.createCard(
-      locals.supabase,
-      deckId,
-      command
-    );
+    const result = await cardService.createCard(deckId, command);
 
-    if ("error" in result) {
+    // Convert Result to union type for easier handling
+    const resultValue = result.toUnion();
+
+    if ("error" in resultValue) {
       // Map service errors to HTTP responses
-      if (result.error === "DECK_NOT_FOUND") {
+      if (resultValue.error === "DECK_NOT_FOUND") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "DECK_NOT_FOUND",
@@ -438,7 +439,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
         });
       }
 
-      if (result.error === "DATABASE_ERROR") {
+      if (resultValue.error === "DATABASE_ERROR") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "UNPROCESSABLE_ENTITY",
@@ -467,7 +468,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 6: Return Success Response
     // =========================================================================
-    const cardDTO: CardDTO = result;
+    const cardDTO: CardDTO = resultValue;
 
     return new Response(JSON.stringify(cardDTO), {
       status: 201,
