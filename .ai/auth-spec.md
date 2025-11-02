@@ -7,7 +7,6 @@ Dokument opisuje architekturę funkcjonalności autentykacji użytkowników dla 
 - Walidacja: Zod
 - RLS: włączone w produkcji (zgodnie z PRD), w dev może być tymczasowo wyłączone (migracja już to odzwierciedla)
 
-
 ## 1) Architektura interfejsu użytkownika
 
 ### 1.1. Widoki/strony i layouty (auth vs non-auth)
@@ -33,7 +32,6 @@ Dokument opisuje architekturę funkcjonalności autentykacji użytkowników dla 
   - `src/pages/generate/review.astro` (przegląd wygenerowanych kart) oraz inne widoki AI/study.
   - Dostęp kontrolowany w middleware (patrz 3.4). Niezalogowanych przekierowujemy do `/auth/login?next=...` (lub przez `rewrite` z nagłówkiem `x-redirect-to`).
   - `src/pages/account/settings.astro` — ustawienia konta (zmiana hasła, usunięcie konta). Chronione.
-
 
 ### 1.2. Komponenty React i podział odpowiedzialności
 
@@ -61,7 +59,6 @@ Dokument opisuje architekturę funkcjonalności autentykacji użytkowników dla 
   - W Layout/Nawigacji, gdy zalogowany: pokaż "Moje talie", "Ucz się", menu użytkownika z akcją "Wyloguj" (link do endpointu lub akcja `POST` z fetch).
   - Gdy niezalogowany: "Zaloguj się", "Utwórz konto".
 
-
 ### 1.3. Walidacja i komunikaty błędów (frontend)
 
 - Zod schematy klienta (kopie uproszczone do UX, źródłowe schematy są na backendzie):
@@ -72,7 +69,6 @@ Dokument opisuje architekturę funkcjonalności autentykacji użytkowników dla 
   - Logowanie: zawsze neutralny komunikat przy niepowodzeniu (bez ujawniania, czy e-mail istnieje).
   - Rejestracja: przy kolizji e-mail — komunikat przyjazny, ale neutralny.
   - Reset hasła (żądanie): zawsze komunikat typu "Jeśli adres istnieje, wysłaliśmy instrukcje resetu".
-
 
 ### 1.4. Scenariusze kluczowe
 
@@ -99,7 +95,6 @@ Dokument opisuje architekturę funkcjonalności autentykacji użytkowników dla 
   - Wymaga wyraźnego potwierdzenia w UI (np. wpisanie e-maila lub słowa „DELETE”).
   - Backend: Admin API Supabase (service_role) do trwałego usunięcia użytkownika, następnie `signOut()`.
   - Po sukcesie: redirect do `/`.
-
 
 ## 2) Logika backendowa
 
@@ -155,7 +150,6 @@ Nowe endpointy (ustawienia konta):
 
 Konwencje odpowiedzi i błędów zgodne z `src/types.ts` (`ErrorResponse`, `ValidationErrorResponse`, `HttpStatus`). Do walidacji wykorzystać helper `formatZodErrors`.
 
-
 ### 2.2. Modele danych (DTO/Command)
 
 Dodać do `src/types.ts` (bez zmian istniejących typów):
@@ -167,17 +161,18 @@ Dodać do `src/types.ts` (bez zmian istniejących typów):
 - (opcjonalnie) `AuthSuccessDTO { status: "ok" }`
 
 Schematy Zod (nowy plik): `src/lib/validation/auth.schemas.ts`
+
 - `signInSchema`
 - `signUpSchema`
 - `passwordResetRequestSchema`
 - `passwordResetSchema`
- - `passwordChangeSchema`
- - `deleteAccountSchema`
+- `passwordChangeSchema`
+- `deleteAccountSchema`
 
 Nowe typy:
+
 - `ChangePasswordCommand { currentPassword: string; newPassword: string; confirmNewPassword: string }`
 - `DeleteAccountCommand { confirm: string }`
-
 
 ### 2.3. Walidacja danych wejściowych
 
@@ -190,7 +185,6 @@ Nowe typy:
   - confirm (delete): potwierdzenie wymagane (np. wpisanie e-maila lub stałego słowa „DELETE”)
 - Błędy walidacji: `400 BAD_REQUEST` i `ValidationErrorResponse` zgodnie z istniejącym helperem `formatZodErrors`.
 
-
 ### 2.4. Obsługa wyjątków i kody statusu
 
 - `401 UNAUTHORIZED` — błędne dane logowania (neutralny komunikat).
@@ -200,7 +194,6 @@ Nowe typy:
 
 Struktura błędu: `ErrorResponse` lub `ValidationErrorResponse` z `ErrorCode` już zdefiniowanymi w `src/types.ts`.
 
-
 ### 2.5. SSR i renderowanie stron w kontekście auth
 
 - Konfiguracja: `astro.config.mjs` — `output: "server"`, adapter node (SSR węzłowy). Cookies dostępne przez `Astro.cookies`, sesja przez `Astro.locals.supabase`.
@@ -208,11 +201,11 @@ Struktura błędu: `ErrorResponse` lub `ValidationErrorResponse` z `ErrorCode` j
   - `const { data: { user } } = await Astro.locals.supabase.auth.getUser();`
   - Gdy `!user` i strona chroniona: redirect do `/auth/login?next=<pathname>`.
 - API endpoints: używać typów `APIRoute` i `Astro.cookies` (ustawianie/odczyt zgodnie z dokumentacją Astro 5). Prerender wyłączony dla endpointów auth (SSR): `export const prerender = false`.
- 
+
 Uwagi konfiguracyjne (PRD):
+
 - Czas życia sesji: 7 dni — ustawienie w panelu Supabase (poza kodem aplikacji).
 - Link resetu hasła: ważny 60 min — ustawienie w Supabase dla Password Recovery.
-
 
 ## 3) System autentykacji
 
@@ -223,12 +216,10 @@ Uwagi konfiguracyjne (PRD):
 - Flow logowania: `signInWithPassword` -> sesja w cookies (`sb-access-token`, `sb-refresh-token`) z flagami `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`.
 - Flow rejestracji: `signUp` -> (MVP) sesja automatyczna jak w PRD. Dalsze etapy (weryfikacja e-mail) jako rozszerzenie post-MVP.
 
-
 ### 3.2. Wylogowanie i unieważnienie sesji
 
 - Endpoint `POST /api/v1/auth/sign-out`: `supabase.auth.signOut()` i/lub nadpisanie cookies (`maxAge: 0`).
 - Redirect po wylogowaniu do `/` lub `/auth/login`.
-
 
 ### 3.3. Reset hasła
 
@@ -240,7 +231,6 @@ Uwagi konfiguracyjne (PRD):
   - Po sukcesie: potwierdzenie + redirect do logowania (lub auto-login w aktualnej sesji).
   - Link ważny 60 min (zgodnie z konfiguracją Supabase).
 
-
 ### 3.4. Ochrona tras (middleware)
 
 - Middleware `onRequest` rozszerzamy o rozpoznanie tras chronionych:
@@ -248,7 +238,6 @@ Uwagi konfiguracyjne (PRD):
   - Gdy `isProtected` i brak sesji: `return context.redirect("/auth/login?next=" + encodeURIComponent(context.url.pathname))`.
   - Opcjonalnie: `context.rewrite` z nagłówkiem `x-redirect-to` (wg dokumentacji Astro) jako alternatywa.
 - Dla API: endpointy w `src/pages/api/v1/*` wymagające auth weryfikują sesję przez `context.locals.supabase.auth.getUser()` i zwracają `401` gdy brak.
-
 
 ### 3.5. Limity i bezpieczeństwo
 
@@ -274,7 +263,6 @@ Uwagi konfiguracyjne (PRD):
 - Operacja: `admin.auth.admin.deleteUser(userId)`; po sukcesie wykonać `signOut()` i usunąć cookies.
 - Bezpieczeństwo: nie eksportować ani nie używać klucza service_role po stronie przeglądarki. Dodaj guardy środowiskowe i logowanie zdarzeń.
 
-
 ## 4) Komponenty, moduły, serwisy i kontrakty
 
 ### 4.1. Nowe pliki (propozycja)
@@ -284,8 +272,8 @@ Uwagi konfiguracyjne (PRD):
   - `ChangePasswordForm.tsx`, `DeleteAccountSection.tsx`
 - Strony (Astro): `src/pages/auth/`
   - `login.astro`, `register.astro`, `forgot-password.astro`, `reset.astro`
- - Strony (Astro): `src/pages/account/`
-  - `settings.astro`
+- Strony (Astro): `src/pages/account/`
+- `settings.astro`
 - API (Astro endpoints): `src/pages/api/v1/auth/`
   - `sign-in.ts`, `sign-up.ts`, `sign-out.ts`, `password/request-reset.ts`, `password/reset.ts`, `callback.ts` (opcjonalnie)
   - `password/change.ts`, `account/delete.ts`
@@ -293,8 +281,7 @@ Uwagi konfiguracyjne (PRD):
 - (Opcjonalnie) Serwis domenowy: `src/lib/services/auth.service.ts`
   - Enkapsuluje wywołania `supabase.auth.*`, mapowanie błędów, logikę retry/telemetrii; kontrolery API pozostają cienkie.
 - Typy: uzupełnienia w `src/types.ts` (komendy/DTO auth, patrz 2.2).
- - Admin client: `src/db/supabase.admin.client.ts` (service_role; tylko po stronie serwera)
-
+- Admin client: `src/db/supabase.admin.client.ts` (service_role; tylko po stronie serwera)
 
 ### 4.2. Kontrakty API (szczegół)
 
@@ -339,10 +326,10 @@ Uwagi konfiguracyjne (PRD):
   - 400/401/429/500 `ErrorResponse | ValidationErrorResponse`
 
 Uwagi implementacyjne:
+
 - Wszystkie endpointy `export const prerender = false`.
 - Typy `APIRoute`, `APIContext`, odpowiedzi `Response` z nagłówkiem `Content-Type: application/json`.
 - Zwracać spójne struktury błędów zgodne z `src/types.ts`.
-
 
 ### 4.3. Middleware i typowanie `locals`
 
@@ -351,13 +338,11 @@ Uwagi implementacyjne:
   - Plik: `src/env.d.ts` (już istnieje) lub nowy `src/types/env.d.ts`.
 - Rozszerzenie middleware o ochronę tras (pkt 3.4) i ewentualne dołączanie `locals.user` (cache wyniku `getUser()` na potrzeby stron SSR).
 
-
 ## 5) UX/A11y/Observability
 
 - A11y: etykiety `aria-label`, `aria-describedby` dla błędów, `aria-live="polite"` dla komunikatów po submit.
 - Loading/progress: wskaźniki busy na przyciskach, `useTransition`/`disabled` w trakcie żądania.
 - Telemetria (MVP): logowanie zdarzeń klienta (np. `card_*` z PRD) pozostaje bez zmian. Dodatkowo można zliczać próby logowania (bez PII treści) po stronie serwera w logach technicznych.
-
 
 ## 6) Zgodność z istniejącą aplikacją i bezpieczeństwo
 
@@ -366,8 +351,7 @@ Uwagi implementacyjne:
 - Tokeny pozostają wyłącznie w cookies HttpOnly, brak localStorage.
 - RLS w produkcji egzekwuje dostęp per `user_id`; endpointy API weryfikują sesję przed dostępem do zasobów użytkownika.
 - CSP/CORS zgodnie z PRD.
- - Czas życia sesji: 7 dni (PRD) — skonfigurować w Supabase Auth; cookies `HttpOnly`, `Secure`, `SameSite=Lax/Strict`, `Path=/`.
-
+- Czas życia sesji: 7 dni (PRD) — skonfigurować w Supabase Auth; cookies `HttpOnly`, `Secure`, `SameSite=Lax/Strict`, `Path=/`.
 
 ## 7) Edge cases i błędy (przykłady)
 
@@ -375,23 +359,23 @@ Uwagi implementacyjne:
 - Link resetu przeterminowany — wymiana `code` zwróci błąd; komunikat na stronie resetu: "Link wygasł, poproś o nowy" + link do `forgot-password`.
 - Wielokrotne kliki "Zaloguj" — blokada UI `disabled`, idempotencja po stronie serwera (rate limit i brak efektu ubocznego przy nieudanych próbach).
 - Próba wejścia na trasę chronioną bez sesji — redirect do loginu z `next`.
- - Brak `SUPABASE_SERVICE_ROLE_KEY` — usunięcie konta niedostępne; zwróć neutralny błąd i zaloguj zdarzenie.
- - Zmiana hasła ze złym starym hasłem — neutralny komunikat (bez zdradzania szczegółów), brak zmian.
-
+- Brak `SUPABASE_SERVICE_ROLE_KEY` — usunięcie konta niedostępne; zwróć neutralny błąd i zaloguj zdarzenie.
+- Zmiana hasła ze złym starym hasłem — neutralny komunikat (bez zdradzania szczegółów), brak zmian.
 
 ## 8) Minimalny plan implementacji (dla kontekstu)
 
-1) Dodanie schematów Zod (`src/lib/validation/auth.schemas.ts`).
-2) Endpointy API (sign-in, sign-up, sign-out, request-reset, reset, opcjonalnie callback) + `password/change`, `account/delete` (z klientem admin).
-3) Strony Astro i formularze React w `src/components/auth` oraz `src/pages/account/settings.astro`.
-4) Rozszerzenie middleware o ochronę tras (w tym `/account/*`).
-5) Rozszerzenie `RateLimitService` o kategorie auth (IP/email) + ustawienia konta.
-6) Konfiguracja Supabase: TTL sesji 7 dni, TTL resetu 60 min, dodanie `SUPABASE_SERVICE_ROLE_KEY` (prod), RLS włączone.
-7) Testy ręczne: logowanie/rejestracja, reset hasła, zmiana hasła, usunięcie konta, ochrona tras, limity.
-
+1. Dodanie schematów Zod (`src/lib/validation/auth.schemas.ts`).
+2. Endpointy API (sign-in, sign-up, sign-out, request-reset, reset, opcjonalnie callback) + `password/change`, `account/delete` (z klientem admin).
+3. Strony Astro i formularze React w `src/components/auth` oraz `src/pages/account/settings.astro`.
+4. Rozszerzenie middleware o ochronę tras (w tym `/account/*`).
+5. Rozszerzenie `RateLimitService` o kategorie auth (IP/email) + ustawienia konta.
+6. Konfiguracja Supabase: TTL sesji 7 dni, TTL resetu 60 min, dodanie `SUPABASE_SERVICE_ROLE_KEY` (prod), RLS włączone.
+7. Testy ręczne: logowanie/rejestracja, reset hasła, zmiana hasła, usunięcie konta, ochrona tras, limity.
 
 ---
+
 Wytyczne projektowe zastosowane na podstawie dokumentacji:
+
 - Astro 5: API routes, `Astro.cookies`, middleware `onRequest` (SSR), `context.locals` rozszerzany (nie nadpisywany).
 - Supabase: `signInWithPassword`, `signUp`, `signOut`, `resetPasswordForEmail`, `exchangeCodeForSession`, `updateUser`.
 - Zod: `safeParse`, `refine`, własne komunikaty błędów.

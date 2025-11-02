@@ -12,13 +12,13 @@ sequenceDiagram
     activate Przeglądarka
     Przeglądarka->>API: POST /api/v1/auth/sign-in (email, hasło)
     deactivate Przeglądarka
-    
+
     activate API
     API->>Supabase: signInWithPassword(email, hasło)
     activate Supabase
     Supabase-->>API: Zwraca Access Token i Refresh Token
     deactivate Supabase
-    
+
     API-->>Przeglądarka: Odpowiedź 200 OK (ustawia ciasteczka HttpOnly)
     deactivate API
 
@@ -34,7 +34,7 @@ sequenceDiagram
 
     activate Middleware
     Middleware->>Supabase: getUser() (z tokenem z ciasteczka)
-    
+
     activate Supabase
     alt Token dostępowy jest ważny
         Supabase-->>Middleware: Zwraca dane użytkownika
@@ -49,7 +49,7 @@ sequenceDiagram
         end
     end
     deactivate Supabase
-    
+
     Middleware->>Middleware: Renderuje stronę /decks
     Middleware-->>Przeglądarka: Odpowiedź 200 OK (z treścią strony)
     deactivate Middleware

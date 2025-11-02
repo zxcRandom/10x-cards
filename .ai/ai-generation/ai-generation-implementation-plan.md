@@ -3,11 +3,13 @@
 ## 1. Przegląd obecnego stanu
 
 ### ✅ **Zaimplementowane:**
+
 - **AIService** - Kompletny serwis komunikacji z OpenRouter API
 - **POST /api/v1/ai/decks/from-text** - Częściowo (tylko test AI, brak DB)
 - **Zod Schema** - Walidacja input dla AI generation
 
 ### ❌ **Brakuje:**
+
 - **GET /api/v1/ai/logs** - Całkowicie brakuje
 - **Database Services** - DeckService, CardService, AILogService
 - **RLS Policies** - Dla tabeli `ai_generation_logs`
@@ -23,6 +25,7 @@
 **Obecny stan:** Test AI service, brak integracji z bazą danych
 
 **Co trzeba dodać:**
+
 1. **Database Services** - DeckService, CardService, AILogService
 2. **Transakcyjność** - Atomic operation (deck + cards + log)
 3. **Proper Response** - AIDeckResponseDTO format
@@ -30,6 +33,7 @@
 5. **Error Recovery** - Rollback przy błędach
 
 **Oczekiwany flow:**
+
 ```
 1. Validate input (✅ już jest)
 2. Check rate limits (❌ brakuje)
@@ -45,12 +49,14 @@
 **Obecny stan:** Całkowicie brakuje
 
 **Co trzeba zaimplementować:**
+
 1. **AILogService** - Service do operacji na logach
 2. **API Route Handler** - GET endpoint
 3. **Zod Schema** - Walidacja query params
 4. **RLS Policies** - Dla tabeli `ai_generation_logs`
 
 **Funkcjonalności:**
+
 - Lista logów generowania AI dla użytkownika
 - Filtrowanie po deckId, date range
 - Paginacja (limit/offset)
@@ -63,37 +69,40 @@
 ### 3.1 Database Services
 
 #### DeckService
+
 ```typescript
 // src/lib/services/deck.service.ts
 export class DeckService {
-  async createDeck(userId: string, name: string, createdByAi: boolean = false): Promise<DeckDTO>
-  async getDeckById(deckId: string, userId: string): Promise<DeckDTO>
-  async updateDeck(deckId: string, userId: string, data: UpdateDeckCommand): Promise<DeckDTO>
-  async deleteDeck(deckId: string, userId: string): Promise<void>
-  async listDecks(userId: string, filters: ListDecksFilters): Promise<DecksListDTO>
+  async createDeck(userId: string, name: string, createdByAi: boolean = false): Promise<DeckDTO>;
+  async getDeckById(deckId: string, userId: string): Promise<DeckDTO>;
+  async updateDeck(deckId: string, userId: string, data: UpdateDeckCommand): Promise<DeckDTO>;
+  async deleteDeck(deckId: string, userId: string): Promise<void>;
+  async listDecks(userId: string, filters: ListDecksFilters): Promise<DecksListDTO>;
 }
 ```
 
 #### CardService
+
 ```typescript
 // src/lib/services/card.service.ts
 export class CardService {
-  async createCard(deckId: string, userId: string, data: CreateCardCommand): Promise<CardDTO>
-  async createCardsBatch(deckId: string, userId: string, cards: CreateCardCommand[]): Promise<CardDTO[]>
-  async getCardById(cardId: string, userId: string): Promise<CardDTO>
-  async updateCard(cardId: string, userId: string, data: UpdateCardCommand): Promise<CardDTO>
-  async deleteCard(cardId: string, userId: string): Promise<void>
-  async listCards(deckId: string, userId: string, filters: ListCardsFilters): Promise<CardsListDTO>
+  async createCard(deckId: string, userId: string, data: CreateCardCommand): Promise<CardDTO>;
+  async createCardsBatch(deckId: string, userId: string, cards: CreateCardCommand[]): Promise<CardDTO[]>;
+  async getCardById(cardId: string, userId: string): Promise<CardDTO>;
+  async updateCard(cardId: string, userId: string, data: UpdateCardCommand): Promise<CardDTO>;
+  async deleteCard(cardId: string, userId: string): Promise<void>;
+  async listCards(deckId: string, userId: string, filters: ListCardsFilters): Promise<CardsListDTO>;
 }
 ```
 
 #### AILogService
+
 ```typescript
 // src/lib/services/ai-log.service.ts
 export class AILogService {
-  async createLog(data: CreateAILogData): Promise<AILogDTO>
-  async listLogs(userId: string, filters: ListLogsFilters): Promise<AILogsListDTO>
-  async getLogById(logId: string, userId: string): Promise<AILogDTO>
+  async createLog(data: CreateAILogData): Promise<AILogDTO>;
+  async listLogs(userId: string, filters: ListLogsFilters): Promise<AILogsListDTO>;
+  async getLogById(logId: string, userId: string): Promise<AILogDTO>;
 }
 ```
 
@@ -104,13 +113,14 @@ export class AILogService {
 ```typescript
 // src/lib/services/rate-limit.service.ts
 export class RateLimitService {
-  async checkAIRateLimit(userId: string): Promise<boolean>
-  async incrementAIRateLimit(userId: string): Promise<void>
-  async getRemainingRequests(userId: string): Promise<number>
+  async checkAIRateLimit(userId: string): Promise<boolean>;
+  async incrementAIRateLimit(userId: string): Promise<void>;
+  async getRemainingRequests(userId: string): Promise<number>;
 }
 ```
 
 **Limity:**
+
 - AI Generation: 10 requests/minute per user
 - AI Logs: 100 requests/minute per user
 
@@ -119,6 +129,7 @@ export class RateLimitService {
 **Problem:** Supabase JS SDK nie wspiera natywnych transakcji
 
 **Rozwiązania:**
+
 1. **Opcja A (preferowana):** PostgreSQL RPC function
 2. **Opcja B:** Sequential operations z rollback logic
 3. **Opcja C:** Service role + raw SQL transactions
@@ -132,7 +143,7 @@ src/
 ├── lib/
 │   └── services/
 │       ├── deck.service.ts          # Nowy - operacje na deckach
-│       ├── card.service.ts          # Nowy - operacje na kartach  
+│       ├── card.service.ts          # Nowy - operacje na kartach
 │       ├── ai-log.service.ts        # Nowy - operacje na logach AI
 │       └── rate-limit.service.ts    # Nowy - rate limiting
 ├── pages/
@@ -153,18 +164,21 @@ src/
 ### Etap 1: Database Services (PRIORYTET 1)
 
 **1.1 DeckService**
+
 - Implementacja CRUD operations
 - Weryfikacja własności (user_id)
 - Error handling
 - Unit tests
 
-**1.2 CardService** 
+**1.2 CardService**
+
 - Implementacja CRUD operations
 - Batch creation dla AI-generated cards
 - Weryfikacja własności przez deck
 - Error handling
 
 **1.3 AILogService**
+
 - Create log entry
 - List logs z filtrowaniem
 - Paginacja i sortowanie
@@ -173,13 +187,14 @@ src/
 ### Etap 2: RLS Policies (PRIORYTET 1)
 
 **2.1 AI Generation Logs Policies**
+
 ```sql
 -- SELECT policy
 CREATE POLICY "Users can view their own AI logs"
 ON ai_generation_logs FOR SELECT
 USING (user_id = auth.uid());
 
--- INSERT policy  
+-- INSERT policy
 CREATE POLICY "Users can create AI logs"
 ON ai_generation_logs FOR INSERT
 WITH CHECK (user_id = auth.uid());
@@ -190,12 +205,14 @@ WITH CHECK (user_id = auth.uid());
 ### Etap 3: Rate Limiting (PRIORYTET 2)
 
 **3.1 RateLimitService**
+
 - Redis-based rate limiting
 - Per-user counters
 - TTL-based expiration
 - Error responses (429 Too Many Requests)
 
 **3.2 Integration**
+
 - Middleware dla AI endpoints
 - Headers z remaining requests
 - Graceful degradation
@@ -203,16 +220,19 @@ WITH CHECK (user_id = auth.uid());
 ### Etap 4: Dokończenie POST /api/v1/ai/decks/from-text (PRIORYTET 1)
 
 **4.1 Database Integration**
+
 - Replace test response z proper AIDeckResponseDTO
 - Integracja z DeckService, CardService, AILogService
 - Atomic operation (deck + cards + log)
 
 **4.2 Error Handling**
+
 - Rollback przy błędach
 - Proper error responses
 - Logging failed attempts
 
 **4.3 Response Format**
+
 ```typescript
 // AIDeckResponseDTO
 {
@@ -225,16 +245,19 @@ WITH CHECK (user_id = auth.uid());
 ### Etap 5: GET /api/v1/ai/logs (PRIORYTET 2)
 
 **5.1 API Route Handler**
+
 - GET endpoint implementation
 - Query params validation
 - Integration z AILogService
 - Error handling
 
 **5.2 Zod Schema**
+
 - Walidacja query params (deckId, from, to, limit, offset, sort, order)
 - Type safety
 
 **5.3 Response Format**
+
 ```typescript
 // AILogsListDTO
 {
@@ -248,16 +271,19 @@ WITH CHECK (user_id = auth.uid());
 ### Etap 6: Testing & Optimization (PRIORYTET 3)
 
 **6.1 Unit Tests**
+
 - Service layer tests
 - API endpoint tests
 - Error scenario tests
 
 **6.2 Integration Tests**
+
 - End-to-end AI generation flow
 - Database transaction tests
 - Rate limiting tests
 
 **6.3 Performance Optimization**
+
 - Database query optimization
 - Caching strategies
 - Connection pooling
@@ -271,15 +297,15 @@ WITH CHECK (user_id = auth.uid());
 **1.1 DeckService** (`src/lib/services/deck.service.ts`)
 
 ```typescript
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DeckDTO, CreateDeckCommand, UpdateDeckCommand, DecksListDTO } from '../../../types';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DeckDTO, CreateDeckCommand, UpdateDeckCommand, DecksListDTO } from "../../../types";
 
 export class DeckService {
   constructor(private supabase: SupabaseClient) {}
 
   async createDeck(userId: string, name: string, createdByAi: boolean = false): Promise<DeckDTO> {
     const { data, error } = await this.supabase
-      .from('decks')
+      .from("decks")
       .insert({
         user_id: userId,
         name: name.trim(),
@@ -310,8 +336,8 @@ export class DeckService {
 **1.2 CardService** (`src/lib/services/card.service.ts`)
 
 ```typescript
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { CardDTO, CreateCardCommand } from '../../../types';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { CardDTO, CreateCardCommand } from "../../../types";
 
 export class CardService {
   constructor(private supabase: SupabaseClient) {}
@@ -320,16 +346,13 @@ export class CardService {
     // Verify deck ownership first
     await this.verifyDeckOwnership(deckId, userId);
 
-    const cardInserts = cards.map(card => ({
+    const cardInserts = cards.map((card) => ({
       deck_id: deckId,
       question: card.question.trim(),
       answer: card.answer.trim(),
     }));
 
-    const { data, error } = await this.supabase
-      .from('cards')
-      .insert(cardInserts)
-      .select();
+    const { data, error } = await this.supabase.from("cards").insert(cardInserts).select();
 
     if (error || !data) {
       throw new Error(`Failed to create cards: ${error?.message}`);
@@ -340,14 +363,14 @@ export class CardService {
 
   private async verifyDeckOwnership(deckId: string, userId: string): Promise<void> {
     const { data, error } = await this.supabase
-      .from('decks')
-      .select('id')
-      .eq('id', deckId)
-      .eq('user_id', userId)
+      .from("decks")
+      .select("id")
+      .eq("id", deckId)
+      .eq("user_id", userId)
       .single();
 
     if (error || !data) {
-      throw new Error('Deck not found or access denied');
+      throw new Error("Deck not found or access denied");
     }
   }
 
@@ -371,8 +394,8 @@ export class CardService {
 **1.3 AILogService** (`src/lib/services/ai-log.service.ts`)
 
 ```typescript
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { AILogDTO, AILogsListDTO } from '../../../types';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AILogDTO, AILogsListDTO } from "../../../types";
 
 export interface CreateAILogData {
   userId: string;
@@ -389,7 +412,7 @@ export interface ListLogsFilters {
   limit: number;
   offset: number;
   sort: string;
-  order: 'asc' | 'desc';
+  order: "asc" | "desc";
 }
 
 export class AILogService {
@@ -397,7 +420,7 @@ export class AILogService {
 
   async createLog(data: CreateAILogData): Promise<AILogDTO> {
     const { data: log, error } = await this.supabase
-      .from('ai_generation_logs')
+      .from("ai_generation_logs")
       .insert({
         user_id: data.userId,
         deck_id: data.deckId,
@@ -416,26 +439,23 @@ export class AILogService {
   }
 
   async listLogs(userId: string, filters: ListLogsFilters): Promise<AILogsListDTO> {
-    let query = this.supabase
-      .from('ai_generation_logs')
-      .select('*', { count: 'exact' })
-      .eq('user_id', userId);
+    let query = this.supabase.from("ai_generation_logs").select("*", { count: "exact" }).eq("user_id", userId);
 
     // Apply filters
     if (filters.deckId) {
-      query = query.eq('deck_id', filters.deckId);
+      query = query.eq("deck_id", filters.deckId);
     }
     if (filters.from) {
-      query = query.gte('created_at', filters.from);
+      query = query.gte("created_at", filters.from);
     }
     if (filters.to) {
-      query = query.lte('created_at', filters.to);
+      query = query.lte("created_at", filters.to);
     }
 
     // Apply sorting and pagination
     query = query
-      .order(filters.sort === 'createdAt' ? 'created_at' : filters.sort, { 
-        ascending: filters.order === 'asc' 
+      .order(filters.sort === "createdAt" ? "created_at" : filters.sort, {
+        ascending: filters.order === "asc",
       })
       .range(filters.offset, filters.offset + filters.limit - 1);
 
@@ -490,10 +510,10 @@ WITH CHECK (user_id = auth.uid());
 -- No DELETE policy - logs are permanent (audit trail)
 
 -- Add comments
-COMMENT ON POLICY "Users can view their own AI logs" ON public.ai_generation_logs IS 
+COMMENT ON POLICY "Users can view their own AI logs" ON public.ai_generation_logs IS
   'Allow users to SELECT their own AI generation logs';
-  
-COMMENT ON POLICY "Users can create AI logs" ON public.ai_generation_logs IS 
+
+COMMENT ON POLICY "Users can create AI logs" ON public.ai_generation_logs IS
   'Allow users to INSERT logs for their own AI generation operations';
 ```
 
@@ -505,7 +525,7 @@ COMMENT ON POLICY "Users can create AI logs" ON public.ai_generation_logs IS
 export class RateLimitService {
   private readonly limits = {
     aiGeneration: { requests: 10, windowMs: 60 * 1000 }, // 10 req/min
-    aiLogs: { requests: 100, windowMs: 60 * 1000 },      // 100 req/min
+    aiLogs: { requests: 100, windowMs: 60 * 1000 }, // 100 req/min
   };
 
   async checkAIRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
@@ -514,11 +534,11 @@ export class RateLimitService {
     const key = `ai_gen:${userId}`;
     const now = Date.now();
     const window = this.limits.aiGeneration.windowMs;
-    
+
     // Get current count from memory/Redis
     const current = await this.getCurrentCount(key, now, window);
     const remaining = Math.max(0, this.limits.aiGeneration.requests - current);
-    
+
     return {
       allowed: current < this.limits.aiGeneration.requests,
       remaining,
@@ -549,33 +569,36 @@ export class RateLimitService {
 **Aktualizacja:** `src/pages/api/v1/ai/decks/from-text.ts`
 
 ```typescript
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import { createAIDeckSchema } from './from-text.schema';
-import { aiService, AIServiceError, AITimeoutError, AIParsingError } from '../../../../../lib/services/ai.service';
-import { DeckService } from '../../../../../lib/services/deck.service';
-import { CardService } from '../../../../../lib/services/card.service';
-import { AILogService } from '../../../../../lib/services/ai-log.service';
-import { RateLimitService } from '../../../../../lib/services/rate-limit.service';
-import type { 
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import { createAIDeckSchema } from "./from-text.schema";
+import { aiService, AIServiceError, AITimeoutError, AIParsingError } from "../../../../../lib/services/ai.service";
+import { DeckService } from "../../../../../lib/services/deck.service";
+import { CardService } from "../../../../../lib/services/card.service";
+import { AILogService } from "../../../../../lib/services/ai-log.service";
+import { RateLimitService } from "../../../../../lib/services/rate-limit.service";
+import type {
   AIDeckResponseDTO,
-  ErrorResponse, 
+  ErrorResponse,
   ValidationErrorResponse,
-  UnprocessableErrorResponse 
-} from '../../../types';
+  UnprocessableErrorResponse,
+} from "../../../types";
 
 export const POST: APIRoute = async ({ request, locals }) => {
   const startTime = Date.now();
 
   try {
     // STEP 1: Authentication
-    const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
     if (authError || !user) {
       return new Response(
         JSON.stringify({
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' }
+          error: { code: "UNAUTHORIZED", message: "Authentication required" },
         } satisfies ErrorResponse),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -585,17 +608,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (!rateLimit.allowed) {
       return new Response(
         JSON.stringify({
-          error: { 
-            code: 'TOO_MANY_REQUESTS', 
-            message: 'Rate limit exceeded. Please try again later.' 
-          }
+          error: {
+            code: "TOO_MANY_REQUESTS",
+            message: "Rate limit exceeded. Please try again later.",
+          },
         } satisfies ErrorResponse),
-        { 
-          status: 429, 
-          headers: { 
-            'Content-Type': 'application/json',
-            'X-RateLimit-Remaining': rateLimit.remaining.toString()
-          } 
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+          },
         }
       );
     }
@@ -607,9 +630,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
     } catch (error) {
       return new Response(
         JSON.stringify({
-          error: { code: 'BAD_REQUEST', message: 'Invalid JSON in request body' }
+          error: { code: "BAD_REQUEST", message: "Invalid JSON in request body" },
         } satisfies ErrorResponse),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -621,15 +644,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
         return new Response(
           JSON.stringify({
             error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Request validation failed',
-              errors: error.errors.map(e => ({
-                field: e.path.join('.'),
-                message: e.message
-              }))
-            }
+              code: "VALIDATION_ERROR",
+              message: "Request validation failed",
+              errors: error.errors.map((e) => ({
+                field: e.path.join("."),
+                message: e.message,
+              })),
+            },
           } satisfies ValidationErrorResponse),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
       throw error;
@@ -637,11 +660,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // STEP 4: Generate cards using AI
     console.log(`🤖 AI generation for user ${user.id}, maxCards: ${validated.maxCards}`);
-    
-    const generatedCards = await aiService.generateFlashcardsFromText(
-      validated.inputText,
-      validated.maxCards
-    );
+
+    const generatedCards = await aiService.generateFlashcardsFromText(validated.inputText, validated.maxCards);
 
     // STEP 5: Create deck and cards in database
     const deckService = new DeckService(locals.supabase);
@@ -673,10 +693,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
       // Increment rate limit
       await rateLimitService.incrementAIRateLimit(user.id);
-
     } catch (dbError) {
-      console.error('Database operation failed:', dbError);
-      
+      console.error("Database operation failed:", dbError);
+
       // Log the failed attempt
       try {
         await aiLogService.createLog({
@@ -684,13 +703,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
           deckId: null,
           inputTextLength: validated.inputText.length,
           generatedCardsCount: 0,
-          errorMessage: dbError instanceof Error ? dbError.message : 'Unknown database error',
+          errorMessage: dbError instanceof Error ? dbError.message : "Unknown database error",
         });
       } catch (logError) {
-        console.error('Failed to log error:', logError);
+        console.error("Failed to log error:", logError);
       }
 
-      throw new Error('Failed to save generated content to database');
+      throw new Error("Failed to save generated content to database");
     }
 
     const duration = Date.now() - startTime;
@@ -705,7 +724,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         createdAt: deck.createdAt,
         updatedAt: deck.updatedAt,
       },
-      cards: cards.map(card => ({
+      cards: cards.map((card) => ({
         id: card.id,
         question: card.question,
         answer: card.answer,
@@ -723,12 +742,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify(response), {
       status: 201,
       headers: {
-        'Content-Type': 'application/json',
-        'X-Request-Duration': duration.toString(),
-        'X-RateLimit-Remaining': (rateLimit.remaining - 1).toString(),
-      }
+        "Content-Type": "application/json",
+        "X-Request-Duration": duration.toString(),
+        "X-RateLimit-Remaining": (rateLimit.remaining - 1).toString(),
+      },
     });
-
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`❌ AI generation failed after ${duration}ms:`, error);
@@ -738,12 +756,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNPROCESSABLE_ENTITY',
-            message: 'Failed to parse AI response',
-            details: import.meta.env.DEV ? error.message : undefined
-          }
+            code: "UNPROCESSABLE_ENTITY",
+            message: "Failed to parse AI response",
+            details: import.meta.env.DEV ? error.message : undefined,
+          },
         } satisfies UnprocessableErrorResponse),
-        { status: 422, headers: { 'Content-Type': 'application/json' } }
+        { status: 422, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -751,12 +769,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'AI request timed out',
-            details: 'Please try again with shorter input text or fewer cards'
-          }
+            code: "INTERNAL_SERVER_ERROR",
+            message: "AI request timed out",
+            details: "Please try again with shorter input text or fewer cards",
+          },
         } satisfies ErrorResponse),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -764,12 +782,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to generate deck from text',
-            details: import.meta.env.DEV ? error.message : 'AI service temporarily unavailable'
-          }
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to generate deck from text",
+            details: import.meta.env.DEV ? error.message : "AI service temporarily unavailable",
+          },
         } satisfies ErrorResponse),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -777,12 +795,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to generate deck from text',
-          details: import.meta.env.DEV && error instanceof Error ? error.message : undefined
-        }
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to generate deck from text",
+          details: import.meta.env.DEV && error instanceof Error ? error.message : undefined,
+        },
       } satisfies ErrorResponse),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 };
@@ -795,7 +813,7 @@ export const prerender = false;
 **Plik:** `src/pages/api/v1/ai/logs/index.schema.ts`
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const listAILogsQuerySchema = z.object({
   deckId: z.string().uuid().optional(),
@@ -803,8 +821,8 @@ export const listAILogsQuerySchema = z.object({
   to: z.string().datetime().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   offset: z.coerce.number().int().min(0).default(0),
-  sort: z.enum(['createdAt']).default('createdAt'),
-  order: z.enum(['asc', 'desc']).default('desc'),
+  sort: z.enum(["createdAt"]).default("createdAt"),
+  order: z.enum(["asc", "desc"]).default("desc"),
   includeTotal: z.coerce.boolean().default(true),
 });
 
@@ -814,42 +832,41 @@ export type ListAILogsQuery = z.infer<typeof listAILogsQuerySchema>;
 **Plik:** `src/pages/api/v1/ai/logs/index.ts`
 
 ```typescript
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import { listAILogsQuerySchema } from './index.schema';
-import { AILogService } from '../../../../lib/services/ai-log.service';
-import type { 
-  AILogsListDTO,
-  ErrorResponse, 
-  ValidationErrorResponse 
-} from '../../../types';
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import { listAILogsQuerySchema } from "./index.schema";
+import { AILogService } from "../../../../lib/services/ai-log.service";
+import type { AILogsListDTO, ErrorResponse, ValidationErrorResponse } from "../../../types";
 
 export const GET: APIRoute = async ({ request, locals }) => {
   const startTime = Date.now();
 
   try {
     // STEP 1: Authentication
-    const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
     if (authError || !user) {
       return new Response(
         JSON.stringify({
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' }
+          error: { code: "UNAUTHORIZED", message: "Authentication required" },
         } satisfies ErrorResponse),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // STEP 2: Parse and validate query parameters
     const url = new URL(request.url);
     const queryParams = {
-      deckId: url.searchParams.get('deckId') || undefined,
-      from: url.searchParams.get('from') || undefined,
-      to: url.searchParams.get('to') || undefined,
-      limit: url.searchParams.get('limit') || undefined,
-      offset: url.searchParams.get('offset') || undefined,
-      sort: url.searchParams.get('sort') || undefined,
-      order: url.searchParams.get('order') || undefined,
-      includeTotal: url.searchParams.get('includeTotal') || undefined,
+      deckId: url.searchParams.get("deckId") || undefined,
+      from: url.searchParams.get("from") || undefined,
+      to: url.searchParams.get("to") || undefined,
+      limit: url.searchParams.get("limit") || undefined,
+      offset: url.searchParams.get("offset") || undefined,
+      sort: url.searchParams.get("sort") || undefined,
+      order: url.searchParams.get("order") || undefined,
+      includeTotal: url.searchParams.get("includeTotal") || undefined,
     };
 
     let validated;
@@ -860,15 +877,15 @@ export const GET: APIRoute = async ({ request, locals }) => {
         return new Response(
           JSON.stringify({
             error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Request validation failed',
-              errors: error.errors.map(e => ({
-                field: e.path.join('.'),
-                message: e.message
-              }))
-            }
+              code: "VALIDATION_ERROR",
+              message: "Request validation failed",
+              errors: error.errors.map((e) => ({
+                field: e.path.join("."),
+                message: e.message,
+              })),
+            },
           } satisfies ValidationErrorResponse),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
       throw error;
@@ -893,11 +910,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify(result satisfies AILogsListDTO), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'X-Request-Duration': duration.toString()
-      }
+        "Content-Type": "application/json",
+        "X-Request-Duration": duration.toString(),
+      },
     });
-
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`GET /api/v1/ai/logs failed after ${duration}ms:`, error);
@@ -905,12 +921,12 @@ export const GET: APIRoute = async ({ request, locals }) => {
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch AI generation logs',
-          details: import.meta.env.DEV && error instanceof Error ? error.message : undefined
-        }
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch AI generation logs",
+          details: import.meta.env.DEV && error instanceof Error ? error.message : undefined,
+        },
       } satisfies ErrorResponse),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 };
@@ -925,6 +941,7 @@ export const prerender = false;
 ### 7.1 Test Scenarios
 
 **POST /api/v1/ai/decks/from-text:**
+
 1. ✅ Happy path - successful generation
 2. ✅ Empty input text - validation error
 3. ✅ Too long input text - validation error
@@ -936,6 +953,7 @@ export const prerender = false;
 9. ✅ Zero cards generated - still success with log
 
 **GET /api/v1/ai/logs:**
+
 1. ✅ List all logs (default params)
 2. ✅ Filter by deckId
 3. ✅ Filter by date range
@@ -972,7 +990,7 @@ curl -X GET "http://localhost:4321/api/v1/ai/logs?deckId={deckId}&from=2025-01-0
 ## 8. Checklist przed wdrożeniem
 
 - [ ] DeckService implementowany i przetestowany
-- [ ] CardService implementowany i przetestowany  
+- [ ] CardService implementowany i przetestowany
 - [ ] AILogService implementowany i przetestowany
 - [ ] RateLimitService implementowany (basic version)
 - [ ] RLS policies dodane do ai_generation_logs
@@ -992,6 +1010,7 @@ curl -X GET "http://localhost:4321/api/v1/ai/logs?deckId={deckId}&from=2025-01-0
 ## 9. Znane ograniczenia i future improvements
 
 ### Obecne ograniczenia:
+
 1. **Rate limiting** - Simple in-memory implementation (MVP)
 2. **Transakcyjność** - Sequential operations, nie fully atomic
 3. **Error recovery** - Basic rollback, nie full transaction rollback
@@ -999,6 +1018,7 @@ curl -X GET "http://localhost:4321/api/v1/ai/logs?deckId={deckId}&from=2025-01-0
 5. **Monitoring** - Brak detailed metrics dla AI operations
 
 ### Planowane usprawnienia:
+
 1. **Redis rate limiting** - Production-ready rate limiting
 2. **PostgreSQL RPC** - Atomic transactions dla AI generation
 3. **AI response caching** - Cache podobnych requests
@@ -1010,4 +1030,3 @@ curl -X GET "http://localhost:4321/api/v1/ai/logs?deckId={deckId}&from=2025-01-0
 ---
 
 **Koniec planu dokończenia AI Generation.**
-

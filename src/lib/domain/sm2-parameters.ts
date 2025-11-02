@@ -1,14 +1,14 @@
 /**
  * SM-2 (SuperMemo 2) Algorithm Parameters
- * 
+ *
  * Value Object representing spaced repetition parameters for flashcards.
  * Encapsulates validation logic and provides type-safe defaults.
- * 
+ *
  * The SM-2 algorithm uses these parameters to calculate optimal review intervals:
  * - easeFactor: Multiplier for interval calculation (min 1.3)
  * - intervalDays: Days until next review (min 1)
  * - repetitions: Number of consecutive correct reviews
- * 
+ *
  * @see https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
  */
 export class SM2Parameters {
@@ -53,16 +53,8 @@ export class SM2Parameters {
   /**
    * Creates SM-2 parameters from a database record
    */
-  static fromDatabase(data: {
-    ease_factor: number;
-    interval_days: number;
-    repetitions: number;
-  }): SM2Parameters {
-    return new SM2Parameters(
-      data.ease_factor,
-      data.interval_days,
-      data.repetitions
-    );
+  static fromDatabase(data: { ease_factor: number; interval_days: number; repetitions: number }): SM2Parameters {
+    return new SM2Parameters(data.ease_factor, data.interval_days, data.repetitions);
   }
 
   /**
@@ -71,21 +63,15 @@ export class SM2Parameters {
    */
   private validate(): void {
     if (this.easeFactor < SM2Parameters.MIN_EASE_FACTOR) {
-      throw new Error(
-        `Ease factor must be at least ${SM2Parameters.MIN_EASE_FACTOR}, got ${this.easeFactor}`
-      );
+      throw new Error(`Ease factor must be at least ${SM2Parameters.MIN_EASE_FACTOR}, got ${this.easeFactor}`);
     }
 
     if (this.intervalDays < SM2Parameters.MIN_INTERVAL) {
-      throw new Error(
-        `Interval must be at least ${SM2Parameters.MIN_INTERVAL} days, got ${this.intervalDays}`
-      );
+      throw new Error(`Interval must be at least ${SM2Parameters.MIN_INTERVAL} days, got ${this.intervalDays}`);
     }
 
     if (this.repetitions < 0) {
-      throw new Error(
-        `Repetitions cannot be negative, got ${this.repetitions}`
-      );
+      throw new Error(`Repetitions cannot be negative, got ${this.repetitions}`);
     }
 
     if (!Number.isFinite(this.easeFactor) || !Number.isFinite(this.intervalDays)) {
@@ -126,11 +112,7 @@ export class SM2Parameters {
    * Creates a copy with incremented repetitions
    */
   incrementRepetitions(): SM2Parameters {
-    return new SM2Parameters(
-      this.easeFactor,
-      this.intervalDays,
-      this.repetitions + 1
-    );
+    return new SM2Parameters(this.easeFactor, this.intervalDays, this.repetitions + 1);
   }
 
   /**

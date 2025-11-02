@@ -1,16 +1,20 @@
 # Plan implementacji: Poprawka flow generowania AI
 
 ## Status
+
 ❌ **Błędna implementacja** - Flow generowania AI nie jest zgodny z PRD
 
 ## Problem
+
 Obecny flow w `useAIGeneration` hook i `AIFlashcardGenerator`:
+
 1. Użytkownik wkleja tekst i klika "Generuj"
 2. API `/api/v1/ai/chat` tworzy deck + cards
 3. Przekierowanie bezpośrednio do `/decks/{deckId}`
 4. **Brak etapu recenzji fiszek**
 
 ## Wymagany flow zgodny z PRD (US-005, US-006, US-017)
+
 1. Użytkownik wkleja tekst i klika "Generuj"
 2. API `/api/v1/ai/chat` tworzy tymczasowy deck + cards
 3. **Przekierowanie do `/generate/review` (ReviewAICardsView)**
@@ -19,6 +23,7 @@ Obecny flow w `useAIGeneration` hook i `AIFlashcardGenerator`:
 6. Przekierowanie do `/decks/{deckId}`
 
 ## Kontekst istniejący
+
 - ✅ `ReviewAICardsView` już istnieje w `src/components/generate/ReviewAICardsView.tsx`
 - ✅ Komponenty pomocnicze: `Toolbar`, `CardsList`, `AICardItem`, `EditCardDialog`, `SaveBar`
 - ✅ Strona `/generate/review.astro` już istnieje
@@ -26,6 +31,7 @@ Obecny flow w `useAIGeneration` hook i `AIFlashcardGenerator`:
 - ❌ Brak obsługi "Anuluj" podczas generowania (US-017)
 
 ## Cel
+
 Zmienić flow generowania AI tak, aby przechodził przez etap recenzji zgodnie z PRD.
 
 ## Zakres implementacji
@@ -33,6 +39,7 @@ Zmienić flow generowania AI tak, aby przechodził przez etap recenzji zgodnie z
 ### 1. Zmiana API response dla `/api/v1/ai/chat`
 
 #### 1.1 Obecna odpowiedź:
+
 ```typescript
 // src/types.ts
 export interface AIDeckResponseDTO {
@@ -49,6 +56,7 @@ export interface AIDeckResponseDTO {
 #### 2.1 Aktualizacja `src/components/dashboard/AIFlashcardGenerator.tsx`
 
 **Zmiana w `handleSubmit`**:
+
 ```typescript
 const handleSubmit = async (e: FormEvent) => {
   e.preventDefault();
@@ -68,12 +76,12 @@ const handleSubmit = async (e: FormEvent) => {
   if (result) {
     // ZMIANA: Przekieruj do review zamiast deck details
     toast.success(
-      `Wygenerowano ${result.cards.length} ${result.cards.length === 1 ? 'fiszkę' : 'fiszek'}. Przejdź do recenzji.`
+      `Wygenerowano ${result.cards.length} ${result.cards.length === 1 ? "fiszkę" : "fiszek"}. Przejdź do recenzji.`
     );
 
     // Przekieruj do review view
     window.location.href = `/generate/review?deckId=${result.deck.id}`;
-    
+
     // NIE resetuj formularza - użytkownik może wrócić
     // setForm({ ... }); - USUŃ TO
   }
@@ -85,13 +93,14 @@ const handleSubmit = async (e: FormEvent) => {
 #### 3.1 Zmiana w `src/pages/generate/review.astro`
 
 **Upewnij się, że deckId jest przekazywany z URL**:
+
 ```astro
 ---
 const url = new URL(Astro.request.url);
-const deckId = url.searchParams.get('deckId');
+const deckId = url.searchParams.get("deckId");
 
 if (!deckId) {
-  return Astro.redirect('/');
+  return Astro.redirect("/");
 }
 ---
 
@@ -103,6 +112,7 @@ if (!deckId) {
 #### 3.2 Weryfikacja `ReviewAICardsView.tsx`
 
 Komponent już istnieje i obsługuje:
+
 - ✅ Ładowanie deck i cards
 - ✅ Wybór/odznaczanie fiszek (checkboxy)
 - ✅ Edycja fiszek (EditCardDialog)
@@ -112,6 +122,7 @@ Komponent już istnieje i obsługuje:
 - ✅ Zapis do istniejącej talii (kopiowanie + usunięcie source deck)
 
 **Potencjalne poprawki**:
+
 ```typescript
 // Upewnij się, że state loading/error są poprawnie obsłużone
 // Sprawdź czy wszystkie handlery są podpięte
@@ -130,7 +141,7 @@ Hook już obsługuje `cancel()` i `AbortController` - sprawdź czy działa:
 const cancel = useCallback(() => {
   if (abortControllerRef.current) {
     abortControllerRef.current.abort();
-    setState('idle');
+    setState("idle");
     setError(null);
   }
 }, []);
@@ -139,6 +150,7 @@ const cancel = useCallback(() => {
 #### 4.2 UI dla anulowania w AIFlashcardGenerator
 
 **Już zaimplementowane** - zweryfikuj:
+
 ```typescript
 {isLoading ? (
   <Button
@@ -159,18 +171,20 @@ const cancel = useCallback(() => {
 ```
 
 **US-017 Dodatkowe wymagania**:
+
 - [ ] Stan postępu podczas generowania - **obecnie: "Generowanie fiszek..."**
 - [ ] Po anulowaniu: komunikat + akcje "Edytuj tekst" / "Spróbuj ponownie"
 
 **Dodaj po anulowaniu**:
+
 ```typescript
 const handleCancel = () => {
   cancel();
   // Zamiast toast.info:
-  toast('Generowanie anulowane', {
-    description: 'Możesz edytować tekst i spróbować ponownie.',
+  toast("Generowanie anulowane", {
+    description: "Możesz edytować tekst i spróbować ponownie.",
     action: {
-      label: 'Spróbuj ponownie',
+      label: "Spróbuj ponownie",
       onClick: handleSubmit,
     },
   });
@@ -182,6 +196,7 @@ const handleCancel = () => {
 #### 5.1 Dodać przycisk "Powrót do generatora"
 
 W `ReviewAICardsView.tsx`:
+
 ```typescript
 // Na górze widoku, obok tytułu
 <div className="mb-6 flex items-center justify-between">
@@ -203,19 +218,20 @@ W `ReviewAICardsView.tsx`:
 #### 5.2 Poprawka działania "Zapisz do istniejącej talii"
 
 Sprawdź w `handleSave`:
+
 ```typescript
-if (destination.mode === 'existing') {
+if (destination.mode === "existing") {
   if (!destination.existingDeckId) {
-    toast.error('Wybierz talię docelową');
-    setState('idle');
+    toast.error("Wybierz talię docelową");
+    setState("idle");
     return;
   }
 
   // Kopiuj karty do wybranej talii
   for (const card of selectedCards) {
     await fetch(`/api/v1/decks/${destination.existingDeckId}/cards`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         question: card.question,
         answer: card.answer,
@@ -225,7 +241,7 @@ if (destination.mode === 'existing') {
 
   // Usuń tymczasowy deck (source)
   await fetch(`/api/v1/decks/${deckId}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 
   toast.success(`Skopiowano ${selectedCards.length} fiszek do wybranej talii`);
@@ -236,6 +252,7 @@ if (destination.mode === 'existing') {
 ### 6. Testy akceptacyjne
 
 **US-005: Generowanie fiszek z tekstu**
+
 - [ ] Po wklejeniu tekstu i kliknięciu "Generuj" proces się rozpoczyna
 - [ ] Wyświetla się stan "Generowanie fiszek..."
 - [ ] Po zakończeniu pojawia się toast z liczbą wygenerowanych fiszek
@@ -244,6 +261,7 @@ if (destination.mode === 'existing') {
 - [ ] Każda fiszka ma opcje: checkbox (zaznacz/odznacz), "Edytuj", "Odrzuć"
 
 **US-006: Recenzja i zapisywanie fiszek**
+
 - [ ] Kliknięcie "Odrzuć" usuwa fiszkę z listy
 - [ ] Kliknięcie "Edytuj" otwiera dialog z możliwością edycji pytania i odpowiedzi
 - [ ] Po edycji fiszka jest oznaczona jako zmieniona
@@ -255,6 +273,7 @@ if (destination.mode === 'existing') {
 - [ ] Toast pokazuje liczbę zapisanych fiszek
 
 **US-017: Anulowanie generowania**
+
 - [ ] W trakcie generowania widoczny jest przycisk "Anuluj"
 - [ ] Kliknięcie "Anuluj" przerywa proces
 - [ ] Nie zapisuje żadnych wyników częściowych
@@ -293,11 +312,13 @@ if (destination.mode === 'existing') {
 ### 8. Diagram flow (przed i po)
 
 #### Przed (błędny):
+
 ```
 Dashboard → Generuj → API → Przekierowanie do /decks/{deckId}
 ```
 
 #### Po (poprawny):
+
 ```
 Dashboard → Generuj → API → Przekierowanie do /generate/review
          ↑                           ↓
@@ -314,19 +335,21 @@ Dashboard → Generuj → API → Przekierowanie do /generate/review
 ```
 
 ## Zależności
+
 - API `/api/v1/ai/chat` - **już istnieje**
 - `ReviewAICardsView` - **już istnieje**
 - `/generate/review.astro` - **już istnieje**
 - Card CRUD endpoints - **już istnieją**
 
 ## Estymacja
+
 - **Czas implementacji**: 2-3 godziny
 - **Priorytet**: KRYTYCZNY (niezgodność z PRD)
 - **Złożoność**: NISKA (głównie zmiana przekierowania)
 
 ## Uwagi
+
 - To jest **poprawka błędnej implementacji**, nie nowa funkcjonalność
 - ReviewAICardsView już istnieje i działa - tylko flow jest błędny
 - Zmiana minimalna w kodzie, duża w UX
 - Po tej zmianie flow będzie zgodny z US-005, US-006, US-017
-

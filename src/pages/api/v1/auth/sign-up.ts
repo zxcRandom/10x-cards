@@ -1,14 +1,14 @@
 /**
  * POST /api/v1/auth/sign-up
- * 
+ *
  * Registers a new user with email and password.
  * Uses Supabase Auth for registration with auto-login (MVP).
- * 
+ *
  * Request Body:
  * - email: string (required)
  * - password: string (required)
  * - confirmPassword: string (required)
- * 
+ *
  * Responses:
  * - 201 CREATED: { status: "ok" }
  * - 400 BAD_REQUEST: Validation error
@@ -73,9 +73,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Rate limiting - use email as identifier
     const rateLimitCheck = await rateLimiter.checkAuthSignUpRateLimit(email);
     if (!rateLimitCheck.allowed) {
-      const retryAfterSeconds = rateLimitCheck.resetInMs
-        ? Math.ceil(rateLimitCheck.resetInMs / 1000)
-        : 60;
+      const retryAfterSeconds = rateLimitCheck.resetInMs ? Math.ceil(rateLimitCheck.resetInMs / 1000) : 60;
 
       return new Response(
         JSON.stringify({
@@ -155,12 +153,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // IMPORTANT: We need to manually add Set-Cookie headers from Supabase to the Response
     // because Astro API routes don't automatically serialize cookies
     const responseHeaders = new Headers();
-    
+
     // Get cookies that were set by Supabase during signUp
-    const cookiesToSet = hasCookiesToSet(locals.supabase)
-      ? locals.supabase.__cookiesToSet!
-      : [];
-    
+    const cookiesToSet = hasCookiesToSet(locals.supabase) ? locals.supabase.__cookiesToSet! : [];
+
     cookiesToSet.forEach(({ name, value, options }) => {
       // Serialize cookie with proper options
       let cookieString = `${name}=${value}`;
@@ -169,7 +165,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       if (options.httpOnly) cookieString += `; HttpOnly`;
       if (options.secure) cookieString += `; Secure`;
       if (options.sameSite) cookieString += `; SameSite=${options.sameSite}`;
-      
+
       responseHeaders.append("Set-Cookie", cookieString);
     });
 

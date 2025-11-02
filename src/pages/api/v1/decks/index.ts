@@ -111,11 +111,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     }
 
     // Step 3: Fetch decks through service
-    const decks = await DeckService.listDecks(
-      user.id,
-      validationResult.data,
-      locals.supabase
-    );
+    const decks = await DeckService.listDecks(user.id, validationResult.data, locals.supabase);
 
     // Step 4: Log success (for monitoring)
     console.info("[GET /api/v1/decks] Decks fetched successfully:", {
@@ -274,11 +270,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Step 4: Create deck through service
-    const createdDeck = await DeckService.createDeck(
-      user.id,
-      validationResult.data,
-      locals.supabase
-    );
+    const createdDeck = await DeckService.createDeck(user.id, validationResult.data, locals.supabase);
 
     // Step 5: Log success (for audit)
     console.info("[POST /api/v1/decks] Deck created successfully:", {

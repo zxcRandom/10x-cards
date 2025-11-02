@@ -9,10 +9,7 @@ import type {
   HttpStatus,
 } from "../../../../../types";
 import { CardService } from "../../../../../lib/services/card.service";
-import {
-  createCardSchema,
-  deckIdParamSchema,
-} from "../../../../../lib/validation/card.schemas";
+import { createCardSchema, deckIdParamSchema } from "../../../../../lib/validation/card.schemas";
 import { formatZodErrors } from "../../../../../lib/utils/zod-errors";
 
 // Disable prerendering for API route
@@ -23,16 +20,10 @@ export const prerender = false;
  */
 const cardsListQuerySchema = z.object({
   limit: z
-    .preprocess(
-      (val) => (val === null || val === undefined ? "20" : val),
-      z.coerce.number().int().min(1).max(100)
-    )
+    .preprocess((val) => (val === null || val === undefined ? "20" : val), z.coerce.number().int().min(1).max(100))
     .default(20),
   offset: z
-    .preprocess(
-      (val) => (val === null || val === undefined ? "0" : val),
-      z.coerce.number().int().min(0)
-    )
+    .preprocess((val) => (val === null || val === undefined ? "0" : val), z.coerce.number().int().min(0))
     .default(0),
   sort: z
     .preprocess(
@@ -50,10 +41,7 @@ const cardsListQuerySchema = z.object({
     )
     .default("createdAt"),
   order: z
-    .preprocess(
-      (val) => (val === null || val === undefined ? "desc" : val),
-      z.enum(["asc", "desc"])
-    )
+    .preprocess((val) => (val === null || val === undefined ? "desc" : val), z.enum(["asc", "desc"]))
     .default("desc"),
   q: z
     .string()
@@ -385,10 +373,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // STEP 4: Deck Ownership Verification
     // =========================================================================
     const cardService = new CardService(locals.supabase);
-    const { exists, owned } = await cardService.verifyDeckOwnership(
-      deckId,
-      user.id
-    );
+    const { exists, owned } = await cardService.verifyDeckOwnership(deckId, user.id);
 
     if (!exists) {
       const errorResponse: ErrorResponse = {

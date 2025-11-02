@@ -8,7 +8,7 @@
 /**
  * State of AI generation process
  */
-export type AIGeneratorState = 'idle' | 'loading' | 'success' | 'error' | 'cancelling';
+export type AIGeneratorState = "idle" | "loading" | "success" | "error" | "cancelling";
 
 /**
  * Form data for AI flashcard generator
@@ -43,6 +43,6 @@ export interface AIGeneratorComponentState {
  */
 export interface RecentDecksListProps {
   limit?: number;
-  sort?: 'updatedAt' | 'createdAt' | 'name';
-  order?: 'desc' | 'asc';
+  sort?: "updatedAt" | "createdAt" | "name";
+  order?: "desc" | "asc";
 }

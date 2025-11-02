@@ -1,11 +1,11 @@
 /**
  * EmptyState Component
- * 
+ *
  * Displays when user has no decks, with CTA to create first deck.
  */
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface EmptyStateProps {
   onCreateClick: () => void;
@@ -38,8 +38,7 @@ export default function EmptyState({ onCreateClick }: EmptyStateProps) {
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Brak talii</h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            Nie masz jeszcze żadnych talii. Stwórz swoją pierwszą talię, aby
-            rozpocząć naukę.
+            Nie masz jeszcze żadnych talii. Stwórz swoją pierwszą talię, aby rozpocząć naukę.
           </p>
         </div>
         <Button onClick={onCreateClick}>Stwórz nową talię</Button>

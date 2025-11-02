@@ -15,10 +15,7 @@
     },
     "preserveOutput": "always",
     "reporter": [
-      [
-        "html",
-        null
-      ],
+      ["html", null],
       [
         "json",
         {
@@ -49,9 +46,7 @@
         "name": "setup",
         "testDir": "C:/git/10x-cards/tests",
         "testIgnore": [],
-        "testMatch": [
-          "/.*\\.setup\\.ts/"
-        ],
+        "testMatch": ["/.*\\.setup\\.ts/"],
         "timeout": 30000
       },
       {
@@ -65,9 +60,7 @@
         "name": "teardown",
         "testDir": "C:/git/10x-cards/tests",
         "testIgnore": [],
-        "testMatch": [
-          "/.*\\.teardown\\.ts/"
-        ],
+        "testMatch": ["/.*\\.teardown\\.ts/"],
         "timeout": 30000
       },
       {
@@ -81,9 +74,7 @@
         "name": "chromium",
         "testDir": "C:/git/10x-cards/tests/e2e",
         "testIgnore": [],
-        "testMatch": [
-          "**/*.spec.ts"
-        ],
+        "testMatch": ["**/*.spec.ts"],
         "timeout": 30000
       }
     ],
@@ -223,9 +214,7 @@
             {
               "title": "@slow can generate ML deck and review cards",
               "ok": true,
-              "tags": [
-                "slow"
-              ],
+              "tags": ["slow"],
               "tests": [
                 {
                   "timeout": 360000,
@@ -607,9 +596,7 @@
             {
               "title": "@slow can complete study session with various grades",
               "ok": true,
-              "tags": [
-                "slow"
-              ],
+              "tags": ["slow"],
               "tests": [
                 {
                   "timeout": 360000,
@@ -680,9 +667,7 @@
             {
               "title": "@slow can navigate between cards and complete session",
               "ok": true,
-              "tags": [
-                "slow"
-              ],
+              "tags": ["slow"],
               "tests": [
                 {
                   "timeout": 360000,

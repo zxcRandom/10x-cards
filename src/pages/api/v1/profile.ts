@@ -217,11 +217,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     }
 
     // Step 4: Execute update through service
-    const updatedProfile = await ProfileService.updateProfile(
-      user.id,
-      validationResult.data,
-      locals.supabase
-    );
+    const updatedProfile = await ProfileService.updateProfile(user.id, validationResult.data, locals.supabase);
 
     // Step 5: Log success (optional, for audit)
     console.info("[PATCH /api/v1/profile] Profile updated:", {

@@ -1,14 +1,14 @@
 /**
  * Navigation Component
- * 
+ *
  * Main navigation with responsive layout:
  * - Desktop: fixed sidebar
  * - Mobile: hamburger menu (collapsible)
  */
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Home, BookOpen, Settings, LogOut, Menu, X } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Home, BookOpen, Settings, LogOut, Menu, X } from "lucide-react";
 
 interface NavigationProps {
   currentPath: string;
@@ -19,26 +19,26 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { href: '/', label: 'Dashboard', icon: Home },
-    { href: '/decks', label: 'Moje talie', icon: BookOpen },
-    { href: '/account/settings', label: 'Ustawienia', icon: Settings },
+    { href: "/", label: "Dashboard", icon: Home },
+    { href: "/decks", label: "Moje talie", icon: BookOpen },
+    { href: "/account/settings", label: "Ustawienia", icon: Settings },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return currentPath === '/';
+    if (href === "/") {
+      return currentPath === "/";
     }
     return currentPath.startsWith(href);
   };
 
   const handleSignOut = async () => {
     try {
-      await fetch('/api/v1/auth/sign-out', { method: 'POST' });
-      window.location.href = '/auth/login';
+      await fetch("/api/v1/auth/sign-out", { method: "POST" });
+      window.location.href = "/auth/login";
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
       // Try redirecting anyway
-      window.location.href = '/auth/login';
+      window.location.href = "/auth/login";
     }
   };
 
@@ -50,7 +50,7 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
           variant="outline"
           size="icon"
           onClick={() => setIsOpen(!isOpen)}
-          aria-label={isOpen ? 'Zamknij menu' : 'Otwórz menu'}
+          aria-label={isOpen ? "Zamknij menu" : "Otwórz menu"}
           aria-expanded={isOpen}
         >
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -59,11 +59,7 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
 
       {/* Mobile overlay */}
       {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsOpen(false)}
-          aria-hidden="true"
-        />
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
       )}
 
       {/* Sidebar */}
@@ -72,7 +68,7 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
           fixed top-0 left-0 z-40 h-screen w-64 bg-card border-r border-border
           transition-transform duration-300 ease-in-out
           lg:translate-x-0
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
         aria-label="Main navigation"
       >
@@ -92,7 +88,7 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
-              
+
               return (
                 <a
                   key={item.href}
@@ -100,12 +96,13 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
                   className={`
                     flex items-center gap-3 px-3 py-2 rounded-lg
                     transition-colors
-                    ${active 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                    ${
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
                     }
                   `}
-                  aria-current={active ? 'page' : undefined}
+                  aria-current={active ? "page" : undefined}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="font-medium">{item.label}</span>
@@ -121,11 +118,7 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
                 {userEmail}
               </div>
             )}
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3"
-              onClick={handleSignOut}
-            >
+            <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleSignOut}>
               <LogOut className="h-5 w-5" />
               <span>Wyloguj</span>
             </Button>
@@ -138,5 +131,3 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
     </>
   );
 }
-
-

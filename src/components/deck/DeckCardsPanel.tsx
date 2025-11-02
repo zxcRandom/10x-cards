@@ -1,30 +1,27 @@
 /**
  * DeckCardsPanel Component
- * 
+ *
  * Main container for deck cards management.
  * Coordinates CardsToolbar, CardsTable, and Pagination.
  */
 
-import { useState } from 'react';
-import { useDeckDetails } from '@/components/hooks/useDeckDetails';
-import CardsToolbar from './CardsToolbar';
-import CardsTable from './CardsTable';
-import CardDialog from './CardDialog';
-import CardConfirmDialog from './CardConfirmDialog';
-import PaginationControls from '@/components/decks/PaginationControls';
-import { toast } from 'sonner';
-import type { DeckDTO, CardDTO } from '@/types';
-import type { CardDialogState } from './types';
+import { useState } from "react";
+import { useDeckDetails } from "@/components/hooks/useDeckDetails";
+import CardsToolbar from "./CardsToolbar";
+import CardsTable from "./CardsTable";
+import CardDialog from "./CardDialog";
+import CardConfirmDialog from "./CardConfirmDialog";
+import PaginationControls from "@/components/decks/PaginationControls";
+import { toast } from "sonner";
+import type { DeckDTO, CardDTO } from "@/types";
+import type { CardDialogState } from "./types";
 
 interface DeckCardsPanelProps {
   deck: DeckDTO;
   onDeckUpdated: (updated: DeckDTO) => void;
 }
 
-export default function DeckCardsPanel({
-  deck,
-  onDeckUpdated,
-}: DeckCardsPanelProps) {
+export default function DeckCardsPanel({ deck, onDeckUpdated }: DeckCardsPanelProps) {
   const { state, actions } = useDeckDetails({
     deckId: deck.id,
     initialDeck: deck,
@@ -32,7 +29,7 @@ export default function DeckCardsPanel({
 
   const [dialogState, setDialogState] = useState<CardDialogState>({
     open: false,
-    mode: 'create',
+    mode: "create",
     card: null,
   });
 
@@ -55,7 +52,7 @@ export default function DeckCardsPanel({
   const handleCreateClick = () => {
     setDialogState({
       open: true,
-      mode: 'create',
+      mode: "create",
       card: null,
     });
   };
@@ -63,7 +60,7 @@ export default function DeckCardsPanel({
   const handleEditClick = (card: CardDTO) => {
     setDialogState({
       open: true,
-      mode: 'edit',
+      mode: "edit",
       card,
     });
   };
@@ -76,39 +73,37 @@ export default function DeckCardsPanel({
   };
 
   const handleCardSuccess = (card: CardDTO) => {
-    const message = dialogState.mode === 'create'
-      ? 'Fiszka została dodana'
-      : 'Fiszka została zaktualizowana';
-    
+    const message = dialogState.mode === "create" ? "Fiszka została dodana" : "Fiszka została zaktualizowana";
+
     toast.success(message);
-    setDialogState({ open: false, mode: 'create', card: null });
+    setDialogState({ open: false, mode: "create", card: null });
     actions.refreshCards();
   };
 
   const handleDeleteConfirm = async (cardId: string) => {
     try {
       const response = await fetch(`/api/v1/cards/${cardId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Twoja sesja wygasła. Zaloguj się ponownie.');
+          throw new Error("Twoja sesja wygasła. Zaloguj się ponownie.");
         }
         if (response.status === 404) {
-          throw new Error('Karta nie została znaleziona. Mogła zostać już usunięta.');
+          throw new Error("Karta nie została znaleziona. Mogła zostać już usunięta.");
         }
         if (response.status === 403) {
-          throw new Error('Nie masz uprawnień do usunięcia tej karty');
+          throw new Error("Nie masz uprawnień do usunięcia tej karty");
         }
-        throw new Error('Wystąpił błąd podczas usuwania karty');
+        throw new Error("Wystąpił błąd podczas usuwania karty");
       }
 
-      toast.success('Fiszka została usunięta');
+      toast.success("Fiszka została usunięta");
       setDeleteDialog({ open: false, card: null });
       actions.refreshCards();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Nieznany błąd';
+      const errorMessage = err instanceof Error ? err.message : "Nieznany błąd";
       toast.error(errorMessage);
     }
   };
@@ -124,7 +119,7 @@ export default function DeckCardsPanel({
   return (
     <div className="space-y-6">
       <CardsToolbar
-        q={state.query.q || ''}
+        q={state.query.q || ""}
         limit={state.query.limit}
         onSearchChange={handleSearchChange}
         onLimitChange={handleLimitChange}
@@ -132,16 +127,11 @@ export default function DeckCardsPanel({
       />
 
       {state.loading && state.cards.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          Ładowanie kart...
-        </div>
+        <div className="text-center py-12 text-muted-foreground">Ładowanie kart...</div>
       ) : state.error ? (
         <div className="text-center py-12">
           <p className="text-destructive mb-4">{state.error}</p>
-          <button
-            onClick={() => actions.refreshCards()}
-            className="text-primary hover:underline"
-          >
+          <button onClick={() => actions.refreshCards()} className="text-primary hover:underline">
             Spróbuj ponownie
           </button>
         </div>
@@ -150,10 +140,7 @@ export default function DeckCardsPanel({
           {state.query.q ? (
             <>
               <p className="mb-2">Nie znaleziono kart pasujących do wyszukiwania</p>
-              <button
-                onClick={() => actions.setSearch('')}
-                className="text-primary hover:underline"
-              >
+              <button onClick={() => actions.setSearch("")} className="text-primary hover:underline">
                 Wyczyść wyszukiwanie
               </button>
             </>
@@ -189,7 +176,7 @@ export default function DeckCardsPanel({
         deckId={deck.id}
         onOpenChange={(open) => {
           if (!open) {
-            setDialogState({ open: false, mode: 'create', card: null });
+            setDialogState({ open: false, mode: "create", card: null });
           }
         }}
         onSuccess={handleCardSuccess}

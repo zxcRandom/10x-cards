@@ -3,9 +3,11 @@
 ## 1. Przegląd punktu końcowego
 
 ### Cel
+
 Endpoint służy do pobierania profilu zalogowanego użytkownika. Zwraca dane profilu użytkownika z tabeli `public.profiles`, która rozszerza podstawowe informacje z `auth.users` o dane specyficzne dla aplikacji (zgoda na prywatność, soft delete).
 
 ### Charakterystyka
+
 - **Metoda HTTP**: GET
 - **Ścieżka**: `/api/v1/profile`
 - **Uwierzytelnianie**: Wymagane (Supabase JWT w nagłówku Authorization)
@@ -15,9 +17,11 @@ Endpoint służy do pobierania profilu zalogowanego użytkownika. Zwraca dane pr
 ## 2. Szczegóły żądania
 
 ### Metoda HTTP
+
 `GET`
 
 ### Struktura URL
+
 ```
 /api/v1/profile
 ```
@@ -25,21 +29,26 @@ Endpoint służy do pobierania profilu zalogowanego użytkownika. Zwraca dane pr
 ### Parametry
 
 #### Parametry ścieżki (path parameters)
+
 Brak
 
 #### Parametry zapytania (query parameters)
+
 Brak
 
 #### Request Body
+
 Nie dotyczy (metoda GET nie przyjmuje body)
 
 ### Nagłówki wymagane
+
 ```
 Authorization: Bearer <supabase_jwt_token>
 Content-Type: application/json
 ```
 
 ### Przykład żądania
+
 ```http
 GET /api/v1/profile HTTP/1.1
 Host: api.example.com
@@ -52,23 +61,25 @@ Content-Type: application/json
 ### DTOs (Data Transfer Objects)
 
 #### ProfileDTO
+
 ```typescript
 // Już zdefiniowany w src/types.ts
 export interface ProfileDTO {
-  id: string;                    // UUID użytkownika (z auth.users)
-  privacyConsent: boolean;       // Zgoda na przetwarzanie przez AI
-  deletedAt: string | null;      // Data soft delete (ISO-8601) lub null
-  createdAt: string;             // Data utworzenia profilu (ISO-8601)
-  updatedAt: string;             // Data ostatniej aktualizacji (ISO-8601)
+  id: string; // UUID użytkownika (z auth.users)
+  privacyConsent: boolean; // Zgoda na przetwarzanie przez AI
+  deletedAt: string | null; // Data soft delete (ISO-8601) lub null
+  createdAt: string; // Data utworzenia profilu (ISO-8601)
+  updatedAt: string; // Data ostatniej aktualizacji (ISO-8601)
 }
 ```
 
 ### Typy pomocnicze
 
 #### DbProfile
+
 ```typescript
 // Już zdefiniowany w src/types.ts
-export type DbProfile = Tables<'profiles'>;
+export type DbProfile = Tables<"profiles">;
 
 // Struktura z database.types.ts:
 // {
@@ -83,14 +94,15 @@ export type DbProfile = Tables<'profiles'>;
 ### Typy błędów
 
 #### ErrorResponse
+
 ```typescript
 // Do zdefiniowania w src/types.ts (wspólne dla wszystkich endpointów)
 interface ErrorResponse {
   error: {
-    code: string;           // Kod błędu (np. "UNAUTHORIZED", "NOT_FOUND")
-    message: string;        // Opis błędu czytelny dla człowieka
-    details?: unknown;      // Opcjonalne szczegóły (tylko w dev mode)
-  }
+    code: string; // Kod błędu (np. "UNAUTHORIZED", "NOT_FOUND")
+    message: string; // Opis błędu czytelny dla człowieka
+    details?: unknown; // Opcjonalne szczegóły (tylko w dev mode)
+  };
 }
 ```
 
@@ -99,9 +111,11 @@ interface ErrorResponse {
 ### Sukces (200 OK)
 
 #### Status HTTP
+
 `200 OK`
 
 #### Response Body
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -113,6 +127,7 @@ interface ErrorResponse {
 ```
 
 #### Nagłówki odpowiedzi
+
 ```
 Content-Type: application/json
 Cache-Control: no-cache, no-store, must-revalidate
@@ -121,6 +136,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Błędy
 
 #### 401 Unauthorized
+
 **Przyczyna**: Brak tokenu JWT, token wygasły lub nieprawidłowy
 
 ```json
@@ -133,6 +149,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### 404 Not Found
+
 **Przyczyna**: Profil użytkownika nie istnieje w bazie danych
 
 ```json
@@ -147,6 +164,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 **Uwaga**: Ten błąd nie powinien wystąpić w normalnym przepływie, ponieważ profil jest tworzony automatycznie przez trigger `handle_new_user()` przy rejestracji. Jeśli wystąpi, może wskazywać na problem z integracją Supabase Auth lub ręczne usunięcie profilu.
 
 #### 500 Internal Server Error
+
 **Przyczyna**: Błąd połączenia z bazą danych lub nieobsłużony wyjątek
 
 ```json
@@ -161,6 +179,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ## 5. Przepływ danych
 
 ### Diagram przepływu
+
 ```
 ┌─────────────┐
 │   Klient    │
@@ -219,17 +238,20 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Szczegółowy opis przepływu
 
 #### Krok 1: Weryfikacja autentykacji (Middleware)
+
 - Middleware Astro pobiera token JWT z nagłówka `Authorization`
 - Tworzy klienta Supabase powiązanego z żądaniem: `context.locals.supabase`
 - Wywołuje `supabase.auth.getUser()` aby pobrać dane użytkownika
 - Jeśli token jest nieprawidłowy → zwraca 401 Unauthorized
 
 #### Krok 2: Handler endpointu
+
 - Sprawdza czy `user` istnieje w kontekście (double-check)
 - Wywołuje `ProfileService.getProfile(user.id, supabase)`
 - Obsługuje błędy i zwraca odpowiednie kody statusu
 
 #### Krok 3: Pobieranie danych z bazy (Service)
+
 - Wykonuje query SQL przez Supabase client:
   ```sql
   SELECT id, privacy_consent, deleted_at, created_at, updated_at
@@ -239,6 +261,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 - Zwraca pojedynczy wiersz lub null
 
 #### Krok 4: Mapowanie i odpowiedź
+
 - Konwertuje `DbProfile` (snake_case) na `ProfileDTO` (camelCase)
 - Serializuje daty do formatu ISO-8601 string
 - Zwraca JSON response z kodem 200
@@ -248,19 +271,27 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Uwierzytelnianie (Authentication)
 
 #### Mechanizm
+
 - **Supabase JWT**: Token dostępowy generowany przez Supabase Auth
 - **Weryfikacja**: Automatyczna przez Supabase client podczas `getUser()`
 - **Lokalizacja**: Nagłówek `Authorization: Bearer <token>`
 
 #### Implementacja w middleware
+
 ```typescript
 // src/middleware/index.ts
-const { data: { user }, error } = await supabase.auth.getUser();
+const {
+  data: { user },
+  error,
+} = await supabase.auth.getUser();
 
 if (error || !user) {
-  return new Response(JSON.stringify({
-    error: { code: 'UNAUTHORIZED', message: 'Authentication required' }
-  }), { status: 401 });
+  return new Response(
+    JSON.stringify({
+      error: { code: "UNAUTHORIZED", message: "Authentication required" },
+    }),
+    { status: 401 }
+  );
 }
 
 context.locals.user = user;
@@ -269,9 +300,11 @@ context.locals.user = user;
 ### Autoryzacja (Authorization)
 
 #### Zasada
+
 Użytkownik może pobrać **tylko swój własny profil**. User ID pochodzi z zweryfikowanego tokenu JWT, nigdy z parametrów żądania.
 
 #### Implementacja
+
 ```typescript
 // W API route handler
 const userId = context.locals.user.id; // Z tokenu JWT
@@ -283,6 +316,7 @@ const profile = await ProfileService.getProfile(userId, supabase);
 ### Row Level Security (RLS)
 
 #### Stan obecny (z migracji)
+
 - RLS jest **włączony** na tabeli `public.profiles`
 - **Brak zdefiniowanych polityk** → dostęp domyślnie ZABRONIONY
 
@@ -305,7 +339,9 @@ CREATE POLICY "Users can update own profile"
 ```
 
 #### Tymczasowe rozwiązanie (DEV)
+
 Dla środowiska deweloperskiego można:
+
 1. Użyć **service role key** (bypasses RLS) - **NIE dla produkcji!**
 2. LUB dodać polityki RLS natychmiast
 
@@ -314,27 +350,33 @@ Dla środowiska deweloperskiego można:
 ### Walidacja danych
 
 #### Dane wejściowe
+
 - Brak parametrów do walidacji (user ID z tokenu jest już zweryfikowany)
 
 #### Dane wyjściowe
+
 - Upewnić się, że daty są w formacie ISO-8601
 - Sprawdzić czy wszystkie wymagane pola są obecne przed zwróceniem
 
 ### Ochrona przed atakami
 
 #### SQL Injection
+
 - **Chronione**: Używamy Supabase client z parametryzowanymi zapytaniami
 - Supabase automatycznie escapuje parametry
 
 #### XSS (Cross-Site Scripting)
+
 - **Nie dotyczy**: Endpoint zwraca JSON (nie HTML)
 - Frontend musi sanityzować dane przed wyświetleniem
 
 #### CSRF (Cross-Site Request Forgery)
+
 - **Chronione**: JWT token w nagłówku (nie w cookie)
 - Same-Origin Policy przeglądarek
 
 #### Rate Limiting
+
 - **Rekomendacja**: Dodać rate limiting na poziomie API gateway lub middleware
 - Sugerowane limity: 100 req/min per IP, 50 req/min per user
 
@@ -342,89 +384,99 @@ Dla środowiska deweloperskiego można:
 
 ### Macierz błędów
 
-| Scenariusz | Kod HTTP | Kod błędu | Komunikat | Akcja |
-|------------|----------|-----------|-----------|-------|
-| Brak tokenu JWT | 401 | UNAUTHORIZED | "Authentication required" | Zwróć 401, loguj |
-| Token JWT nieprawidłowy | 401 | UNAUTHORIZED | "Invalid or expired token" | Zwróć 401, loguj |
-| Token JWT wygasł | 401 | UNAUTHORIZED | "Token expired" | Zwróć 401, odśwież token |
-| Profil nie istnieje | 404 | PROFILE_NOT_FOUND | "User profile not found" | Zwróć 404, loguj (alert!) |
-| Błąd połączenia z DB | 500 | DATABASE_ERROR | "Database connection failed" | Zwróć 500, loguj szczegóły |
-| Nieobsłużony wyjątek | 500 | INTERNAL_SERVER_ERROR | "Unexpected error occurred" | Zwróć 500, loguj stack trace |
-| Supabase RLS blokuje dostęp | 500 | DATABASE_ERROR | "Access denied" | Zwróć 500, loguj (fix RLS!) |
+| Scenariusz                  | Kod HTTP | Kod błędu             | Komunikat                    | Akcja                        |
+| --------------------------- | -------- | --------------------- | ---------------------------- | ---------------------------- |
+| Brak tokenu JWT             | 401      | UNAUTHORIZED          | "Authentication required"    | Zwróć 401, loguj             |
+| Token JWT nieprawidłowy     | 401      | UNAUTHORIZED          | "Invalid or expired token"   | Zwróć 401, loguj             |
+| Token JWT wygasł            | 401      | UNAUTHORIZED          | "Token expired"              | Zwróć 401, odśwież token     |
+| Profil nie istnieje         | 404      | PROFILE_NOT_FOUND     | "User profile not found"     | Zwróć 404, loguj (alert!)    |
+| Błąd połączenia z DB        | 500      | DATABASE_ERROR        | "Database connection failed" | Zwróć 500, loguj szczegóły   |
+| Nieobsłużony wyjątek        | 500      | INTERNAL_SERVER_ERROR | "Unexpected error occurred"  | Zwróć 500, loguj stack trace |
+| Supabase RLS blokuje dostęp | 500      | DATABASE_ERROR        | "Access denied"              | Zwróć 500, loguj (fix RLS!)  |
 
 ### Strategia logowania
 
 #### Co logować
 
 **Zawsze loguj (ERROR level)**:
+
 - 404 Not Found dla profilu (powinno być bardzo rzadkie - wskazuje problem)
 - 500 Internal Server Error (wszystkie błędy serwera)
 - Błędy połączenia z bazą danych
 - Nieobsłużone wyjątki
 
 **Opcjonalnie loguj (INFO level)**:
+
 - Pomyślne żądania (dla analytics)
 - 401 Unauthorized (może wskazywać na ataki)
 
 **Nie loguj**:
+
 - Zawartości tokenu JWT (security risk)
 - Danych osobowych użytkownika (GDPR)
 
 #### Format logów
 
 ```typescript
-console.error('[GET /api/v1/profile]', {
+console.error("[GET /api/v1/profile]", {
   userId: user.id,
   error: error.message,
   code: error.code,
   timestamp: new Date().toISOString(),
   // W DEV: stack trace
-  ...(import.meta.env.DEV && { stack: error.stack })
+  ...(import.meta.env.DEV && { stack: error.stack }),
 });
 ```
 
 ### Obsługa błędów w kodzie
 
 #### Try-catch pattern
+
 ```typescript
 try {
   const profile = await ProfileService.getProfile(userId, supabase);
-  
+
   if (!profile) {
-    return new Response(JSON.stringify({
-      error: {
-        code: 'PROFILE_NOT_FOUND',
-        message: 'User profile not found'
-      }
-    }), { status: 404 });
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "PROFILE_NOT_FOUND",
+          message: "User profile not found",
+        },
+      }),
+      { status: 404 }
+    );
   }
-  
+
   return new Response(JSON.stringify(profile), { status: 200 });
-  
 } catch (error) {
-  console.error('[GET /api/v1/profile] Error:', error);
-  
-  return new Response(JSON.stringify({
-    error: {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'An unexpected error occurred'
-    }
-  }), { status: 500 });
+  console.error("[GET /api/v1/profile] Error:", error);
+
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred",
+      },
+    }),
+    { status: 500 }
+  );
 }
 ```
 
 #### Early returns dla błędów
+
 Zgodnie z zasadami clean code, sprawdzaj błędy na początku funkcji:
 
 ```typescript
 // ✅ Dobre - early return
 if (!user) {
-  return errorResponse(401, 'UNAUTHORIZED');
+  return errorResponse(401, "UNAUTHORIZED");
 }
 
 const profile = await getProfile(user.id);
 if (!profile) {
-  return errorResponse(404, 'PROFILE_NOT_FOUND');
+  return errorResponse(404, "PROFILE_NOT_FOUND");
 }
 
 return successResponse(profile);
@@ -447,11 +499,13 @@ if (user) {
 ### Optymalizacje zapytań
 
 #### Indeksy bazodanowe
+
 - **Primary key na `profiles.id`**: Automatycznie zindeksowany (UUID)
 - **Indeks na `profiles.deleted_at`**: Już istnieje (partial index dla `deleted_at IS NULL`)
 - Query SELECT po PK jest **bardzo szybkie** (O(log n))
 
 #### Query
+
 ```sql
 -- Zoptymalizowane zapytanie (wykorzystuje PK index)
 SELECT id, privacy_consent, deleted_at, created_at, updated_at
@@ -467,18 +521,22 @@ LIMIT 1;
 #### Strategia cachowania
 
 **Nie cachować na poziomie serwera** z powodu:
+
 - Dane profilu mogą się często zmieniać (privacy_consent, deleted_at)
 - Proste zapytanie po PK jest już bardzo szybkie
 - Ryzyko zwrócenia nieaktualnych danych
 
 **Cachowanie po stronie klienta**:
+
 ```http
 Cache-Control: private, max-age=300
 ```
+
 - `private`: Cache tylko w przeglądarce użytkownika (nie w shared cache)
 - `max-age=300`: 5 minut (wystarczające dla profilu)
 
 **Lub brak cachowania** (zalecane dla MVP):
+
 ```http
 Cache-Control: no-cache, no-store, must-revalidate
 ```
@@ -492,43 +550,50 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Potencjalne wąskie gardła
 
 #### 1. Supabase RLS policies
+
 **Problem**: Polityki RLS dodają overhead do każdego zapytania
 
 **Rozwiązanie**:
+
 - Upewnić się, że polityki używają indeksów (np. `auth.uid() = id` używa PK)
 - Monitorować czas wykonania zapytań w Supabase Dashboard
 - W przyszłości: rozważyć service role + ręczna autoryzacja dla krytycznych endpointów
 
 #### 2. Zimne starty (cold starts)
+
 **Problem**: Pierwsze zapytanie po okresie bezczynności może być wolniejsze
 
 **Rozwiązanie**:
+
 - Używać serverless functions z warm-up (jeśli dotyczy)
 - W produkcji: rozważyć dedicated instance Supabase
 
 #### 3. Rate limiting
+
 **Problem**: Zbyt wiele żądań może przeciążyć serwer
 
 **Rozwiązanie**:
+
 - Implementować rate limiting (np. 100 req/min per user)
 - Używać Redis lub Upstash dla distributed rate limiting
 
 ### Metryki wydajności do monitorowania
 
-| Metryka | Docelowa wartość | Alert przy |
-|---------|------------------|------------|
-| Response time (p50) | < 100ms | > 500ms |
-| Response time (p95) | < 200ms | > 1000ms |
-| Response time (p99) | < 500ms | > 2000ms |
-| Error rate | < 0.1% | > 1% |
-| Database query time | < 10ms | > 50ms |
-| Throughput | > 100 req/s | < 10 req/s |
+| Metryka             | Docelowa wartość | Alert przy |
+| ------------------- | ---------------- | ---------- |
+| Response time (p50) | < 100ms          | > 500ms    |
+| Response time (p95) | < 200ms          | > 1000ms   |
+| Response time (p99) | < 500ms          | > 2000ms   |
+| Error rate          | < 0.1%           | > 1%       |
+| Database query time | < 10ms           | > 50ms     |
+| Throughput          | > 100 req/s      | < 10 req/s |
 
 ## 9. Etapy wdrożenia
 
 ### Faza 1: Przygotowanie infrastruktury
 
 #### 1.1. Dodanie polityk RLS do bazy danych
+
 **Plik**: `supabase/migrations/[timestamp]_add_profiles_rls_policies.sql`
 
 ```sql
@@ -552,14 +617,17 @@ CREATE POLICY "Users can soft delete own profile"
 ```
 
 **Akcja**: Uruchom migrację
+
 ```bash
 npx supabase db push
 ```
 
 #### 1.2. Weryfikacja triggera auto-create profile
+
 **Sprawdzić**: Czy trigger `handle_new_user()` działa poprawnie
 
 **Test**:
+
 ```sql
 -- Sprawdź czy trigger istnieje
 SELECT * FROM pg_trigger WHERE tgname = 'on_auth_user_created';
@@ -570,11 +638,12 @@ SELECT * FROM pg_trigger WHERE tgname = 'on_auth_user_created';
 ### Faza 2: Implementacja warstwy Service
 
 #### 2.1. Utworzenie ProfileService
+
 **Plik**: `src/lib/services/profile.service.ts`
 
 ```typescript
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DbProfile, ProfileDTO } from '../../../types';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbProfile, ProfileDTO } from "../../../types";
 
 export class ProfileService {
   /**
@@ -584,19 +653,16 @@ export class ProfileService {
    * @returns ProfileDTO lub null jeśli profil nie istnieje
    * @throws Error jeśli wystąpi błąd bazy danych
    */
-  static async getProfile(
-    userId: string,
-    supabase: SupabaseClient
-  ): Promise<ProfileDTO | null> {
+  static async getProfile(userId: string, supabase: SupabaseClient): Promise<ProfileDTO | null> {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, privacy_consent, deleted_at, created_at, updated_at')
-      .eq('id', userId)
+      .from("profiles")
+      .select("id, privacy_consent, deleted_at, created_at, updated_at")
+      .eq("id", userId)
       .single();
 
     if (error) {
       // Jeśli profil nie istnieje, zwróć null (nie throw)
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         return null;
       }
       // Inne błędy - rzuć wyjątek
@@ -628,13 +694,14 @@ export class ProfileService {
 ```
 
 **Test jednostkowy** (opcjonalnie):
+
 ```typescript
 // src/lib/services/profile.service.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { ProfileService } from './profile.service';
+import { describe, it, expect, vi } from "vitest";
+import { ProfileService } from "./profile.service";
 
-describe('ProfileService', () => {
-  it('should return profile when found', async () => {
+describe("ProfileService", () => {
+  it("should return profile when found", async () => {
     // Mock Supabase client
     const mockSupabase = {
       from: vi.fn(() => ({
@@ -642,11 +709,11 @@ describe('ProfileService', () => {
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: {
-                id: '123',
+                id: "123",
                 privacy_consent: true,
                 deleted_at: null,
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z',
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
               },
               error: null,
             })),
@@ -655,32 +722,32 @@ describe('ProfileService', () => {
       })),
     };
 
-    const profile = await ProfileService.getProfile('123', mockSupabase as any);
+    const profile = await ProfileService.getProfile("123", mockSupabase as any);
 
     expect(profile).toEqual({
-      id: '123',
+      id: "123",
       privacyConsent: true,
       deletedAt: null,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
+      createdAt: "2024-01-01T00:00:00Z",
+      updatedAt: "2024-01-01T00:00:00Z",
     });
   });
 
-  it('should return null when profile not found', async () => {
+  it("should return null when profile not found", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: null,
-              error: { code: 'PGRST116', message: 'No rows found' },
+              error: { code: "PGRST116", message: "No rows found" },
             })),
           })),
         })),
       })),
     };
 
-    const profile = await ProfileService.getProfile('999', mockSupabase as any);
+    const profile = await ProfileService.getProfile("999", mockSupabase as any);
 
     expect(profile).toBeNull();
   });
@@ -690,11 +757,12 @@ describe('ProfileService', () => {
 ### Faza 3: Implementacja API Route Handler
 
 #### 3.1. Utworzenie route handler
+
 **Plik**: `src/pages/api/v1/profile.ts`
 
 ```typescript
-import type { APIRoute } from 'astro';
-import { ProfileService } from '@/lib/services/profile.service';
+import type { APIRoute } from "astro";
+import { ProfileService } from "@/lib/services/profile.service";
 
 /**
  * GET /api/v1/profile
@@ -703,19 +771,22 @@ import { ProfileService } from '@/lib/services/profile.service';
 export const GET: APIRoute = async ({ locals }) => {
   try {
     // Sprawdź autentykację (double-check po middleware)
-    const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required. Please provide a valid access token.',
+            code: "UNAUTHORIZED",
+            message: "Authentication required. Please provide a valid access token.",
           },
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -725,18 +796,18 @@ export const GET: APIRoute = async ({ locals }) => {
 
     if (!profile) {
       // Profil nie istnieje - to nie powinno się zdarzyć!
-      console.error('[GET /api/v1/profile] Profile not found for user:', user.id);
+      console.error("[GET /api/v1/profile] Profile not found for user:", user.id);
 
       return new Response(
         JSON.stringify({
           error: {
-            code: 'PROFILE_NOT_FOUND',
-            message: 'User profile not found. Please contact support if this issue persists.',
+            code: "PROFILE_NOT_FOUND",
+            message: "User profile not found. Please contact support if this issue persists.",
           },
         }),
         {
           status: 404,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -745,20 +816,19 @@ export const GET: APIRoute = async ({ locals }) => {
     return new Response(JSON.stringify(profile), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });
-
   } catch (error) {
     // Błąd serwera
-    console.error('[GET /api/v1/profile] Unexpected error:', error);
+    console.error("[GET /api/v1/profile] Unexpected error:", error);
 
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'An unexpected error occurred. Please try again later.',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred. Please try again later.",
           // W DEV mode: dodaj szczegóły
           ...(import.meta.env.DEV && {
             details: error instanceof Error ? error.message : String(error),
@@ -767,7 +837,7 @@ export const GET: APIRoute = async ({ locals }) => {
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -778,13 +848,14 @@ export const prerender = false;
 ```
 
 #### 3.2. Weryfikacja middleware
+
 **Plik**: `src/middleware/index.ts`
 
 Upewnij się, że middleware inicjalizuje `locals.supabase`:
 
 ```typescript
-import { defineMiddleware } from 'astro:middleware';
-import { createServerClient } from '@/db/supabase.client';
+import { defineMiddleware } from "astro:middleware";
+import { createServerClient } from "@/db/supabase.client";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   // Inicjalizuj Supabase client dla tego żądania
@@ -802,6 +873,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 #### 4.1. Testy jednostkowe
 
 **Test ProfileService**:
+
 ```bash
 npm run test src/lib/services/profile.service.test.ts
 ```
@@ -809,6 +881,7 @@ npm run test src/lib/services/profile.service.test.ts
 #### 4.2. Testy integracyjne
 
 **Test 1: Pomyślne pobranie profilu**
+
 ```bash
 curl -X GET http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>" \
@@ -818,6 +891,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Test 2: Brak tokenu**
+
 ```bash
 curl -X GET http://localhost:4321/api/v1/profile \
   -H "Content-Type: application/json"
@@ -826,6 +900,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Test 3: Nieprawidłowy token**
+
 ```bash
 curl -X GET http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer invalid_token" \
@@ -835,10 +910,12 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Test 4: Profil nie istnieje** (trudny do przetestowania - wymaga ręcznego usunięcia profilu z DB)
+
 ```sql
 -- W Supabase SQL Editor
 DELETE FROM public.profiles WHERE id = '<test_user_id>';
 ```
+
 ```bash
 curl -X GET http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <test_user_token>" \
@@ -850,6 +927,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 #### 4.3. Testy wydajnościowe
 
 **Test obciążenia** (opcjonalnie):
+
 ```bash
 # Używając Apache Bench
 ab -n 1000 -c 10 -H "Authorization: Bearer <token>" \
@@ -860,6 +938,7 @@ k6 run load-test.js
 ```
 
 **Oczekiwane wyniki**:
+
 - p50 < 100ms
 - p95 < 200ms
 - 0% błędów
@@ -867,23 +946,27 @@ k6 run load-test.js
 ### Faza 5: Dokumentacja
 
 #### 5.1. Aktualizacja API docs
+
 Dodać przykłady użycia do dokumentacji API:
 
 **Plik**: `docs/api/profile/get-profile.md` (jeśli istnieje)
 
 #### 5.2. Changelog
+
 Dodać wpis do CHANGELOG.md:
 
 ```markdown
 ## [Unreleased]
 
 ### Added
+
 - GET /api/v1/profile - Endpoint do pobierania profilu użytkownika
 - ProfileService dla logiki biznesowej profili
 - RLS policies dla tabeli profiles
 ```
 
 #### 5.3. Komentarze w kodzie
+
 Upewnić się, że wszystkie funkcje mają JSDoc comments (już w przykładach powyżej).
 
 ### Faza 6: Deployment
@@ -927,6 +1010,7 @@ npm run deploy
 #### 6.4. Post-deployment verification
 
 **Smoke test**:
+
 ```bash
 # Test w produkcji
 curl -X GET https://api.production.com/api/v1/profile \
@@ -936,6 +1020,7 @@ curl -X GET https://api.production.com/api/v1/profile \
 ```
 
 **Monitoring**:
+
 - Sprawdź logi w Supabase Dashboard
 - Monitoruj error rate w aplikacji
 - Sprawdź response times
@@ -945,11 +1030,13 @@ curl -X GET https://api.production.com/api/v1/profile \
 #### 7.1. Metryki do śledzenia
 
 **W Supabase Dashboard**:
+
 - Query performance dla `SELECT * FROM profiles WHERE id = ?`
 - Connection pool utilization
 - RLS policy execution time
 
 **W Application Monitoring** (np. Sentry, LogRocket):
+
 - Error rate dla GET /api/v1/profile
 - Response time distribution (p50, p95, p99)
 - 404 errors (powinno być 0 lub bardzo mało)
@@ -957,6 +1044,7 @@ curl -X GET https://api.production.com/api/v1/profile \
 #### 7.2. Alerty
 
 Skonfigurować alerty dla:
+
 - Error rate > 1%
 - p95 response time > 500ms
 - 404 errors (profile not found) - każdy przypadek wymaga investigacji
@@ -965,10 +1053,12 @@ Skonfigurować alerty dla:
 #### 7.3. Utrzymanie
 
 **Co tydzień**:
+
 - Przejrzyj logi błędów
 - Sprawdź wydajność endpointu
 
 **Co miesiąc**:
+
 - Przeanalizuj trendy w użyciu
 - Zoptymalizuj jeśli potrzeba (np. dodaj caching)
 
@@ -989,4 +1079,3 @@ Ten plan wdrożenia zapewnia kompleksowe wskazówki dla implementacji endpointu 
 **Priorytet**: WYSOKI (podstawowy endpoint dla aplikacji)
 
 **Zależności**: Middleware Astro, polityki RLS, trigger auto-create profile
-

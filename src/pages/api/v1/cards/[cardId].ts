@@ -1,15 +1,7 @@
 import type { APIRoute } from "astro";
-import type {
-  CardDTO,
-  UpdateCardCommand,
-  ErrorResponse,
-  ValidationErrorResponse,
-} from "../../../../types";
+import type { CardDTO, UpdateCardCommand, ErrorResponse, ValidationErrorResponse } from "../../../../types";
 import { CardService } from "../../../../lib/services/card.service";
-import {
-  updateCardSchema,
-  cardIdParamSchema,
-} from "../../../../lib/validation/card.schemas";
+import { updateCardSchema, cardIdParamSchema } from "../../../../lib/validation/card.schemas";
 import { formatZodErrors } from "../../../../lib/utils/zod-errors";
 
 /**
@@ -280,11 +272,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     // STEP 4: Update Card in Database (with ownership verification)
     // =========================================================================
     const cardService = new CardService(locals.supabase);
-    const result = await cardService.updateCard(
-      cardId,
-      user.id,
-      command
-    );
+    const result = await cardService.updateCard(cardId, user.id, command);
 
     // Convert Result to union type for easier handling
     const resultValue = result.toUnion();
@@ -447,16 +435,13 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       .single();
 
     if (cardError || !card) {
-      console.warn(
-        "[DELETE /api/v1/cards/{cardId}] Card not found or access denied:",
-        {
-          cardId,
-          userId: user.id,
-          error: cardError?.message,
-          code: cardError?.code,
-          timestamp: new Date().toISOString(),
-        }
-      );
+      console.warn("[DELETE /api/v1/cards/{cardId}] Card not found or access denied:", {
+        cardId,
+        userId: user.id,
+        error: cardError?.message,
+        code: cardError?.code,
+        timestamp: new Date().toISOString(),
+      });
 
       const errorResponse: ErrorResponse = {
         error: {
@@ -474,10 +459,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     // STEP 4: Delete Card from Database
     // =========================================================================
     // Hard delete - will cascade to reviews table via FK constraint
-    const { error: deleteError } = await locals.supabase
-      .from("cards")
-      .delete()
-      .eq("id", cardId);
+    const { error: deleteError } = await locals.supabase.from("cards").delete().eq("id", cardId);
 
     if (deleteError) {
       console.error("[DELETE /api/v1/cards/{cardId}] Delete failed:", {

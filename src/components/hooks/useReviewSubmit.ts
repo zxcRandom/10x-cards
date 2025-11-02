@@ -1,6 +1,6 @@
 /**
  * useReviewSubmit Hook
- * 
+ *
  * Custom hook for submitting card reviews to API
  * Handles submission state and error notifications
  */
@@ -17,10 +17,7 @@ interface UseReviewSubmitResult {
 export function useReviewSubmit(): UseReviewSubmitResult {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const submitReview = useCallback(async (
-    cardId: string,
-    grade: ReviewGrade
-  ): Promise<ReviewResponseDTO | null> => {
+  const submitReview = useCallback(async (cardId: string, grade: ReviewGrade): Promise<ReviewResponseDTO | null> => {
     setIsSubmitting(true);
 
     try {
@@ -45,9 +42,7 @@ export function useReviewSubmit(): UseReviewSubmitResult {
         } else if (response.status === 503) {
           toast.error("Serwis recenzji jest chwilowo niedostępny. Odczekaj i spróbuj ponownie.");
         } else {
-          toast.error(
-            errorData.error?.message || "Nie udało się zapisać oceny"
-          );
+          toast.error(errorData.error?.message || "Nie udało się zapisać oceny");
         }
         setIsSubmitting(false);
         return null;

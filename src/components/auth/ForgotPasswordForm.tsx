@@ -1,22 +1,22 @@
 /**
  * ForgotPasswordForm Component
- * 
+ *
  * Handles password reset requests using OTP (One-Time Password) flow.
  * Step 1: Request OTP code via email
  * Step 2: Enter OTP code + new password (handled by OtpPasswordResetForm)
  * Always shows success message for security (neutral messaging).
  */
 
-import { useState, useId } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { passwordResetRequestSchema, type PasswordResetRequestInput } from '@/lib/validation/auth.schemas';
-import OtpPasswordResetForm from './OtpPasswordResetForm';
+import { useState, useId } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { passwordResetRequestSchema, type PasswordResetRequestInput } from "@/lib/validation/auth.schemas";
+import OtpPasswordResetForm from "./OtpPasswordResetForm";
 
 export default function ForgotPasswordForm() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof PasswordResetRequestInput, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -45,17 +45,17 @@ export default function ForgotPasswordForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/v1/auth/password/request-reset', {
-        method: 'POST',
+      const response = await fetch("/api/v1/auth/password/request-reset", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
       });
 
       if (!response.ok) {
         if (response.status === 429) {
-          toast.error('Zbyt wiele prób. Spróbuj ponownie później.');
+          toast.error("Zbyt wiele prób. Spróbuj ponownie później.");
           return;
         }
         if (response.status === 400) {
@@ -74,11 +74,11 @@ export default function ForgotPasswordForm() {
 
       // Show OTP input form
       setIsOtpSent(true);
-      toast.success('Kod weryfikacyjny został wysłany na podany adres e-mail');
+      toast.success("Kod weryfikacyjny został wysłany na podany adres e-mail");
     } catch (err) {
       // Even on error, show neutral success message
       setIsOtpSent(true);
-      toast.success('Kod weryfikacyjny został wysłany na podany adres e-mail');
+      toast.success("Kod weryfikacyjny został wysłany na podany adres e-mail");
     } finally {
       setIsSubmitting(false);
     }
@@ -109,9 +109,7 @@ export default function ForgotPasswordForm() {
               <p className="text-muted-foreground">
                 Wysłaliśmy kod weryfikacyjny (6 cyfr) na adres <strong>{email}</strong>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Kod jest ważny przez 60 sekund
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">Kod jest ważny przez 60 sekund</p>
             </div>
           </div>
         </div>
@@ -121,7 +119,7 @@ export default function ForgotPasswordForm() {
 
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
-            Nie otrzymałeś kodu?{' '}
+            Nie otrzymałeś kodu?{" "}
             <button
               type="button"
               onClick={() => setIsOtpSent(false)}
@@ -156,7 +154,7 @@ export default function ForgotPasswordForm() {
           disabled={isSubmitting}
           required
           autoComplete="email"
-          aria-invalid={errors.email ? 'true' : 'false'}
+          aria-invalid={errors.email ? "true" : "false"}
           aria-describedby={errors.email ? emailErrorId : undefined}
         />
         {errors.email && (
@@ -164,17 +162,11 @@ export default function ForgotPasswordForm() {
             {errors.email}
           </p>
         )}
-        <p className="text-sm text-muted-foreground">
-          Otrzymasz kod weryfikacyjny (6 cyfr) na podany adres e-mail
-        </p>
+        <p className="text-sm text-muted-foreground">Otrzymasz kod weryfikacyjny (6 cyfr) na podany adres e-mail</p>
       </div>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={isSubmitting || !email.trim()}
-      >
-        {isSubmitting ? 'Wysyłanie...' : 'Wyślij kod weryfikacyjny'}
+      <Button type="submit" className="w-full" disabled={isSubmitting || !email.trim()}>
+        {isSubmitting ? "Wysyłanie..." : "Wyślij kod weryfikacyjny"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">

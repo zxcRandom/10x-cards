@@ -7,6 +7,7 @@ Celem jest weryfikacja jakości i gotowości MVP aplikacji 10x Cards do wdrożen
 ## 2. Zakres testów
 
 W zakresie:
+
 - Frontend: strony Astro i interaktywne komponenty React (shadcn/ui, Tailwind 4).
 - Backend: endpointy w `src/pages/api`, middleware, usługi w `src/lib/services`, hooki w `src/components/hooks`.
 - Baza: schemat, migracje i RLS Supabase (własność zasobów, izolacja użytkowników).
@@ -14,6 +15,7 @@ W zakresie:
 - Skrypty testowe bash w repo (weryfikacja endpointów).
 
 Poza zakresem w tej iteracji:
+
 - Pełne testy na realnych modelach AI (testy integracyjne z AI będą oparte o mock/stub/MSW).
 - Rozbudowane testy urządzeń mobilnych (minimum rozdzielczości + responsywność są w zakresie).
 
@@ -43,6 +45,7 @@ Poza zakresem w tej iteracji:
 ## 4. Scenariusze testowe (kluczowe)
 
 ### 4.1. Uwierzytelnianie (Auth)
+
 - Rejestracja nowego użytkownika:
   - Wejście: email/hasło (poprawne, niepoprawne, zduplikowany email).
   - Oczekiwane: konto utworzone, komunikaty błędów przy walidacji, brak wycieku szczegółów.
@@ -57,6 +60,7 @@ Poza zakresem w tej iteracji:
   - Wylogowanie czyści stan i dostęp.
 
 ### 4.2. Talia (Decks)
+
 - Tworzenie talia (CreateDeckDialog):
   - Walidacje (nazwa wymagana, max długości), sukces tworzenia, pojawia się w liście i ostatnich.
 - Edycja i usuwanie talii:
@@ -67,6 +71,7 @@ Poza zakresem w tej iteracji:
   - Użytkownik A nie widzi i nie może modyfikować talii użytkownika B (RLS).
 
 ### 4.3. Karty (Cards) – CardService
+
 - Utworzenie pojedynczej karty (`createCard`):
   - Wejście: pytanie/odpowiedź (trim), deckId istnieje.
   - Oczekiwane: SM‑2 domyślne pola: `easeFactor=2.5`, `intervalDays=1`, `repetitions=0`, `nextReviewDate=now`.
@@ -87,6 +92,7 @@ Poza zakresem w tej iteracji:
   - Zwraca `items`, `total`, `limit`, `offset`.
 
 ### 4.4. Generowanie AI (Generate)
+
 - Generowanie kart (hook `useAIGeneration`, `ai.service.ts`):
   - Mock odpowiedzi modelu (MSW) w wariantach: poprawny, pusty, niespójny format.
   - Obsługa błędów (limity, 429/5xx), idempotencja UI, retry/backoff (jeśli zaimplementowane).
@@ -95,6 +101,7 @@ Poza zakresem w tej iteracji:
   - Zapis batch do wybranej talii → użycie `createCardsBatch` + własność.
 
 ### 4.5. Nauka (Study – SM‑2)
+
 - Pobranie zaległych kart (`useDueCards`):
   - Kryterium daty `next_review_date <= now` dla zalogowanego użytkownika.
 - Przebieg sesji (`StudySession`, `ReviewControls`):
@@ -104,11 +111,13 @@ Poza zakresem w tej iteracji:
   - Brak kart do nauki (EmptyState), błędy API, powroty/nawigacja.
 
 ### 4.6. Dostępność (A11y) i UI
+
 - Strony: `index.astro`, dashboard, widoki Decks/Generate/Study.
 - Kontrast, fokus, role/aria (wg wytycznych w repo), klawiatura, `aria-live` dla zdarzeń.
 - Visual regression: podstawowe reguły dla kluczowych ekranów (Playwright snapshots).
 
 ### 4.7. Wydajność i odporność
+
 - API generowania AI: SLO p95 < 2.5s (mock), stabilność pod 30 RPS przez 1 min (baseline).
 - Lista kart/decków: p95 < 300ms (lokalnie), paginacja nie degraduje pamięci.
 - Odporność na błędy: kontrolowane komunikaty, brak crashy UI.

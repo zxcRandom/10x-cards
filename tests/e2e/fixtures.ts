@@ -1,17 +1,17 @@
-import { test as base, expect, type Page } from '@playwright/test';
+import { test as base, expect, type Page } from "@playwright/test";
 
 /**
  * E2E test fixture with pre-authenticated user
  * Uses storageState from global.setup.ts - no need to login for each test!
- * 
- * Usage: 
+ *
+ * Usage:
  * - For authenticated tests: test('should do something', async ({ authenticatedPage }) => { ... })
  * - For public tests: test.use({ storageState: undefined }); test('public test', async ({ page }) => { ... })
  */
 
-type TestFixtures = {
+interface TestFixtures {
   authenticatedPage: Page;
-};
+}
 
 export const test = base.extend<TestFixtures>({
   authenticatedPage: async ({ page }, use) => {

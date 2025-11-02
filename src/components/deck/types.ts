@@ -5,25 +5,25 @@
  * These types extend or complement the API DTOs from @/types.
  */
 
-import type { CardDTO, DeckDTO } from '@/types';
+import type { CardDTO, DeckDTO } from "@/types";
 
 /**
  * Sort field options for cards list
  */
 export type CardsSort =
-  | 'createdAt'
-  | 'updatedAt'
-  | 'nextReviewDate'
-  | 'easeFactor'
-  | 'intervalDays'
-  | 'repetitions'
-  | 'question'
-  | 'answer';
+  | "createdAt"
+  | "updatedAt"
+  | "nextReviewDate"
+  | "easeFactor"
+  | "intervalDays"
+  | "repetitions"
+  | "question"
+  | "answer";
 
 /**
  * Sort order options
  */
-export type SortOrder = 'asc' | 'desc';
+export type SortOrder = "asc" | "desc";
 
 /**
  * Query parameters for cards list
@@ -42,18 +42,18 @@ export interface CardsListQuery {
 export interface DeckDetailsState {
   // Deck data
   deck: DeckDTO;
-  
+
   // Cards list
   cards: CardDTO[];
   total: number;
-  
+
   // Query parameters
   query: CardsListQuery;
-  
+
   // Loading states
   loading: boolean;
   error: string | null;
-  
+
   // Due cards count for "Study" button
   dueCount?: number;
 }
@@ -83,7 +83,7 @@ export interface CardFormValues {
 /**
  * Card dialog mode
  */
-export type CardDialogMode = 'create' | 'edit';
+export type CardDialogMode = "create" | "edit";
 
 /**
  * Card dialog state

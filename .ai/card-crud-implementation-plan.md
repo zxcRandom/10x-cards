@@ -1,15 +1,19 @@
 # Plan implementacji: CRUD kart w Deck Details View
 
 ## Status
+
 ✅ **ZAIMPLEMENTOWANE** - Pełna funkcjonalność CRUD kart z dialogami i walidacją
 
 ## Kontekst
+
 W widoku szczegółów talii (`/decks/[deckId]`) użytkownik powinien móc:
+
 - Dodawać nowe fiszki ręcznie (US-009)
 - Edytować istniejące fiszki (US-010)
 - Usuwać fiszki z potwierdzeniem (US-010)
 
 Obecnie:
+
 - ✅ `CardsTable` wyświetla listę kart
 - ✅ `CardsToolbar` ma przycisk "Dodaj fiszkę"
 - ✅ `DeckCardsPanel` obsługuje handlery onClick
@@ -18,6 +22,7 @@ Obecnie:
 - ❌ Funkcja usuwania tylko loguje do konsoli
 
 ## Cel
+
 Zaimplementować kompletny CRUD pojedynczych kart w widoku Deck Details.
 
 ## Zakres implementacji
@@ -25,14 +30,16 @@ Zaimplementować kompletny CRUD pojedynczych kart w widoku Deck Details.
 ### 1. Komponenty do stworzenia
 
 #### 1.1 CardDialog (`src/components/deck/CardDialog.tsx`)
+
 **Cel**: Dialog do tworzenia i edytowania pojedynczej karty
 
 **Props**:
+
 ```typescript
 interface CardDialogProps {
   open: boolean;
-  mode: 'create' | 'edit';
-  card: CardDTO | null;  // null dla mode='create'
+  mode: "create" | "edit";
+  card: CardDTO | null; // null dla mode='create'
   deckId: string;
   onOpenChange: (open: boolean) => void;
   onSuccess: (card: CardDTO) => void;
@@ -40,6 +47,7 @@ interface CardDialogProps {
 ```
 
 **Funkcjonalność**:
+
 - Formularz z polami:
   - Question (Pytanie) - textarea, wymagane, max 10000 znaków
   - Answer (Odpowiedź) - textarea, wymagane, max 10000 znaków
@@ -49,6 +57,7 @@ interface CardDialogProps {
 - Przyciski: "Anuluj", "Zapisz" / "Dodaj"
 
 **API Calls**:
+
 - **Create**: `POST /api/v1/decks/{deckId}/cards`
   ```json
   { "question": "string", "answer": "string" }
@@ -59,6 +68,7 @@ interface CardDialogProps {
   ```
 
 **Obsługa błędów**:
+
 - 400/422: walidacja - wyświetl błędy pod polami
 - 401: "Twoja sesja wygasła. Zaloguj się ponownie."
 - 403: "Nie masz uprawnień do tej talii"
@@ -66,15 +76,18 @@ interface CardDialogProps {
 - 500: "Wystąpił błąd podczas zapisywania"
 
 **UX**:
+
 - Toast po sukcesie: "Fiszka została dodana/zaktualizowana"
 - Auto-close dialog po sukcesie
 - Wywołanie `onSuccess(card)` z odpowiedzią API
 - Licznik znaków dla question i answer
 
 #### 1.2 CardConfirmDialog (`src/components/deck/CardConfirmDialog.tsx`)
+
 **Cel**: Dialog potwierdzenia usunięcia karty
 
 **Props**:
+
 ```typescript
 interface CardConfirmDialogProps {
   open: boolean;
@@ -85,6 +98,7 @@ interface CardConfirmDialogProps {
 ```
 
 **Funkcjonalność**:
+
 - Wyświetla pytanie z karty (max 100 pierwszych znaków)
 - Ostrzeżenie: "Tej operacji nie można cofnąć"
 - Przyciski: "Anuluj", "Usuń fiszkę" (variant="destructive")
@@ -95,7 +109,9 @@ interface CardConfirmDialogProps {
 ### 2. Aktualizacje istniejących komponentów
 
 #### 2.1 DeckCardsPanel.tsx
+
 **Zmiany**:
+
 ```typescript
 // Dodać import
 import CardDialog from './CardDialog';
@@ -129,8 +145,8 @@ const handleDeleteClick = (card: CardDTO) => {
 const handleCardSuccess = (card: CardDTO) => {
   setCardDialog({ open: false, mode: 'create', card: null });
   toast.success(
-    cardDialog.mode === 'create' 
-      ? 'Fiszka została dodana' 
+    cardDialog.mode === 'create'
+      ? 'Fiszka została dodana'
       : 'Fiszka została zaktualizowana'
   );
   actions.refreshCards();
@@ -182,23 +198,43 @@ const handleDeleteConfirm = async (cardId: string) => {
 ### 3. Walidacja (schemas)
 
 #### 3.1 Użyj istniejącego schema z `src/lib/validation/card.schemas.ts`:
+
 ```typescript
-import { createCardSchema, updateCardSchema } from '@/lib/validation/card.schemas';
+import { createCardSchema, updateCardSchema } from "@/lib/validation/card.schemas";
 ```
 
 Jeśli nie istnieje, stwórz:
+
 ```typescript
 // src/lib/validation/card.schemas.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const createCardSchema = z.object({
-  question: z.string().trim().min(1, 'Pytanie jest wymagane').max(10000, 'Pytanie nie może być dłuższe niż 10000 znaków'),
-  answer: z.string().trim().min(1, 'Odpowiedź jest wymagana').max(10000, 'Odpowiedź nie może być dłuższa niż 10000 znaków'),
+  question: z
+    .string()
+    .trim()
+    .min(1, "Pytanie jest wymagane")
+    .max(10000, "Pytanie nie może być dłuższe niż 10000 znaków"),
+  answer: z
+    .string()
+    .trim()
+    .min(1, "Odpowiedź jest wymagana")
+    .max(10000, "Odpowiedź nie może być dłuższa niż 10000 znaków"),
 });
 
 export const updateCardSchema = z.object({
-  question: z.string().trim().min(1, 'Pytanie jest wymagane').max(10000, 'Pytanie nie może być dłuższe niż 10000 znaków').optional(),
-  answer: z.string().trim().min(1, 'Odpowiedź jest wymagana').max(10000, 'Odpowiedź nie może być dłuższa niż 10000 znaków').optional(),
+  question: z
+    .string()
+    .trim()
+    .min(1, "Pytanie jest wymagane")
+    .max(10000, "Pytanie nie może być dłuższe niż 10000 znaków")
+    .optional(),
+  answer: z
+    .string()
+    .trim()
+    .min(1, "Odpowiedź jest wymagana")
+    .max(10000, "Odpowiedź nie może być dłuższa niż 10000 znaków")
+    .optional(),
 });
 
 export type CreateCardInput = z.infer<typeof createCardSchema>;
@@ -208,10 +244,11 @@ export type UpdateCardInput = z.infer<typeof updateCardSchema>;
 ### 4. Typy TypeScript
 
 Dodać do `src/components/deck/types.ts` (jeśli nie istnieją):
+
 ```typescript
 export interface CardDialogState {
   open: boolean;
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   card: CardDTO | null;
 }
 
@@ -222,6 +259,7 @@ export interface CardDeleteState {
 ```
 
 ### 5. UI Components potrzebne z Shadcn/ui
+
 - ✅ Dialog (już istnieje)
 - ✅ Input (już istnieje)
 - ✅ Textarea (już istnieje)
@@ -231,6 +269,7 @@ export interface CardDeleteState {
 ### 6. Testy akceptacyjne
 
 **US-009: Manualne dodawanie fiszki**
+
 - [ ] W widoku talii jest przycisk "Dodaj fiszkę"
 - [ ] Kliknięcie otwiera dialog z formularzem
 - [ ] Formularz ma pola "Pytanie" i "Odpowiedź"
@@ -241,6 +280,7 @@ export interface CardDeleteState {
 - [ ] Nowa fiszka pojawia się na liście
 
 **US-010: Edycja fiszki**
+
 - [ ] Każda fiszka na liście ma przycisk "Edytuj" (ikona ołówka)
 - [ ] Kliknięcie otwiera dialog z wypełnionym formularzem
 - [ ] Możliwość modyfikacji pytania i odpowiedzi
@@ -248,6 +288,7 @@ export interface CardDeleteState {
 - [ ] Toast pokazuje "Fiszka została zaktualizowana"
 
 **US-010: Usunięcie fiszki**
+
 - [ ] Każda fiszka na liście ma przycisk "Usuń" (ikona kosza, czerwony)
 - [ ] Kliknięcie otwiera dialog potwierdzenia
 - [ ] Dialog wyświetla fragment pytania
@@ -304,19 +345,21 @@ export interface CardDeleteState {
 ```
 
 ## Zależności
+
 - API endpoints `/api/v1/decks/{deckId}/cards` (POST) - **już istnieje**
 - API endpoints `/api/v1/cards/{cardId}` (PATCH, DELETE) - **już istnieje**
 - Shadcn/ui components - **już istnieją**
 - `useDeckDetails` hook - **już istnieje**
 
 ## Estymacja
+
 - **Czas implementacji**: 4-6 godzin
 - **Priorytet**: WYSOKI (basic CRUD functionality)
 - **Złożoność**: ŚREDNIA
 
 ## Uwagi
+
 - Plain text tylko (bez formatowania) - zgodnie z PRD
 - Limity długości zgodne z API (10000 znaków)
 - Obsługa błędów zgodna z UI plan (mapowanie statusów HTTP)
 - Dostępność (accessibility): aria-labels, keyboard navigation
-

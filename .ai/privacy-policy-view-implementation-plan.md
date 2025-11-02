@@ -1,14 +1,17 @@
 # Plan implementacji widoku Polityka prywatności
 
 ## 1. Przegląd
+
 Widok „Polityka prywatności" to statyczna strona informacyjna prezentująca użytkownikom informacje o przetwarzaniu ich danych osobowych, w szczególności o przesyłaniu tekstów wprowadzanych do generatora fiszek AI do zewnętrznego dostawcy (OpenRouter/Gemini). Jest to wymóg MVP określony w PRD 3.6. Widok dostępny jest publicznie (bez wymogu logowania) i linkowany z generatora AI oraz stopki aplikacji.
 
 ## 2. Routing widoku
+
 - Ścieżka: `/privacy-policy`
 - Plik strony: `src/pages/privacy-policy.astro`
 - Architektura: strona statyczna Astro (brak komponentów React), prosty layout z czystym tekstem i podstawowym formatowaniem.
 
 ## 3. Struktura komponentów
+
 - `src/pages/privacy-policy.astro`
   - używa `Layout.astro` (główny layout aplikacji)
   - zawiera statyczną treść HTML z sekcjami polityki
@@ -16,7 +19,9 @@ Widok „Polityka prywatności" to statyczna strona informacyjna prezentująca u
   - przycisk/link „Powrót" do poprzedniej strony lub Dashboard
 
 ## 4. Szczegóły komponentów
+
 ### Privacy Policy page (`privacy-policy.astro`)
+
 - Opis: Statyczna strona z treścią polityki prywatności, sformatowana w czytelny sposób z użyciem nagłówków, list i akapitów.
 - Główne elementy:
   - Nagłówek strony: „Polityka prywatności"
@@ -35,6 +40,7 @@ Widok „Polityka prywatności" to statyczna strona informacyjna prezentująca u
 - Propsy: brak
 
 ### Opcjonalny komponent `BackButton`
+
 - Opis: Komponent nawigacyjny umożliwiający powrót do poprzedniej strony lub Dashboard.
 - Główne elementy: `Button` (Shadcn/ui) lub prosty link `<a>`
 - Interakcje: kliknięcie przenosi do Dashboard (`/`) lub poprzedniej strony (`history.back()`)
@@ -43,18 +49,23 @@ Widok „Polityka prywatności" to statyczna strona informacyjna prezentująca u
 - Propsy: `{ label?: string; href?: string }`
 
 ## 5. Typy
+
 Brak dedykowanych typów – strona jest statyczna i nie wymaga DTOs ani ViewModels.
 
 ## 6. Zarządzanie stanem
+
 Brak zarządzania stanem – strona jest w pełni statyczna, renderowana po stronie serwera (SSR/SSG przez Astro).
 
 ## 7. Integracja API
+
 Brak integracji z API – treść jest zakodowana na stałe w pliku `.astro`.
 
 ## 8. Treść widoku
+
 Zgodnie z PRD 3.6, polityka prywatności musi zawierać informację o przesyłaniu danych tekstowych do dostawcy AI. Minimalna treść dla MVP:
 
 ### Struktura treści:
+
 1. **Wprowadzenie**
    - Krótki opis, jakie dane zbiera i przetwarza aplikacja 10x-cards
    - Zobowiązanie do ochrony prywatności użytkowników
@@ -87,11 +98,13 @@ Zgodnie z PRD 3.6, polityka prywatności musi zawierać informację o przesyłan
    - Wyświetlana na dole strony (np. „Ostatnia aktualizacja: 23 października 2025")
 
 ### Ton komunikacji:
+
 - Prosty, zrozumiały język (unikanie żargonu prawniczego)
 - Skupienie na najważniejszych informacjach dla użytkownika
 - Transparentność w kwestii AI
 
 ## 9. Dostępność i UX
+
 - Semantyczny HTML: użycie `<h1>`, `<h2>`, `<h3>` dla nagłówków, `<p>` dla akapitów, `<ul>`/`<ol>` dla list
 - Kontrast tekstu: wysoki kontrast dla czytelności
 - Responsywność: tekst musi być czytelny na urządzeniach mobilnych
@@ -101,12 +114,15 @@ Zgodnie z PRD 3.6, polityka prywatności musi zawierać informację o przesyłan
 - Fokus: dostępny dla użytkowników klawiatury
 
 ## 10. Linkowanie do polityki prywatności
+
 Zgodnie z sekcją 7 w `ui-plan.md`, link do polityki prywatności musi być dostępny:
+
 - **W generatorze AI (Dashboard)**: informacja obok pola tekstowego: „Treść jest wysyłana do dostawcy AI w celu przetworzenia. [Polityka prywatności](/privacy-policy)"
 - **W stopce aplikacji**: stały link „Polityka prywatności" w głównym layoutzie
 - Opcjonalnie: w procesie rejestracji (checkbox „Akceptuję politykę prywatności")
 
 ## 11. Kroki implementacji
+
 1. Utwórz plik `src/pages/privacy-policy.astro`
 2. Dodaj podstawową strukturę strony z użyciem `Layout.astro`:
    - Tytuł strony: `<title>Polityka prywatności - 10x-cards</title>`
@@ -135,6 +151,7 @@ Zgodnie z sekcją 7 w `ui-plan.md`, link do polityki prywatności musi być dost
     - Wymaga rozszerzenia `register.astro` i walidacji po stronie backendu
 
 Uwagi implementacyjne zgodnie z projektem:
+
 - Używaj Astro do renderowania statycznej treści (brak React).
 - Stylowanie Tailwind 4 (klasy narzędziowe), spójne z resztą aplikacji.
 - Treść prosta i zrozumiała, zgodna z wymaganiami RODO w minimalnym zakresie dla MVP.

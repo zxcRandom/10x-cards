@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -7,11 +7,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import type { EditCardForm, EditCardFormErrors } from './types';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import type { EditCardForm, EditCardFormErrors } from "./types";
 
 interface EditCardDialogProps {
   open: boolean;
@@ -25,12 +25,7 @@ interface EditCardDialogProps {
  *
  * Allows editing question and answer with validation
  */
-export function EditCardDialog({
-  open,
-  initialValue,
-  onClose,
-  onSubmit,
-}: EditCardDialogProps) {
+export function EditCardDialog({ open, initialValue, onClose, onSubmit }: EditCardDialogProps) {
   const [form, setForm] = useState<EditCardForm>(initialValue);
   const [errors, setErrors] = useState<EditCardFormErrors>({});
 
@@ -51,11 +46,11 @@ export function EditCardDialog({
     const newErrors: EditCardFormErrors = {};
 
     if (form.question.trim().length === 0) {
-      newErrors.question = 'Pytanie nie może być puste';
+      newErrors.question = "Pytanie nie może być puste";
     }
 
     if (form.answer.trim().length === 0) {
-      newErrors.answer = 'Odpowiedź nie może być pusta';
+      newErrors.answer = "Odpowiedź nie może być pusta";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -73,9 +68,7 @@ export function EditCardDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Edytuj fiszkę</DialogTitle>
-            <DialogDescription>
-              Wprowadź zmiany do pytania i odpowiedzi
-            </DialogDescription>
+            <DialogDescription>Wprowadź zmiany do pytania i odpowiedzi</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -87,13 +80,11 @@ export function EditCardDialog({
               <Textarea
                 id="question"
                 value={form.question}
-                onChange={(e) =>
-                  setForm({ ...form, question: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, question: e.target.value })}
                 placeholder="Wprowadź pytanie"
                 rows={3}
                 aria-invalid={!!errors.question}
-                aria-describedby={errors.question ? 'question-error' : undefined}
+                aria-describedby={errors.question ? "question-error" : undefined}
               />
               {errors.question && (
                 <p id="question-error" className="text-sm text-destructive">
@@ -110,13 +101,11 @@ export function EditCardDialog({
               <Textarea
                 id="answer"
                 value={form.answer}
-                onChange={(e) =>
-                  setForm({ ...form, answer: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, answer: e.target.value })}
                 placeholder="Wprowadź odpowiedź"
                 rows={3}
                 aria-invalid={!!errors.answer}
-                aria-describedby={errors.answer ? 'answer-error' : undefined}
+                aria-describedby={errors.answer ? "answer-error" : undefined}
               />
               {errors.answer && (
                 <p id="answer-error" className="text-sm text-destructive">

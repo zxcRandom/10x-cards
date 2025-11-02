@@ -1,11 +1,11 @@
 /**
  * DecksGrid Component
- * 
+ *
  * Displays deck cards in responsive grid.
  */
 
-import DeckCard from './DeckCard';
-import type { DeckDTO } from '@/types';
+import DeckCard from "./DeckCard";
+import type { DeckDTO } from "@/types";
 
 interface DecksGridProps {
   items: DeckDTO[];
@@ -17,12 +17,7 @@ export default function DecksGrid({ items, onEdit, onDelete }: DecksGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {items.map((deck) => (
-        <DeckCard
-          key={deck.id}
-          deck={deck}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <DeckCard key={deck.id} deck={deck} onEdit={onEdit} onDelete={onDelete} />
       ))}
     </div>
   );

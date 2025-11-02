@@ -1,13 +1,13 @@
 /**
  * DeckCard Component
- * 
+ *
  * Single deck card showing name, AI badge, dates, and actions.
  */
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { DeckDTO } from '@/types';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { DeckDTO } from "@/types";
 
 interface DeckCardProps {
   deck: DeckDTO;
@@ -17,10 +17,10 @@ interface DeckCardProps {
 
 export default function DeckCard({ deck, onEdit, onDelete }: DeckCardProps) {
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('pl-PL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(date).toLocaleDateString("pl-PL", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -51,18 +51,10 @@ export default function DeckCard({ deck, onEdit, onDelete }: DeckCardProps) {
         >
           Otwórz
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(deck)}
-        >
+        <Button variant="outline" size="sm" onClick={() => onEdit(deck)}>
           Edytuj
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDelete(deck)}
-        >
+        <Button variant="outline" size="sm" onClick={() => onDelete(deck)}>
           Usuń
         </Button>
       </div>

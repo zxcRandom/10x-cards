@@ -7,10 +7,7 @@ import type {
   ValidationErrorResponse,
 } from "../../../../../types";
 import { ReviewService } from "../../../../../lib/services/review.service";
-import {
-  CreateReviewSchema,
-  CardIdSchema,
-} from "../../../../../lib/validation/review.schemas";
+import { CreateReviewSchema, CardIdSchema } from "../../../../../lib/validation/review.schemas";
 import { formatZodErrors } from "../../../../../lib/utils/zod-errors";
 
 export const prerender = false;
@@ -131,15 +128,12 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     try {
       requestBody = await request.json();
     } catch (error) {
-      console.warn(
-        "[POST /api/v1/cards/{cardId}/review] Invalid JSON in request body:",
-        {
-          cardId,
-          userId: user.id,
-          error: error instanceof Error ? error.message : String(error),
-          timestamp: new Date().toISOString(),
-        }
-      );
+      console.warn("[POST /api/v1/cards/{cardId}/review] Invalid JSON in request body:", {
+        cardId,
+        userId: user.id,
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString(),
+      });
 
       const errorResponse: ErrorResponse = {
         error: {
@@ -158,15 +152,12 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     try {
       validated = CreateReviewSchema.parse(requestBody) as CreateReviewCommand;
     } catch (error) {
-      console.warn(
-        "[POST /api/v1/cards/{cardId}/review] Request validation failed:",
-        {
-          cardId,
-          userId: user.id,
-          body: requestBody,
-          timestamp: new Date().toISOString(),
-        }
-      );
+      console.warn("[POST /api/v1/cards/{cardId}/review] Request validation failed:", {
+        cardId,
+        userId: user.id,
+        body: requestBody,
+        timestamp: new Date().toISOString(),
+      });
 
       if (error instanceof z.ZodError) {
         const errors = formatZodErrors(error);
@@ -191,12 +182,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 4: Create Review and Update Card SM-2 Parameters
     // =========================================================================
-    const result = await ReviewService.createReview(
-      locals.supabase,
-      cardId,
-      user.id,
-      validated
-    );
+    const result = await ReviewService.createReview(locals.supabase, cardId, user.id, validated);
 
     if ("error" in result) {
       // Map service errors to HTTP responses
@@ -226,10 +212,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
         });
       }
 
-      if (
-        result.error === "UNPROCESSABLE_ENTITY" ||
-        result.error === "DATABASE_ERROR"
-      ) {
+      if (result.error === "UNPROCESSABLE_ENTITY" || result.error === "DATABASE_ERROR") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "UNPROCESSABLE_ENTITY",

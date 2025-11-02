@@ -1,14 +1,17 @@
 # Plan implementacji widoku Lista talii (/decks)
 
 ## 1. Przegląd
+
 Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich tworzenie, edycję nazwy oraz usuwanie (z potwierdzeniem). Wspiera paginację, sortowanie, filtrowanie, wyszukiwanie po nazwie oraz obsługę stanów: ładowanie, pusty, błąd.
 
 ## 2. Routing widoku
+
 - Ścieżka: `/decks`
 - Plik strony: `src/pages/decks/index.astro`
 - Renderowanie: Astro layout + komponent(y) React do interaktywności (dialogi, formularze, akcje CRUD)
 
 ## 3. Struktura komponentów
+
 - `src/pages/decks/index.astro`
   - Używa `src/layouts/Layout.astro`
   - Montuje Reactowy kontener: `<DecksPage client:load />`
@@ -21,7 +24,9 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
   - `DeleteDeckDialog` (modal z potwierdzeniem)
 
 ## 4. Szczegóły komponentów
+
 ### DecksPage (kontener)
+
 - Opis: Odpowiada za pobieranie danych, zarządzanie stanem (query params, paginacja, sortowanie), oraz orkiestrację dialogów CRUD.
 - Główne elementy: toolbar, grid/empty, paginacja, modale.
 - Zdarzenia:
@@ -34,6 +39,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: brak (komponent wejściowy widoku).
 
 ### DecksToolbar
+
 - Opis: Steruje parametrami zapytania listy: wyszukiwarka (q), sort, order oraz zawiera CTA „Stwórz nową talię”.
 - Główne elementy: `Input` (q), `Select` (sort: createdAt|updatedAt|name), `Select` (order: asc|desc), `Button` (Nowa talia). Opcjonalnie filtr `createdByAi` (checkbox).
 - Zdarzenia: onSearchChange, onSortChange, onOrderChange, onToggleCreatedByAi, onCreate.
@@ -42,6 +48,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ query: DeckListQuery; onChange: (next: DeckListQuery) => void; onCreateClick: () => void }`.
 
 ### DecksGrid
+
 - Opis: Prezentuje karty talii w responsywnej siatce.
 - Główne elementy: lista `DeckCard`.
 - Zdarzenia: przekazuje w dół handlery edycji/usuwania.
@@ -50,6 +57,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ items: DeckDTO[]; onEdit: (deck: DeckDTO) => void; onDelete: (deck: DeckDTO) => void }`.
 
 ### DeckCard
+
 - Opis: Pojedyncza karta talii; pokazuje nazwę, (opcjonalnie) badge „AI”, daty utworzenia/aktualizacji, akcje.
 - Główne elementy: `Card`, `Button` (Otwórz), `Button` (Edytuj), `Button` (Usuń).
 - Zdarzenia: onOpen (link do `/decks/[deckId]`), onEdit, onDelete.
@@ -58,6 +66,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ deck: DeckDTO; onEdit: (deck: DeckDTO) => void; onDelete: (deck: DeckDTO) => void }`.
 
 ### EmptyState
+
 - Opis: Stan pusty z komunikatem i CTA do stworzenia pierwszej talii.
 - Główne elementy: ikonka/ilustracja, tekst, `Button` „Stwórz nową talię”.
 - Zdarzenia: onCreateClick.
@@ -66,6 +75,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ onCreateClick: () => void }`.
 
 ### PaginationControls
+
 - The purpose: Nawigacja po stronach wyników.
 - Główne elementy: „Wstecz”/„Dalej”, opcjonalnie wybór `limit`.
 - Zdarzenia: onPrev, onNext, onLimitChange.
@@ -74,6 +84,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ total: number; limit: number; offset: number; onChange: (next: { limit: number; offset: number }) => void }`.
 
 ### CreateDeckDialog
+
 - Opis: Modal z formularzem tworzenia talii.
 - Główne elementy: `Dialog`, `Input` (name), opcjonalny `Checkbox` createdByAi, `Button` (Anuluj/Zapisz).
 - Zdarzenia: onSubmit → POST /api/v1/decks; onClose.
@@ -82,6 +93,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ open: boolean; onOpenChange: (v:boolean)=>void; onSuccess: (created: DeckDTO) => void }`.
 
 ### EditDeckDialog
+
 - Opis: Modal do zmiany nazwy talii.
 - Główne elementy: `Dialog`, `Input` (name), `Button` (Anuluj/Zapisz).
 - Zdarzenia: onSubmit → PATCH /api/v1/decks/{deckId}; onClose.
@@ -90,6 +102,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ open: boolean; deck: DeckDTO|null; onOpenChange:(v:boolean)=>void; onSuccess:(updated: DeckDTO)=>void }`.
 
 ### DeleteDeckDialog
+
 - Opis: Modal z potwierdzeniem destruktywnej akcji (kaskadowe usunięcie talii i fiszek).
 - Główne elementy: `Dialog`, ostrzeżenie, `Checkbox` „Rozumiem konsekwencje”, pole opcjonalne potwierdzenia nazwy, `Button` (Anuluj/Usuń).
 - Zdarzenia: onSubmit → DELETE /api/v1/decks/{deckId}; onClose.
@@ -98,6 +111,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 - Propsy: `{ open: boolean; deck: DeckDTO|null; onOpenChange:(v:boolean)=>void; onSuccess: (deletedId: string)=>void }`.
 
 ## 5. Typy
+
 - Wykorzystanie istniejących DTO z `src/types.ts`:
   - `DeckDTO`, `DecksListDTO`, `CreateDeckCommand`, `UpdateDeckCommand`.
 - Nowe typy (ViewModel i stan):
@@ -113,6 +127,7 @@ Widok prezentuje listę talii (decks) zalogowanego użytkownika i umożliwia ich
 Każde pole typów formularzy odwzorowuje kontrolki i walidację po stronie UI.
 
 ## 6. Zarządzanie stanem
+
 - Lokalny stan w `DecksPage` (React):
   - `query: DeckListQuery` (kontroluje GET listy)
   - `data: DecksListDTO | null`, `loading: boolean`, `error: Error | null`
@@ -123,6 +138,7 @@ Każde pole typów formularzy odwzorowuje kontrolki i walidację po stronie UI.
 - Synchronizacja URL (opcjonalnie): odzwierciedlenie `q`, `sort`, `order`, `limit`, `offset` w query string, by umożliwić deeplinki i nawigację wstecz.
 
 ## 7. Integracja API
+
 - Lista talii: GET `/api/v1/decks`
   - Query: `limit, offset, sort, order, createdByAi?, q?`
   - Response: `DecksListDTO`
@@ -142,6 +158,7 @@ Każde pole typów formularzy odwzorowuje kontrolki i walidację po stronie UI.
 Uwierzytelnienie: po stronie UI wywołania są same-origin do serwera Astro; sesja/JWT obsługiwane przez middleware/Supabase (brak ręcznej obsługi tokena w UI).
 
 ## 8. Interakcje użytkownika
+
 - Wpisz frazę w wyszukiwarkę → lista filtruje się po nazwie (q); reset offset do 0.
 - Zmień sort/order → refetch z nowymi parametrami; reset offset do 0.
 - Kliknij „Nowa talia” → otwiera się dialog; po sukcesie toast + odświeżenie listy (lub optymistyczne dodanie na początek).
@@ -151,6 +168,7 @@ Uwierzytelnienie: po stronie UI wywołania są same-origin do serwera Astro; ses
 - Klik „Otwórz” → przejście do `/decks/[deckId]`.
 
 ## 9. Warunki i walidacja
+
 - Formularze:
   - `name`: wymagane, `.trim().length >= 1`, `length <= 255`.
   - `createdByAi`: boolean (domyślnie false).
@@ -160,6 +178,7 @@ Uwierzytelnienie: po stronie UI wywołania są same-origin do serwera Astro; ses
 - UI dezaktywuje przyciski submit podczas żądań; zapobiega double-submit; fokus wraca na pierwsze nieprawidłowe pole.
 
 ## 10. Obsługa błędów
+
 - Mapowanie wg `.ai/ui-plan.md`:
   - 401/403: komunikat „Twoja sesja wygasła” + CTA logowania/redirect.
   - 404: „Nie znaleziono zasobu” + link „Powrót do listy talii”.
@@ -170,6 +189,7 @@ Uwierzytelnienie: po stronie UI wywołania są same-origin do serwera Astro; ses
 - A11y: region statusu `aria-live="polite"` dla komunikatów, opisy pól przez `aria-describedby`.
 
 ## 11. Kroki implementacji
+
 1. Struktura plików (bez logiki):
    - `src/pages/decks/index.astro`
    - `src/components/decks/DecksPage.tsx`
@@ -191,4 +211,3 @@ Uwierzytelnienie: po stronie UI wywołania są same-origin do serwera Astro; ses
 9. Stylowanie: Tailwind (utility classes), spójność z `shadcn/ui` (Button, Dialog, Input, Select). W razie brakujących komponentów – dodać do `src/components/ui`.
 10. Testy ręczne: ścieżki szczęśliwe i błędy (401, 400/422, 404, 500), zachowanie paginacji i pustej listy.
 11. Refaktoryzacja/porządki: wyodrębnienie wspólnych helperów (format daty, klasy), lekkie memo/`useCallback`.
-

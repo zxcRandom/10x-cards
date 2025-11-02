@@ -36,7 +36,7 @@ flowchart TD
 
     subgraph "Warstwa Aplikacji (Backend)"
         MW["middleware/index.ts"]:::middleware
-        
+
         subgraph "Endpointy API (Astro)"
             API_SIGN_IN["POST /api/v1/auth/sign-in"]:::api
             API_SIGN_UP["POST /api/v1/auth/sign-up"]:::api

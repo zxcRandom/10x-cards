@@ -1,15 +1,18 @@
 # Plan implementacji widoku Szczegóły talii
 
 ## 1. Przegląd
+
 Widok „Szczegóły talii” służy do przeglądania zawartości wybranej talii (lista fiszek), wykonywania operacji CRUD na fiszkach (dodaj/edytuj/usuń), zarządzania samą talią (zmiana nazwy, usunięcie) oraz rozpoczęcia sesji nauki (SM‑2) dla kart wymagających powtórki. Widok łączy statyczny layout Astro z interaktywnymi komponentami React i korzysta z istniejących endpointów API v1.
 
 ## 2. Routing widoku
+
 - Ścieżka: `/decks/[deckId]`
 - Przekierowania/akcje:
   - „Ucz się” → `/decks/[deckId]/study`
   - Po usunięciu talii → `/decks`
 
 ## 3. Struktura komponentów
+
 - `src/pages/decks/[deckId].astro` (strona)
   - Layout: `src/layouts/Layout.astro`
   - `Breadcrumb` (Astro/React prosty)
@@ -24,6 +27,7 @@ Widok „Szczegóły talii” służy do przeglądania zawartości wybranej tali
   - Globalny `Toast` (obsługa komunikatów)
 
 Proponowana lokalizacja komponentów:
+
 - `src/components/deck/DeckHeader.tsx`
 - `src/components/deck/DeckCardsPanel.tsx`
 - `src/components/deck/CardsToolbar.tsx`
@@ -34,7 +38,9 @@ Proponowana lokalizacja komponentów:
 - (opcjonalnie) `src/components/ui/Breadcrumb.tsx`
 
 ## 4. Szczegóły komponentów
+
 ### DeckHeader
+
 - Opis: Wyświetla nazwę talii oraz akcje: „Ucz się”, „Zmień nazwę”, „Usuń talię”. Obsługuje dialog zmiany nazwy i potwierdzenie usunięcia.
 - Główne elementy: `h1`, przyciski (`Button` shadcn/ui), `Dialog` (zmiana nazwy), `ConfirmDialog` (usunięcie).
 - Obsługiwane interakcje:
@@ -51,6 +57,7 @@ Proponowana lokalizacja komponentów:
   - `canStudy?: boolean` (enable/disable przycisk „Ucz się”).
 
 ### DeckCardsPanel
+
 - Opis: Kontener logiki listowania kart. Zarządza stanem zapytań (limit, offset, sort, order, q) i odświeżaniem po operacjach CRUD.
 - Główne elementy: `CardsToolbar`, `CardsTable`, `Pagination`.
 - Interakcje:
@@ -65,6 +72,7 @@ Proponowana lokalizacja komponentów:
   - `deckId: string`
 
 ### CardsToolbar
+
 - Opis: Pasek narzędzi nad listą (wyszukiwarka, selektor rozmiaru strony, przycisk „Dodaj fiszkę”).
 - Główne elementy: `Input`, `Select`, `Button`.
 - Interakcje:
@@ -81,6 +89,7 @@ Proponowana lokalizacja komponentów:
   - `onCreate(): void`
 
 ### CardsTable
+
 - Opis: Tabela listy fiszek z kolumnami: Pytanie, Odpowiedź, Następna powtórka, Powtórzenia, EF, Zmieniono, Akcje.
 - Główne elementy: tabela z `thead/tbody`, przyciski akcji na wierszu.
 - Interakcje:
@@ -98,6 +107,7 @@ Proponowana lokalizacja komponentów:
   - `onDelete(card: CardDTO): void`
 
 ### CardDialog
+
 - Opis: Modal formularza dodawania/edycji karty.
 - Główne elementy: `Dialog`, `Textarea` dla „Pytania” i „Odpowiedzi”, przyciski Zapisz/Anuluj.
 - Interakcje:
@@ -115,6 +125,7 @@ Proponowana lokalizacja komponentów:
   - `onSubmit(values: CardFormValues): Promise<void>` (zarządza loadingiem/disable).
 
 ### ConfirmDialog
+
 - Opis: Uniwersalny modal potwierdzenia akcji destrukcyjnej.
 - Główne elementy: `Dialog`, opis, dwa przyciski.
 - Interakcje: potwierdzenie/annulowanie.
@@ -130,6 +141,7 @@ Proponowana lokalizacja komponentów:
   - `onCancel(): void`
 
 ### Pagination
+
 - Opis: Sterowanie stronicowaniem oparte na `total`, `limit`, `offset`.
 - Główne elementy: przyciski „Wstecz/Dalej”, wskaźnik strony.
 - Interakcje: `onPageChange(nextOffset)`.
@@ -142,6 +154,7 @@ Proponowana lokalizacja komponentów:
   - `onChange(offset: number): void`
 
 ## 5. Typy
+
 Wykorzystujemy istniejące DTO z `src/types.ts` oraz definiujemy lekkie ViewModele do prezentacji.
 
 - Istniejące DTO:
@@ -160,6 +173,7 @@ Wykorzystujemy istniejące DTO z `src/types.ts` oraz definiujemy lekkie ViewMode
   - `interface CardFormValues { question: string; answer: string }`
 
 ## 6. Zarządzanie stanem
+
 - Źródła prawdy: backend (API). Front zarządza lokalnym stanem listy jako wyników zapytań.
 - Custom hook: `useDeckDetails(deckId)` w `src/components/deck/hooks/useDeckDetails.ts`:
   - Stan: jak w `DeckDetailsState`.
@@ -169,6 +183,7 @@ Wykorzystujemy istniejące DTO z `src/types.ts` oraz definiujemy lekkie ViewMode
   - Anulowanie żądań: `AbortController` przy zmieniającym się `q` (debounce + abort poprzedniego).
 
 ## 7. Integracja API
+
 - `GET /api/v1/decks/{deckId}` → `DeckDTO`
 - `PATCH /api/v1/decks/{deckId}` body: `{ name?: string }` → `DeckDTO`
 - `DELETE /api/v1/decks/{deckId}` → 204 No Content
@@ -179,6 +194,7 @@ Wykorzystujemy istniejące DTO z `src/types.ts` oraz definiujemy lekkie ViewMode
 - (Opcjonalnie, do stanu „Ucz się”): `GET /api/v1/decks/{deckId}/cards/due?limit=1` → jeśli `total > 0`, aktywuj CTA; w przeciwnym razie pokaż komunikat.
 
 Obsługa błędów wg `ErrorResponse` i kodów `HttpStatus`/`ErrorCode`:
+
 - 400/422 → walidacja (pokazuj błędy pól, fallback: toast)
 - 401/403 → komunikat o autoryzacji; opcjonalnie redirect do logowania
 - 404 → komunikat „Nie znaleziono”; dla talii — sekcja „Not Found”
@@ -186,6 +202,7 @@ Obsługa błędów wg `ErrorResponse` i kodów `HttpStatus`/`ErrorCode`:
 - 500 → „Wystąpił błąd serwera”
 
 ## 8. Interakcje użytkownika
+
 - Wejście na `/decks/[deckId]` → ładowanie talii i pierwszej strony kart; stan ładowania w tabeli.
 - Wpisanie w wyszukiwarkę → debounce 300 ms → reset offset=0 → reload listy.
 - Zmiana rozmiaru strony → reset offset=0 → reload listy.
@@ -198,6 +215,7 @@ Obsługa błędów wg `ErrorResponse` i kodów `HttpStatus`/`ErrorCode`:
 - „Ucz się” → jeśli brak due → toast/info; jeśli są due → nawigacja do `/decks/[deckId]/study`.
 
 ## 9. Warunki i walidacja
+
 - `CardDialog`:
   - `question` i `answer`: trim; długość 1–10000; w przypadku naruszenia pokaż pod polem; blokuj Submit.
 - `CardsToolbar`:
@@ -209,6 +227,7 @@ Obsługa błędów wg `ErrorResponse` i kodów `HttpStatus`/`ErrorCode`:
 - „Ucz się”: przycisk nieaktywny gdy trwa ładowanie sprawdzenia due; komunikat, gdy `total === 0`.
 
 ## 10. Obsługa błędów
+
 - Mapowanie `ErrorResponse.error.code` → komunikaty przyjazne użytkownikowi (Toast + opis):
   - `VALIDATION_ERROR`/`BAD_REQUEST` → pokaż błędy pól; highlight invalid.
   - `UNAUTHORIZED`/`FORBIDDEN` → „Wymagane logowanie lub brak uprawnień”.
@@ -219,6 +238,7 @@ Obsługa błędów wg `ErrorResponse` i kodów `HttpStatus`/`ErrorCode`:
 - Anulowanie: AbortController dla wyszukiwarki; ignoruj spóźnione odpowiedzi.
 
 ## 11. Kroki implementacji
+
 1. Utwórz stronę `src/pages/decks/[deckId].astro` z layoutem i kontenerem React (`DeckCardsPanel`) oraz SSR fetchem `GET /api/v1/decks/{deckId}` do nagłówka (lub pierwsze renderowanie client-side, jeśli wolisz uproszczenie).
 2. Zaimplementuj `DeckHeader` z dialogiem zmiany nazwy i potwierdzeniem usunięcia; podłącz `PATCH` i `DELETE` endpointy; obsłuż toasty i redirect.
 3. Zaimplementuj `DeckCardsPanel` i hook `useDeckDetails(deckId)` (stan: limit=20, offset=0, sort='createdAt', order='desc', q='').
@@ -228,6 +248,6 @@ Obsługa błędów wg `ErrorResponse` i kodów `HttpStatus`/`ErrorCode`:
 7. Zaimplementuj `ConfirmDialog` (wspólny) i `Pagination` (poprawne wyliczanie next/prev offsetu).
 8. Do „Ucz się”: dodaj lekkie sprawdzenie `GET /api/v1/decks/{deckId}/cards/due?limit=1` do aktywacji CTA; obsłuż brak due (info) vs nawigacja do `/study`.
 9. Dodaj `Toast` dla powodzeń i błędów; ustandaryzuj mapowanie błędów.
-10. Stylizacja Tailwind 4 + shadcn/ui (Button, Dialog, Input, Select, Textarea, Table). Zapewnij dostępność ARIA dla dialogów i kontrolki formularzy (aria-*).
+10. Stylizacja Tailwind 4 + shadcn/ui (Button, Dialog, Input, Select, Textarea, Table). Zapewnij dostępność ARIA dla dialogów i kontrolki formularzy (aria-\*).
 11. Testy ręczne i szybkie: scenariusze z US‑009/010/011 + błędy (401/404/422) + pusta lista + wyszukiwanie + sort/paginacja.
 12. Refaktoryzacja: ewentualny wydzielony `apiClient` (fetchJson) w `src/lib/utils.ts` i typowane wywołania.

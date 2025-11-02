@@ -1,14 +1,17 @@
 # Plan implementacji widoku Sesja nauki
 
 ## 1. Przegląd
+
 Widok „Sesja nauki” umożliwia przeprowadzenie powtórek z wybranej talii zgodnie z algorytmem SM-2. Użytkownik widzi pytanie, może odsłonić odpowiedź, a następnie ocenia swoją wiedzę w skali 0–5. Po ocenieniu system zapisuje recenzję poprzez API i przechodzi do kolejnej fiszki. Gdy nie ma kart do nauki, widok pokazuje stan pusty; po zakończeniu sesji pokazuje podsumowanie w tym samym widoku i CTA „Powrót do talii”.
 
 ## 2. Routing widoku
+
 - Ścieżka: `/decks/[deckId]/study`
 - Plik strony: `src/pages/decks/[deckId]/study.astro`
 - Architektura: strona Astro (layout, statyczna rama) + komponent React do interakcji (`StudySession.tsx`) osadzony z hydracją `client:load`.
 
 ## 3. Struktura komponentów
+
 - `src/pages/decks/[deckId]/study.astro`
   - używa `Layout.astro`
   - renderuje klientowy komponent React: `<StudySession deckId={deckId} />`
@@ -23,7 +26,9 @@ Widok „Sesja nauki” umożliwia przeprowadzenie powtórek z wybranej talii zg
   - `SessionSummary` (podsumowanie po zakończeniu)
 
 ## 4. Szczegóły komponentów
+
 ### Study page (`study.astro`)
+
 - Opis: Ustalony szkielet strony z layoutem. Pobiera `deckId` z params i przekazuje do komponentu React.
 - Główne elementy: kontener, nagłówek (nazwa „Sesja nauki”), slot na komponent React.
 - Interakcje: brak (statyczny wrapper).
@@ -32,8 +37,9 @@ Widok „Sesja nauki” umożliwia przeprowadzenie powtórek z wybranej talii zg
 - Propsy: przekazanie `deckId` do `StudySession`.
 
 ### `StudySession`
+
 - Opis: Główny komponent sterujący przebiegiem sesji – pobiera „due cards”, pokazuje aktualną fiszkę, odsłania odpowiedź, umożliwia ocenę, wysyła recenzję, przechodzi do kolejnej.
-- Główne elementy: 
+- Główne elementy:
   - Sekcje stanu: Loading, Empty, Error, Active, Done
   - Składowe: `StudyCard`, `ReviewControls`, `SessionSummary`
 - Obsługiwane interakcje:
@@ -48,6 +54,7 @@ Widok „Sesja nauki” umożliwia przeprowadzenie powtórek z wybranej talii zg
 - Propsy: `{ deckId: string }`
 
 ### `StudyCard`
+
 - Opis: Prezentacja jednej fiszki; w trybie pytania ukrywa odpowiedź, po kliknięciu pokazuje odpowiedź.
 - Główne elementy:
   - Kontener `Card` (Shadcn/ui), tytuł „Pytanie”, treść pytania
@@ -59,6 +66,7 @@ Widok „Sesja nauki” umożliwia przeprowadzenie powtórek z wybranej talii zg
 - Propsy: `{ card: StudyCardVM; showAnswer: boolean; onShowAnswer: () => void }`
 
 ### `ReviewControls`
+
 - The purpose: Zestaw 6 przycisków ocen (0–5) wraz z opisami: „Nic nie wiem”, „Źle”, „Trudno”, „Dobrze”, „Łatwo”, „Bardzo łatwo”.
 - Główne elementy: 6 x `Button` (Shadcn/ui) z wariantami kolorystycznymi Tailwind.
 - Interakcje: kliknięcie wysyła ocenę do rodzica: `onGrade(grade: ReviewGrade)`.
@@ -67,6 +75,7 @@ Widok „Sesja nauki” umożliwia przeprowadzenie powtórek z wybranej talii zg
 - Propsy: `{ disabled: boolean; onGrade: (g: ReviewGrade) => void }`
 
 ### `SessionSummary`
+
 - Opis: Podsumowanie sesji (liczba ocenionych kart, średnia ocena, CTA „Powrót do talii”).
 - Główne elementy: `Card` z danymi podsumowania i `Button` do powrotu.
 - Interakcje: kliknięcie CTA przenosi do `/decks/[deckId]`.
@@ -75,30 +84,32 @@ Widok „Sesja nauki” umożliwia przeprowadzenie powtórek z wybranej talii zg
 - Propsy: `{ deckId: string; stats: StudySessionStats }`
 
 ## 5. Typy
+
 - Istniejące (z `src/types.ts`):
   - `CardDTO`, `DueCardsListDTO`, `ReviewResponseDTO`, `ReviewGrade`, `ErrorResponse`, `HttpStatus`
 - Nowe typy (lokalne dla widoku – w pliku komponentu lub `src/components/study/types.ts`):
   - `type StudyCardVM = {
-      id: string;
-      deckId: string;
-      question: string;
-      answer: string;
-      nextReviewDate: string; // ISO-8601
-      easeFactor?: number;
-      intervalDays?: number;
-      repetitions?: number;
-    }`
+  id: string;
+  deckId: string;
+  question: string;
+  answer: string;
+  nextReviewDate: string; // ISO-8601
+  easeFactor?: number;
+  intervalDays?: number;
+  repetitions?: number;
+}`
   - `type StudyState = 'loading' | 'ready' | 'submitting' | 'done' | 'error'`
   - `type StudySessionStats = {
-      reviewedCount: number;
-      gradesCount: Record<ReviewGrade, number>; // {0: n, 1: n, ..., 5: n}
-      averageGrade: number; // 0..5
-    }`
+  reviewedCount: number;
+  gradesCount: Record<ReviewGrade, number>; // {0: n, 1: n, ..., 5: n}
+  averageGrade: number; // 0..5
+}`
   - `type ApiErrorUI = { status: number; code: string; message: string; details?: string }`
 
 Uwaga: `StudyCardVM` jest projekcją `CardDTO` do potrzeb UI; można mapować bezpośrednio po pobraniu z API.
 
 ## 6. Zarządzanie stanem
+
 - Stan źródłowy w `StudySession`:
   - `state: StudyState` – cykl: `loading` -> `ready` -> `submitting` (przejściowo) -> `done` lub `error`
   - `cards: StudyCardVM[]` – kolejka kart do nauki (posortowane wg `nextReviewDate` rosnąco)
@@ -117,6 +128,7 @@ Uwaga: `StudyCardVM` jest projekcją `CardDTO` do potrzeb UI; można mapować be
   - (opcjonalnie) `useHotkeys()` do obsługi 0–5
 
 ## 7. Integracja API
+
 - Pobieranie kart do nauki:
   - GET `/api/v1/decks/{deckId}/cards/due?before=${encodeURIComponent(nowIso)}&limit=50&offset=0&order=asc`
   - Odpowiedź: `DueCardsListDTO` — `{ items: CardDTO[]; total: number; limit: number; offset: number }`
@@ -128,6 +140,7 @@ Uwaga: `StudyCardVM` jest projekcją `CardDTO` do potrzeb UI; można mapować be
 - Kody błędów do obsługi: `401`, `403`, `404`, `409`, `422`, `500` (w części 10 opisane strategie)
 
 ## 8. Interakcje użytkownika
+
 - Wejście na stronę: pokazanie loadera -> pobranie kart -> jeden z widoków: Empty/Active/Error
 - „Pokaż odpowiedź”: odsłonięcie odpowiedzi; fokus przenosi się na pierwszy przycisk oceny
 - Ocena 0–5: natychmiastowy POST; przyciski zablokowane podczas wysyłki; po sukcesie przejście do kolejnej karty
@@ -138,6 +151,7 @@ Uwaga: `StudyCardVM` jest projekcją `CardDTO` do potrzeb UI; można mapować be
   - Widoczny fokus, odpowiednie `aria-label` z oceną i opisem
 
 ## 9. Warunki i walidacja
+
 - `deckId` – wstępna walidacja formatem UUID (regex); w przypadku niezgodności: pokaż komunikat i nie wywołuj API
 - Stany API:
   - `401` – wymagana autentykacja (komunikat + link/przycisk do logowania, w MVP komunikat)
@@ -149,6 +163,7 @@ Uwaga: `StudyCardVM` jest projekcją `CardDTO` do potrzeb UI; można mapować be
   - Płynne przejście do następnej karty; jeśli nastąpi błąd przy POST, pozostajemy na tej samej karcie
 
 ## 10. Obsługa błędów
+
 - GET due:
   - `401/403/404` – przejście do `ErrorState` z przyciskiem „Powrót do talii”
   - Inne błędy sieci/`500` – komunikat „Wystąpił błąd. Spróbuj ponownie.” + przycisk „Ponów próbę”
@@ -160,6 +175,7 @@ Uwaga: `StudyCardVM` jest projekcją `CardDTO` do potrzeb UI; można mapować be
 - A11y: komunikaty w `aria-live` dla stanów sukces/błąd
 
 ## 11. Kroki implementacji
+
 1. Utwórz strukturę katalogów: `src/components/study/`
 2. Dodaj stronę `src/pages/decks/[deckId]/study.astro`:
    - pobierz `deckId` z `Astro.params`
@@ -188,11 +204,13 @@ Uwaga: `StudyCardVM` jest projekcją `CardDTO` do potrzeb UI; można mapować be
    - talia bez kart „due”: pusty stan
    - symulacja błędu POST (np. odłączenie sieci): poprawne komunikaty i blokady UI
 10. Drobne ulepszenia (później):
-   - skróty klawiaturowe `0–5`
-   - progres (np. „3/20”) i lekki wskaźnik postępu
-   - zapamiętanie ostatniej oceny w `stats` z rozbiciem
+
+- skróty klawiaturowe `0–5`
+- progres (np. „3/20”) i lekki wskaźnik postępu
+- zapamiętanie ostatniej oceny w `stats` z rozbiciem
 
 Uwagi implementacyjne zgodnie z projektem:
+
 - Używaj Astro do layoutu i React tylko tam, gdzie potrzebna interaktywność.
 - Stylowanie Tailwind 4 (klasy narzędziowe); spójne z projektem (Shadcn/ui `Button`).
 - Walidacja i obsługa błędów zgodna z kontraktami endpointów i typami w `src/types.ts`.

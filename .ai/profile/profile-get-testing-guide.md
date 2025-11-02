@@ -3,17 +3,20 @@
 ## Przygotowanie
 
 1. **Uruchom serwer deweloperski:**
+
    ```bash
    npm run dev
    ```
+
    Serwer powinien uruchomić się na `http://localhost:4321` (domyślnie Astro v5).
 
 2. **Przygotuj token JWT:**
    - Zaloguj się w aplikacji Supabase lub użyj Supabase CLI
    - Uzyskaj access token użytkownika testowego
    - Token znajdziesz w Supabase Dashboard → Authentication → Users → [wybierz użytkownika]
-   
+
    Alternatywnie, możesz utworzyć testowego użytkownika:
+
    ```bash
    # Za pomocą Supabase CLI
    supabase auth signup test@example.com testpassword123
@@ -30,6 +33,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Oczekiwany wynik:**
+
 ```json
 {
   "error": {
@@ -50,6 +54,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Oczekiwany wynik:**
+
 ```json
 {
   "error": {
@@ -71,6 +76,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Oczekiwany wynik:**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -91,6 +97,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Oczekiwane nagłówki:**
+
 ```
 < HTTP/1.1 200 OK
 < Content-Type: application/json
@@ -109,11 +116,11 @@ curl -X GET http://localhost:4321/api/v1/profile \
 
 ### Scenariusze testowe:
 
-| Scenariusz | Authorization Header | Expected Status | Expected Response |
-|------------|---------------------|-----------------|-------------------|
-| Brak tokenu | (usuń header) | 401 | Error: UNAUTHORIZED |
-| Nieprawidłowy token | `Bearer invalid123` | 401 | Error: UNAUTHORIZED |
-| Prawidłowy token | `Bearer <valid_jwt>` | 200 | ProfileDTO object |
+| Scenariusz          | Authorization Header | Expected Status | Expected Response   |
+| ------------------- | -------------------- | --------------- | ------------------- |
+| Brak tokenu         | (usuń header)        | 401             | Error: UNAUTHORIZED |
+| Nieprawidłowy token | `Bearer invalid123`  | 401             | Error: UNAUTHORIZED |
+| Prawidłowy token    | `Bearer <valid_jwt>` | 200             | ProfileDTO object   |
 
 ## Testowanie automatyczne (opcjonalnie)
 
@@ -121,26 +128,26 @@ Możesz utworzyć testy integracyjne używając Vitest:
 
 ```typescript
 // src/tests/api/profile.test.ts
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
-describe('GET /api/v1/profile', () => {
-  it('should return 401 without token', async () => {
-    const response = await fetch('http://localhost:4321/api/v1/profile');
+describe("GET /api/v1/profile", () => {
+  it("should return 401 without token", async () => {
+    const response = await fetch("http://localhost:4321/api/v1/profile");
     expect(response.status).toBe(401);
     const data = await response.json();
-    expect(data.error.code).toBe('UNAUTHORIZED');
+    expect(data.error.code).toBe("UNAUTHORIZED");
   });
 
-  it('should return 200 with valid token', async () => {
-    const response = await fetch('http://localhost:4321/api/v1/profile', {
+  it("should return 200 with valid token", async () => {
+    const response = await fetch("http://localhost:4321/api/v1/profile", {
       headers: {
-        'Authorization': `Bearer ${process.env.TEST_USER_TOKEN}`,
+        Authorization: `Bearer ${process.env.TEST_USER_TOKEN}`,
       },
     });
     expect(response.status).toBe(200);
     const data = await response.json();
-    expect(data).toHaveProperty('id');
-    expect(data).toHaveProperty('privacyConsent');
+    expect(data).toHaveProperty("id");
+    expect(data).toHaveProperty("privacyConsent");
   });
 });
 ```
@@ -158,6 +165,7 @@ Po każdym żądaniu sprawdź logi serwera deweloperskiego:
 ### Problem: "Connection refused" lub timeout
 
 **Rozwiązanie:**
+
 - Sprawdź czy serwer działa: `ps aux | grep "astro dev"`
 - Sprawdź port: domyślnie Astro v5 używa portu 4321, nie 3000
 - Uruchom ponownie: `npm run dev`
@@ -165,10 +173,12 @@ Po każdym żądaniu sprawdź logi serwera deweloperskiego:
 ### Problem: 500 Internal Server Error zamiast 401
 
 **Możliwe przyczyny:**
+
 - Brak połączenia z Supabase (sprawdź `.env`)
 - Błędne zmienne środowiskowe `SUPABASE_URL` lub `SUPABASE_KEY`
 
 **Rozwiązanie:**
+
 ```bash
 # Sprawdź zmienne środowiskowe
 cat .env | grep SUPABASE
@@ -181,9 +191,11 @@ curl -X GET "${SUPABASE_URL}/rest/v1/" \
 ### Problem: 404 Not Found po prawidłowym logowaniu
 
 **Możliwa przyczyna:**
+
 - Profil użytkownika nie został utworzony przez trigger `handle_new_user()`
 
 **Rozwiązanie:**
+
 ```sql
 -- Sprawdź czy profil istnieje w bazie
 SELECT * FROM public.profiles WHERE id = 'USER_ID_HERE';

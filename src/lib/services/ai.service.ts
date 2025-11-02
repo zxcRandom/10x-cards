@@ -47,11 +47,11 @@ export class AIUnavailableError extends AIServiceError {
   }
 }
 
-type Dependencies = {
+interface Dependencies {
   openRouter?: OpenRouterService;
   logger?: Logger;
   responseFormat?: ResponseFormat;
-};
+}
 
 const defaultLogger: Logger = {
   debug: (message, meta) => console.debug(message, sanitizeMeta(meta)),
@@ -109,7 +109,7 @@ export class AIService {
   }
 
   async generateFlashcardsFromText(inputText: string, requestedMaxCards?: number): Promise<GeneratedCard[]> {
-  const start = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const start = typeof performance !== "undefined" ? performance.now() : Date.now();
     const maxCards = this.resolveMaxCards(requestedMaxCards);
     const sanitizedInput = this.sanitizeInput(inputText);
 

@@ -8,6 +8,7 @@
 ## ✅ Zaimplementowane funkcjonalności
 
 ### Core Features
+
 - ✅ **Dashboard View** - AIFlashcardGenerator + RecentDecksList
 - ✅ **Decks List View** - pełny CRUD talii (create, read, update, delete)
 - ✅ **Deck Details View** - wyświetlanie kart, toolbar, sortowanie, paginacja
@@ -15,12 +16,14 @@
 - ✅ **Review AI Cards View** - recenzja wygenerowanych kart, edycja, zapis
 
 ### Authentication (Frontend)
+
 - ✅ LoginForm, RegisterForm - komponenty gotowe
 - ✅ ForgotPasswordForm, ResetPasswordForm - komponenty gotowe
 - ✅ ChangePasswordForm - komponent gotowy
 - ✅ DeleteAccountSection - komponent gotowy
 
 ### Other
+
 - ✅ Privacy Policy - pełna strona z polityką prywatności
 - ✅ Footer z linkiem do Privacy Policy
 
@@ -30,12 +33,14 @@
 
 Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonalności wraz z linkami do szczegółowych planów implementacji:
 
-### 1. **Card CRUD w Deck Details** 
+### 1. **Card CRUD w Deck Details**
+
 **Status**: ✅ **ZAIMPLEMENTOWANE**  
 **Priorytet**: ✅ **COMPLETED**  
 **Plan**: [`card-crud-implementation-plan.md`](.ai/card-crud-implementation-plan.md)
 
 **Zaimplementowane**:
+
 - ✅ CardDialog - dodawanie/edytowanie pojedynczej karty
 - ✅ CardConfirmDialog - potwierdzenie usunięcia
 - ✅ Walidacja formularzy (Zod)
@@ -49,11 +54,13 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 ---
 
 ### 2. **AI Generation Flow - Błędna implementacja**
+
 **Status**: ✅ **POPRAWIONE**  
 **Priorytet**: ✅ **COMPLETED**  
 **Plan**: [`ai-generation-flow-fix-implementation-plan.md`](.ai/ai-generation-flow-fix-implementation-plan.md)
 
 **Zaimplementowane**:
+
 - ✅ Flow poprawiony: Dashboard → Generuj → **Review AI Cards** → Deck Details
 - ✅ Przekierowanie do `/generate/review?deckId=XXX`
 - ✅ Przycisk "Wróć" w ReviewAICardsView
@@ -66,11 +73,13 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 ---
 
 ### 3. **Auth API Endpoints**
+
 **Status**: ✅ **ZAIMPLEMENTOWANE**  
 **Priorytet**: ✅ **COMPLETED**  
 **Plan**: [`auth-endpoints-implementation-plan.md`](.ai/auth-endpoints-implementation-plan.md)
 
 **Zaimplementowane**:
+
 - ✅ `POST /api/v1/auth/password/change` - zmiana hasła
 - ✅ `DELETE /api/v1/auth/account/delete` - usuwanie konta
 - ✅ Weryfikacja obecnego hasła
@@ -84,11 +93,13 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 ---
 
 ### 4. **Password Reset Flow**
+
 **Status**: ✅ **ZAIMPLEMENTOWANE**  
 **Priorytet**: ✅ **COMPLETED**  
 **Plan**: [`password-reset-flow-implementation-plan.md`](.ai/password-reset-flow-implementation-plan.md)
 
 **Zaimplementowane**:
+
 - ✅ `POST /api/v1/auth/password/request-reset` - żądanie kodu OTP
 - ✅ `POST /api/v1/auth/password/verify-and-reset` - weryfikacja OTP + reset hasła
 - ✅ OtpPasswordResetForm - komponent do wprowadzania OTP + nowego hasła
@@ -106,17 +117,20 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 ---
 
 ### 5. **Navigation & Layout**
+
 **Status**: ✅ **ZAIMPLEMENTOWANE (MVP - Uproszczone)**  
 **Priorytet**: ✅ **COMPLETED**  
 **Plan**: [`navigation-layout-implementation-plan.md`](.ai/navigation-layout-implementation-plan.md)
 
 **Zaimplementowane**:
+
 - ✅ Top bar navigation (AuthNav) z wszystkimi linkami
 - ✅ Linki: Dashboard, Moje talie, Ustawienia, Wyloguj
 - ✅ Responsive design (ukrywa Ustawienia na mobile)
 - ✅ Email użytkownika + przycisk wylogowania
 
 **Decyzja MVP**:
+
 - ⚠️ **Sidebar** - pominięty (zbyt skomplikowany dla MVP)
 - ⚠️ **Hamburger menu** - nie potrzebny (top bar wystarczający)
 - ⚠️ **Breadcrumbs** - nie wymagane (proste nawigacje)
@@ -128,6 +142,7 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 ## 📊 Podsumowanie priorytetów
 
 ### ✅ COMPLETED (MVP Core Features)
+
 1. ✅ **AI Generation Flow Fix** - 2-3h **COMPLETED**
    - Flow poprawiony zgodnie z PRD
    - ReviewAICardsView w użyciu
@@ -150,6 +165,7 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
    - Rate limiting & security
 
 ### 🟡 POZOSTAŁO (Brak - MVP Complete!)
+
 **Wszystkie funkcjonalności MVP zostały zaimplementowane!** 🎉
 
 ---
@@ -158,7 +174,7 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 
 ```
 ✅ 1️⃣ AI Generation Flow Fix (2-3h) - COMPLETED
-✅ 2️⃣ Card CRUD (4-6h) - COMPLETED  
+✅ 2️⃣ Card CRUD (4-6h) - COMPLETED
 ✅ 3️⃣ Navigation & Layout (2h) - COMPLETED (Uproszczone)
 ✅ 4️⃣ Auth Endpoints (3-4h) - COMPLETED
 ✅ 5️⃣ Password Reset Flow (3-4h + config) - COMPLETED
@@ -174,18 +190,21 @@ Poniżej lista niezaimplementowanych lub błędnie zaimplementowanych funkcjonal
 Checklist końcowy:
 
 ### Core Functionality
+
 - [x] Użytkownik może dodać/edytować/usunąć pojedynczą kartę w talii ✅
 - [x] Flow generowania AI przechodzi przez review view ✅
 - [x] Nawigacja top bar działa na desktop/mobile ✅
 - [x] AuthNav z wszystkimi linkami (Dashboard, Moje talie, Ustawienia) ✅
 
 ### Account Management
+
 - [x] Użytkownik może zmienić hasło ✅
 - [x] Użytkownik może usunąć konto ✅
 - [x] Użytkownik może zresetować zapomniane hasło ✅
 - [x] E-maile resetowania hasła są wysyłane ✅
 
 ### User Stories (PRD)
+
 - [x] US-003: Zmiana hasła ✅
 - [x] US-004: Usunięcie konta ✅
 - [x] US-005: Generowanie fiszek z tekstu ✅
@@ -208,6 +227,7 @@ Wszystkie szczegółowe plany znajdują się w folderze `.ai/`:
 5. [`navigation-layout-implementation-plan.md`](.ai/navigation-layout-implementation-plan.md)
 
 Każdy plan zawiera:
+
 - Dokładny opis problemu
 - Kroki implementacji
 - Przykładowy kod
@@ -223,6 +243,7 @@ Każdy plan zawiera:
 **Po implementacji**: 100% zgodność z PRD + UI Plan
 
 **Zrealizowane w tej sesji**:
+
 - ✅ AI Generation Flow Fix (~2h)
 - ✅ Card CRUD Implementation (~5h)
 - ✅ Navigation & Layout (~2h, uproszczone)
@@ -234,6 +255,7 @@ Każdy plan zawiera:
 ## 📝 Notatki
 
 ### Zrealizowane w tej sesji (26-27 października 2025):
+
 1. ✅ **AI Generation Flow** - naprawione przekierowanie do review view
 2. ✅ **Card CRUD** - pełna funkcjonalność dodawania/edycji/usuwania kart
 3. ✅ **Navigation** - top bar z wszystkimi linkami (uproszczone dla MVP)
@@ -241,12 +263,13 @@ Każdy plan zawiera:
 5. ✅ **Password Reset Flow** - kompletny OTP-based flow z dokumentacją
 
 ### Pozostało:
+
 - ✅ **Wszystko ukończone!** 🎉
 
 ### Decyzje architektoniczne MVP:
+
 - 📌 **Navigation**: Top bar zamiast Sidebar (prostsze, wystarczające dla MVP)
 - 📌 **Breadcrumbs**: Pominięte (nie wymagane dla obecnych widoków)
 - 📌 **Hamburger menu**: Nie potrzebne (top bar działa na mobile)
 
 **Wniosek**: Projekt jest **100% gotowy do MVP**. Wszystkie funkcjonalności zostały zaimplementowane! 🎉
-

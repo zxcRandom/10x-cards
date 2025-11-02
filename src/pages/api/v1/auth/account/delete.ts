@@ -1,14 +1,14 @@
 /**
  * DELETE /api/v1/auth/account/delete
  * Permanently delete user account and all associated data
- * 
+ *
  * Requires explicit confirmation.
  * US-004: Delete Account
  */
 
-import type { APIRoute } from 'astro';
-import { deleteAccountSchema } from '@/lib/validation/auth.schemas';
-import type { ErrorResponse, ValidationErrorResponse } from '@/types';
+import type { APIRoute } from "astro";
+import { deleteAccountSchema } from "@/lib/validation/auth.schemas";
+import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
@@ -24,13 +24,13 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required',
+            code: "UNAUTHORIZED",
+            message: "Authentication required",
           },
         } satisfies ErrorResponse),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -43,13 +43,13 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'BAD_REQUEST',
-            message: 'Invalid JSON in request body',
+            code: "BAD_REQUEST",
+            message: "Invalid JSON in request body",
           },
         } satisfies ErrorResponse),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -59,17 +59,17 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Confirmation failed',
+            code: "VALIDATION_ERROR",
+            message: "Confirmation failed",
             errors: validation.error.errors.map((err) => ({
-              field: err.path.join('.'),
+              field: err.path.join("."),
               message: err.message,
             })),
           },
         } satisfies ValidationErrorResponse),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -79,37 +79,28 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     // - cards (via decks foreign key)
     // - reviews (via cards foreign key)
     // - ai_generation_logs (via user_id foreign key)
-    
+
     // Delete decks (cascades to cards and reviews)
-    const { error: decksDeleteError } = await locals.supabase
-      .from('decks')
-      .delete()
-      .eq('user_id', user.id);
+    const { error: decksDeleteError } = await locals.supabase.from("decks").delete().eq("user_id", user.id);
 
     if (decksDeleteError) {
-      console.error('[Auth] Failed to delete user decks:', decksDeleteError);
+      console.error("[Auth] Failed to delete user decks:", decksDeleteError);
       // Continue anyway - try to delete other data
     }
 
     // Delete AI generation logs
-    const { error: logsDeleteError } = await locals.supabase
-      .from('ai_generation_logs')
-      .delete()
-      .eq('user_id', user.id);
+    const { error: logsDeleteError } = await locals.supabase.from("ai_generation_logs").delete().eq("user_id", user.id);
 
     if (logsDeleteError) {
-      console.error('[Auth] Failed to delete AI logs:', logsDeleteError);
+      console.error("[Auth] Failed to delete AI logs:", logsDeleteError);
       // Continue anyway
     }
 
     // Delete profile (if exists)
-    const { error: profileDeleteError } = await locals.supabase
-      .from('profiles')
-      .delete()
-      .eq('id', user.id);
+    const { error: profileDeleteError } = await locals.supabase.from("profiles").delete().eq("id", user.id);
 
     if (profileDeleteError) {
-      console.error('[Auth] Failed to delete profile:', profileDeleteError);
+      console.error("[Auth] Failed to delete profile:", profileDeleteError);
       // Continue anyway
     }
 
@@ -117,17 +108,17 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     const { error: deleteUserError } = await locals.supabase.auth.admin.deleteUser(user.id);
 
     if (deleteUserError) {
-      console.error('[Auth] Failed to delete auth user:', deleteUserError);
+      console.error("[Auth] Failed to delete auth user:", deleteUserError);
       return new Response(
         JSON.stringify({
           error: {
-            code: 'DELETE_FAILED',
-            message: 'Failed to delete account. Please contact support.',
+            code: "DELETE_FAILED",
+            message: "Failed to delete account. Please contact support.",
           },
         } satisfies ErrorResponse),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -138,29 +129,27 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     // 6. Success
     return new Response(
       JSON.stringify({
-        status: 'deleted',
-        message: 'Account permanently deleted',
+        status: "deleted",
+        message: "Account permanently deleted",
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (err) {
-    console.error('[Auth] Unexpected error in account deletion:', err);
+    console.error("[Auth] Unexpected error in account deletion:", err);
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Internal server error',
+          code: "INTERNAL_ERROR",
+          message: "Internal server error",
         },
       } satisfies ErrorResponse),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
 };
-
-

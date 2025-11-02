@@ -5,17 +5,13 @@
  * Uses the useDecks hook to fetch data.
  */
 
-import { useDecks } from '@/components/hooks/useDecks';
-import { DeckCard } from './DeckCard';
-import { EmptyState } from './EmptyState';
-import type { RecentDecksListProps } from './types';
-import { Loader2 } from 'lucide-react';
+import { useDecks } from "@/components/hooks/useDecks";
+import { DeckCard } from "./DeckCard";
+import { EmptyState } from "./EmptyState";
+import type { RecentDecksListProps } from "./types";
+import { Loader2 } from "lucide-react";
 
-export function RecentDecksList({
-  limit = 6,
-  sort = 'updatedAt',
-  order = 'desc',
-}: RecentDecksListProps) {
+export function RecentDecksList({ limit = 6, sort = "updatedAt", order = "desc" }: RecentDecksListProps) {
   const { data, isLoading, error } = useDecks({
     limit,
     offset: 0,
@@ -49,10 +45,7 @@ export function RecentDecksList({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Ostatnie talie</h2>
-        <a
-          href="/decks"
-          className="text-sm text-primary hover:underline font-medium"
-        >
+        <a href="/decks" className="text-sm text-primary hover:underline font-medium">
           Zobacz wszystkie →
         </a>
       </div>

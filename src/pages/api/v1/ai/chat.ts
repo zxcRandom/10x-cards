@@ -114,7 +114,7 @@ const rateLimiterHooks: RateLimiterHooks = {
     const result = await rateLimitService.checkAIRateLimit(key);
     return {
       allowed: result.allowed,
-      retryAfterMs: result.allowed ? undefined : result.resetInMs ?? 60_000,
+      retryAfterMs: result.allowed ? undefined : (result.resetInMs ?? 60_000),
     };
   },
   async consume(key: string) {
@@ -415,9 +415,7 @@ function mapOpenRouterError(error: unknown): {
   if (error instanceof ThrottledError) {
     return {
       status: 429,
-      headers: error.retryAfterMs
-        ? { "Retry-After": Math.ceil(error.retryAfterMs / 1000).toString() }
-        : undefined,
+      headers: error.retryAfterMs ? { "Retry-After": Math.ceil(error.retryAfterMs / 1000).toString() } : undefined,
       body: {
         error: {
           code: "TOO_MANY_REQUESTS",
@@ -486,9 +484,7 @@ function mapOpenRouterError(error: unknown): {
   };
 }
 
-function validationError(
-  issues: z.ZodIssue[]
-): Response {
+function validationError(issues: z.ZodIssue[]): Response {
   return jsonResponse(
     {
       error: {

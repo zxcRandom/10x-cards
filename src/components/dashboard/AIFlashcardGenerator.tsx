@@ -5,17 +5,17 @@
  * Handles text input, validation, generation, and cancellation.
  */
 
-import { useState, useRef } from 'react';
-import type { FormEvent, ChangeEvent } from 'react';
-import { useAIGeneration } from '@/components/hooks/useAIGeneration';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, Sparkles, X } from 'lucide-react';
-import { toast } from 'sonner';
-import type { AIGeneratorFormVM, AIGeneratorFormErrors } from './types';
+import { useState, useRef } from "react";
+import type { FormEvent, ChangeEvent } from "react";
+import { useAIGeneration } from "@/components/hooks/useAIGeneration";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Sparkles, X } from "lucide-react";
+import { toast } from "sonner";
+import type { AIGeneratorFormVM, AIGeneratorFormErrors } from "./types";
 
 const MIN_TEXT_LENGTH = 1;
 const MAX_TEXT_LENGTH = 20000;
@@ -28,8 +28,8 @@ export function AIFlashcardGenerator() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [form, setForm] = useState<AIGeneratorFormVM>({
-    inputText: '',
-    deckName: '',
+    inputText: "",
+    deckName: "",
     maxCards: DEFAULT_MAX_CARDS,
   });
 
@@ -41,14 +41,14 @@ export function AIFlashcardGenerator() {
     // Validate inputText
     const trimmedText = form.inputText.trim();
     if (!trimmedText) {
-      newErrors.inputText = 'Tekst jest wymagany';
+      newErrors.inputText = "Tekst jest wymagany";
     } else if (trimmedText.length < MIN_TEXT_LENGTH || trimmedText.length > MAX_TEXT_LENGTH) {
       newErrors.inputText = `Tekst musi mieć od ${MIN_TEXT_LENGTH} do ${MAX_TEXT_LENGTH} znaków`;
     }
 
     // Validate deckName (optional, but if provided must not be empty)
     if (form.deckName && form.deckName.trim().length === 0) {
-      newErrors.deckName = 'Nazwa talii nie może być pusta';
+      newErrors.deckName = "Nazwa talii nie może być pusta";
     }
 
     // Validate maxCards
@@ -81,23 +81,21 @@ export function AIFlashcardGenerator() {
     if (result) {
       // Success - redirect to review page
       const cardsCount = result.cards.length;
-      toast.success(
-        `Wygenerowano ${cardsCount} ${cardsCount === 1 ? 'fiszkę' : 'fiszek'}. Przejdź do recenzji.`
-      );
+      toast.success(`Wygenerowano ${cardsCount} ${cardsCount === 1 ? "fiszkę" : "fiszek"}. Przejdź do recenzji.`);
 
       // Redirect to review page for user to review generated cards
       window.location.href = `/generate/review?deckId=${result.deck.id}`;
-      
+
       // Don't reset form - user might want to go back
     }
   };
 
   const handleCancel = () => {
     cancel();
-    toast('Generowanie anulowane', {
-      description: 'Możesz edytować tekst i spróbować ponownie.',
+    toast("Generowanie anulowane", {
+      description: "Możesz edytować tekst i spróbować ponownie.",
       action: {
-        label: 'Spróbuj ponownie',
+        label: "Spróbuj ponownie",
         onClick: () => {
           if (textareaRef.current) {
             textareaRef.current.focus();
@@ -122,16 +120,16 @@ export function AIFlashcardGenerator() {
   };
 
   const handleMaxCardsChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
+    const value = e.target.value === "" ? undefined : parseInt(e.target.value, 10);
     setForm({ ...form, maxCards: value });
     if (errors.maxCards) {
       setErrors({ ...errors, maxCards: undefined });
     }
   };
 
-  const isLoading = state === 'loading';
+  const isLoading = state === "loading";
   const charCount = form.inputText.length;
-  const charCountColor = charCount > MAX_TEXT_LENGTH ? 'text-destructive' : 'text-muted-foreground';
+  const charCountColor = charCount > MAX_TEXT_LENGTH ? "text-destructive" : "text-muted-foreground";
 
   return (
     <Card>
@@ -140,9 +138,7 @@ export function AIFlashcardGenerator() {
           <Sparkles className="w-5 h-5" />
           Generuj fiszki AI
         </CardTitle>
-        <CardDescription>
-          Wklej tekst, a AI automatycznie utworzy dla Ciebie fiszki
-        </CardDescription>
+        <CardDescription>Wklej tekst, a AI automatycznie utworzy dla Ciebie fiszki</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -161,7 +157,7 @@ export function AIFlashcardGenerator() {
               disabled={isLoading}
               className="min-h-[200px] resize-y"
               aria-invalid={!!errors.inputText}
-              aria-describedby={errors.inputText ? 'input-text-error' : 'input-text-hint'}
+              aria-describedby={errors.inputText ? "input-text-error" : "input-text-hint"}
             />
             <div className="flex items-center justify-between text-xs">
               <span id="input-text-hint" className="text-muted-foreground">
@@ -178,23 +174,23 @@ export function AIFlashcardGenerator() {
             )}
             {/* Privacy Notice */}
             <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
-              <svg 
-                className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-4 h-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
               <p className="text-xs text-amber-900 dark:text-amber-100">
-                Treść jest wysyłana do dostawcy AI w celu przetworzenia.{' '}
-                <a 
-                  href="/privacy-policy" 
+                Treść jest wysyłana do dostawcy AI w celu przetworzenia.{" "}
+                <a
+                  href="/privacy-policy"
                   className="underline hover:no-underline font-medium"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -216,7 +212,7 @@ export function AIFlashcardGenerator() {
               onChange={handleDeckNameChange}
               disabled={isLoading}
               aria-invalid={!!errors.deckName}
-              aria-describedby={errors.deckName ? 'deck-name-error' : undefined}
+              aria-describedby={errors.deckName ? "deck-name-error" : undefined}
             />
             {errors.deckName && (
               <p id="deck-name-error" className="text-xs text-destructive">
@@ -233,11 +229,11 @@ export function AIFlashcardGenerator() {
               type="number"
               min={MIN_CARDS}
               max={MAX_CARDS}
-              value={form.maxCards ?? ''}
+              value={form.maxCards ?? ""}
               onChange={handleMaxCardsChange}
               disabled={isLoading}
               aria-invalid={!!errors.maxCards}
-              aria-describedby={errors.maxCards ? 'max-cards-error' : 'max-cards-hint'}
+              aria-describedby={errors.maxCards ? "max-cards-error" : "max-cards-hint"}
             />
             <p id="max-cards-hint" className="text-xs text-muted-foreground">
               Od {MIN_CARDS} do {MAX_CARDS} kart (domyślnie {DEFAULT_MAX_CARDS})
@@ -259,12 +255,7 @@ export function AIFlashcardGenerator() {
           {/* Submit/Cancel Button */}
           <div className="flex gap-2">
             {isLoading ? (
-              <Button
-                type="button"
-                onClick={handleCancel}
-                variant="outline"
-                className="w-full"
-              >
+              <Button type="button" onClick={handleCancel} variant="outline" className="w-full">
                 <X className="w-4 h-4 mr-2" />
                 Anuluj
               </Button>

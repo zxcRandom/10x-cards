@@ -9,7 +9,7 @@ stateDiagram-v2
         [*] --> PrzegladanieStronPublicznych
         PrzegladanieStronPublicznych --> Logowanie: Klika "Zaloguj"
         PrzegladanieStronPublicznych --> Rejestracja: Klika "Zarejestruj"
-        
+
         note right of PrzegladanieStronPublicznych
             Użytkownik na stronie głównej
             lub innej stronie publicznej.
@@ -48,7 +48,7 @@ stateDiagram-v2
         PanelAplikacji --> UstawieniaKonta: Klika "Ustawienia"
         PanelAplikacji --> Niezalogowany: Klika "Wyloguj"
     }
-    
+
     state UstawieniaKonta {
         [*] --> ZmianaHasla
         ZmianaHasla --> PanelAplikacji: Hasło zmienione

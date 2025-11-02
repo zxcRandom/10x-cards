@@ -3,9 +3,11 @@
 ## 1. Przegląd punktu końcowego
 
 ### Cel
+
 Endpoint służy do aktualizacji profilu zalogowanego użytkownika. Umożliwia modyfikację zgody na przetwarzanie danych przez AI (`privacyConsent`) oraz przywracanie soft-deleted profilu (`restore`). Jest to częściowa aktualizacja (PATCH), więc nie wszystkie pola muszą być przesłane.
 
 ### Charakterystyka
+
 - **Metoda HTTP**: PATCH
 - **Ścieżka**: `/api/v1/profile`
 - **Uwierzytelnianie**: Wymagane (Supabase JWT w nagłówku Authorization)
@@ -33,9 +35,11 @@ Endpoint służy do aktualizacji profilu zalogowanego użytkownika. Umożliwia m
 ## 2. Szczegóły żądania
 
 ### Metoda HTTP
+
 `PATCH`
 
 ### Struktura URL
+
 ```
 /api/v1/profile
 ```
@@ -43,15 +47,19 @@ Endpoint służy do aktualizacji profilu zalogowanego użytkownika. Umożliwia m
 ### Parametry
 
 #### Parametry ścieżki (path parameters)
+
 Brak
 
 #### Parametry zapytania (query parameters)
+
 Brak
 
 #### Request Body
+
 **Content-Type**: `application/json`
 
 **Schema**:
+
 ```typescript
 {
   "privacyConsent"?: boolean,  // Opcjonalne: zgoda na przetwarzanie przez AI
@@ -60,12 +68,14 @@ Brak
 ```
 
 **Constraints**:
+
 - Co najmniej jedno pole musi być przesłane
 - `privacyConsent`: musi być boolean (true/false)
 - `restore`: musi być boolean; tylko `true` jest dozwolone (false nie ma sensu)
 - Nie można przesłać innych pól (id, createdAt, updatedAt, deletedAt)
 
 ### Nagłówki wymagane
+
 ```
 Authorization: Bearer <supabase_jwt_token>
 Content-Type: application/json
@@ -74,6 +84,7 @@ Content-Type: application/json
 ### Przykłady żądań
 
 #### Przykład 1: Akceptacja zgody na prywatność
+
 ```http
 PATCH /api/v1/profile HTTP/1.1
 Host: api.example.com
@@ -86,6 +97,7 @@ Content-Type: application/json
 ```
 
 #### Przykład 2: Przywrócenie usuniętego konta
+
 ```http
 PATCH /api/v1/profile HTTP/1.1
 Host: api.example.com
@@ -98,6 +110,7 @@ Content-Type: application/json
 ```
 
 #### Przykład 3: Kombinacja operacji
+
 ```http
 PATCH /api/v1/profile HTTP/1.1
 Host: api.example.com
@@ -115,6 +128,7 @@ Content-Type: application/json
 ### DTOs (Data Transfer Objects)
 
 #### UpdateProfileCommand
+
 ```typescript
 // Już zdefiniowany w src/types.ts
 export interface UpdateProfileCommand {
@@ -124,6 +138,7 @@ export interface UpdateProfileCommand {
 ```
 
 #### ProfileDTO
+
 ```typescript
 // Już zdefiniowany w src/types.ts
 export interface ProfileDTO {
@@ -138,38 +153,36 @@ export interface ProfileDTO {
 ### Zod Schemas (walidacja)
 
 #### UpdateProfileSchema
+
 ```typescript
 // Do utworzenia w src/pages/api/v1/profile.ts lub osobnym pliku schemas
-import { z } from 'zod';
+import { z } from "zod";
 
-export const UpdateProfileSchema = z.object({
-  privacyConsent: z.boolean().optional(),
-  restore: z.boolean().optional(),
-})
-  .refine(
-    (data) => data.privacyConsent !== undefined || data.restore !== undefined,
-    {
-      message: 'At least one field (privacyConsent or restore) must be provided',
-    }
-  )
-  .refine(
-    (data) => data.restore === undefined || data.restore === true,
-    {
-      message: 'restore field can only be true',
-      path: ['restore'],
-    }
-  );
+export const UpdateProfileSchema = z
+  .object({
+    privacyConsent: z.boolean().optional(),
+    restore: z.boolean().optional(),
+  })
+  .refine((data) => data.privacyConsent !== undefined || data.restore !== undefined, {
+    message: "At least one field (privacyConsent or restore) must be provided",
+  })
+  .refine((data) => data.restore === undefined || data.restore === true, {
+    message: "restore field can only be true",
+    path: ["restore"],
+  });
 ```
 
 ### Typy pomocnicze
 
 #### DbProfile
+
 ```typescript
 // Już zdefiniowany w src/types.ts
-export type DbProfile = Tables<'profiles'>;
+export type DbProfile = Tables<"profiles">;
 ```
 
 #### UpdateProfileData
+
 ```typescript
 // Wewnętrzny typ dla update query
 interface UpdateProfileData {
@@ -182,29 +195,31 @@ interface UpdateProfileData {
 ### Typy błędów
 
 #### ValidationErrorResponse
+
 ```typescript
 // Do dodania w src/types.ts
 interface ValidationErrorResponse {
   error: {
-    code: 'VALIDATION_ERROR';
+    code: "VALIDATION_ERROR";
     message: string;
     errors: Array<{
       field: string;
       message: string;
     }>;
-  }
+  };
 }
 ```
 
 #### ConflictErrorResponse
+
 ```typescript
 // Do dodania w src/types.ts
 interface ConflictErrorResponse {
   error: {
-    code: 'CONFLICT';
+    code: "CONFLICT";
     message: string;
     details?: string;
-  }
+  };
 }
 ```
 
@@ -213,9 +228,11 @@ interface ConflictErrorResponse {
 ### Sukces (200 OK)
 
 #### Status HTTP
+
 `200 OK`
 
 #### Response Body
+
 Zaktualizowany profil w formacie ProfileDTO:
 
 ```json
@@ -229,6 +246,7 @@ Zaktualizowany profil w formacie ProfileDTO:
 ```
 
 #### Nagłówki odpowiedzi
+
 ```
 Content-Type: application/json
 Cache-Control: no-cache, no-store, must-revalidate
@@ -237,9 +255,11 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Błędy
 
 #### 400 Bad Request - Nieprawidłowa walidacja
+
 **Przyczyna**: Błędne dane wejściowe (np. niepoprawny typ, brak pól)
 
 **Scenariusz 1**: Brak pól do aktualizacji
+
 ```json
 {
   "error": {
@@ -256,6 +276,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 **Scenariusz 2**: Nieprawidłowy typ danych
+
 ```json
 {
   "error": {
@@ -272,6 +293,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 **Scenariusz 3**: `restore: false` (niedozwolone)
+
 ```json
 {
   "error": {
@@ -288,6 +310,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 **Scenariusz 4**: Nieprawidłowy JSON
+
 ```json
 {
   "error": {
@@ -298,6 +321,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### 401 Unauthorized
+
 **Przyczyna**: Brak tokenu JWT, token wygasły lub nieprawidłowy
 
 ```json
@@ -310,6 +334,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### 404 Not Found
+
 **Przyczyna**: Profil użytkownika nie istnieje w bazie danych
 
 ```json
@@ -322,9 +347,11 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### 409 Conflict
+
 **Przyczyna**: Konflikt stanu - np. próba restore profilu który nie jest usunięty
 
 **Scenariusz**: Restore na aktywnym profilu
+
 ```json
 {
   "error": {
@@ -336,9 +363,11 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### 422 Unprocessable Entity
+
 **Przyczyna**: Dane są poprawne syntaktycznie, ale niepoprawne semantycznie
 
 **Scenariusz**: Próba zmiany `privacyConsent` na usuniętym profilu (opcjonalnie, zależnie od logiki biznesowej)
+
 ```json
 {
   "error": {
@@ -350,6 +379,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### 500 Internal Server Error
+
 **Przyczyna**: Błąd połączenia z bazą danych lub nieobsłużony wyjątek
 
 ```json
@@ -364,6 +394,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ## 5. Przepływ danych
 
 ### Diagram przepływu
+
 ```
 ┌─────────────┐
 │   Klient    │
@@ -435,18 +466,23 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Szczegółowy opis przepływu
 
 #### Krok 1: Weryfikacja autentykacji (Middleware)
+
 Identyczny jak w GET /api/v1/profile:
+
 - Middleware pobiera token JWT z nagłówka `Authorization`
 - Tworzy klienta Supabase: `context.locals.supabase`
 - Wywołuje `supabase.auth.getUser()` aby zweryfikować użytkownika
 
 #### Krok 2: Parsowanie i walidacja (Handler)
+
 1. **Parse request body**:
+
    ```typescript
    const body = await request.json();
    ```
 
 2. **Walidacja z Zod**:
+
    ```typescript
    const result = UpdateProfileSchema.safeParse(body);
    if (!result.success) {
@@ -456,98 +492,111 @@ Identyczny jak w GET /api/v1/profile:
 
 3. **Sprawdzenie autentykacji**:
    ```typescript
-   const { data: { user } } = await locals.supabase.auth.getUser();
+   const {
+     data: { user },
+   } = await locals.supabase.auth.getUser();
    if (!user) return 401;
    ```
 
 #### Krok 3: Logika biznesowa (Service)
+
 1. **Pobranie obecnego profilu**:
+
    ```typescript
    const currentProfile = await getProfile(userId, supabase);
    if (!currentProfile) return null; // → 404
    ```
 
 2. **Walidacja stanu (conflict checks)**:
+
    ```typescript
    // Jeśli restore=true, sprawdź czy profil jest usunięty
    if (command.restore && !currentProfile.deletedAt) {
-     throw new ConflictError('Profile is already active');
+     throw new ConflictError("Profile is already active");
    }
-   
+
    // Jeśli zmiana privacyConsent, sprawdź czy profil nie jest usunięty
    // (opcjonalna reguła biznesowa)
    if (command.privacyConsent !== undefined && currentProfile.deletedAt) {
-     throw new UnprocessableError('Cannot update deleted profile');
+     throw new UnprocessableError("Cannot update deleted profile");
    }
    ```
 
 3. **Przygotowanie danych do update**:
+
    ```typescript
    const updateData: UpdateProfileData = {};
-   
+
    if (command.privacyConsent !== undefined) {
      updateData.privacy_consent = command.privacyConsent;
    }
-   
+
    if (command.restore === true) {
      updateData.deleted_at = null;
    }
    ```
 
 #### Krok 4: Update w bazie danych
+
 ```typescript
-const { data, error } = await supabase
-  .from('profiles')
-  .update(updateData)
-  .eq('id', userId)
-  .select()
-  .single();
+const { data, error } = await supabase.from("profiles").update(updateData).eq("id", userId).select().single();
 ```
 
 **Uwaga**: Trigger `update_updated_at_column` automatycznie ustawi `updated_at = NOW()`.
 
 #### Krok 5: Mapowanie i odpowiedź
+
 - Konwertuje `DbProfile` na `ProfileDTO` (snake_case → camelCase)
 - Zwraca JSON response z kodem 200
 
 ### Scenariusze brzegowe
 
 #### Scenariusz 1: Restore + privacyConsent w jednym request
+
 ```json
 {
   "restore": true,
   "privacyConsent": true
 }
 ```
+
 **Logika**:
+
 1. Sprawdź czy profil jest usunięty (deletedAt !== null)
 2. Jeśli tak: ustaw `deleted_at = null` i `privacy_consent = true`
 3. Jeśli nie: zwróć 409 Conflict
 
 #### Scenariusz 2: Aktualizacja tego samego stanu (idempotentność)
+
 ```json
 {
   "privacyConsent": true
 }
 ```
+
 Gdzie `privacyConsent` już jest `true`.
 
 **Logika**: Aktualizacja przejdzie (200 OK), ale wartości się nie zmienią. To jest poprawne zachowanie (idempotentność PATCH).
 
 #### Scenariusz 3: Pusty body
+
 ```json
 {}
 ```
+
 **Logika**: Zwróć 400 Bad Request z błędem walidacji (brak pól do aktualizacji).
 
 ## 6. Względy bezpieczeństwa
 
 ### Uwierzytelnianie (Authentication)
+
 Identyczne jak w GET /api/v1/profile:
+
 - Supabase JWT w nagłówku Authorization
 - Weryfikacja przez `supabase.auth.getUser()`
 
 ### Autoryzacja (Authorization)
+
 - Użytkownik może aktualizować **tylko swój własny profil**
 - User ID pochodzi z tokenu JWT (nigdy z parametrów!)
 - RLS policies wymuszają `auth.uid() = id`
@@ -555,6 +604,7 @@ Identyczne jak w GET /api/v1/profile:
 ### Row Level Security (RLS)
 
 #### Wymagane polityki RLS
+
 ```sql
 -- Polityka UPDATE: użytkownik może aktualizować tylko swój profil
 CREATE POLICY "Users can update own profile"
@@ -568,14 +618,17 @@ CREATE POLICY "Users can update own profile"
 ### Walidacja danych wejściowych
 
 #### Walidacja typów (Zod)
+
 ```typescript
 UpdateProfileSchema.safeParse(body);
 ```
+
 - Chroni przed nieprawidłowymi typami (string zamiast boolean)
 - Wymusza obecność co najmniej jednego pola
 - Blokuje `restore: false`
 
 #### Walidacja logiki biznesowej
+
 ```typescript
 // Nie można restore profilu który nie jest usunięty
 if (restore && !currentProfile.deletedAt) {
@@ -589,7 +642,9 @@ if (privacyConsent !== undefined && currentProfile.deletedAt && !restore) {
 ```
 
 #### Whitelist pól
+
 Tylko dozwolone pola mogą być aktualizowane:
+
 - `privacyConsent` → `privacy_consent`
 - `restore` → `deleted_at = null`
 
@@ -598,18 +653,22 @@ Inne pola (`id`, `created_at`, `updated_at`) są **ignorowane lub zabronione**.
 ### Ochrona przed atakami
 
 #### SQL Injection
+
 - **Chronione**: Supabase client używa parametryzowanych zapytań
 - Wszystkie wartości są escapowane automatycznie
 
 #### Mass Assignment
+
 - **Chronione**: Whitelist pól w Zod schema
 - Tylko `privacyConsent` i `restore` są przetwarzane
 - Próba przesłania `id`, `createdAt` etc. jest ignorowana (lub zwraca błąd walidacji)
 
 #### Race Conditions
+
 **Problem**: Równoczesne aktualizacje tego samego profilu mogą prowadzić do konfliktów.
 
 **Rozwiązanie**:
+
 1. **Optymistic locking** (opcjonalnie): Dodaj pole `version` do tabeli
 2. **Database constraints**: CHECK constraints w PostgreSQL
 3. **Read-Update-Write pattern**: Czytamy aktualny stan przed update
@@ -617,29 +676,34 @@ Inne pola (`id`, `created_at`, `updated_at`) są **ignorowane lub zabronione**.
 **W MVP**: Najprostsze rozwiązanie to polegać na atomowości UPDATE query w PostgreSQL.
 
 #### CSRF (Cross-Site Request Forgery)
+
 - **Chronione**: JWT token w nagłówku (nie w cookie)
 - Same-Origin Policy przeglądarek
 
 ### Logowanie (audyt)
 
 #### Co logować
+
 - **INFO**: Pomyślne aktualizacje (opcjonalnie, dla audytu)
+
   ```typescript
-  console.info('[PATCH /api/v1/profile]', {
+  console.info("[PATCH /api/v1/profile]", {
     userId,
     changes: { privacyConsent, restore },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
   ```
 
 - **WARN**: Próby restore już aktywnego profilu
+
   ```typescript
-  console.warn('[PATCH /api/v1/profile] Restore attempt on active profile:', userId);
+  console.warn("[PATCH /api/v1/profile] Restore attempt on active profile:", userId);
   ```
 
 - **ERROR**: Wszystkie błędy 500, 404 (profile not found)
 
 #### Czego NIE logować
+
 - Zawartości tokenu JWT
 - Kompletnych danych profilu (GDPR)
 
@@ -647,69 +711,78 @@ Inne pola (`id`, `created_at`, `updated_at`) są **ignorowane lub zabronione**.
 
 ### Macierz błędów
 
-| Scenariusz | Kod HTTP | Kod błędu | Komunikat | Akcja |
-|------------|----------|-----------|-----------|-------|
-| Brak tokenu JWT | 401 | UNAUTHORIZED | "Authentication required" | Zwróć 401 |
-| Token nieprawidłowy | 401 | UNAUTHORIZED | "Invalid or expired token" | Zwróć 401 |
-| Pusty body | 400 | VALIDATION_ERROR | "At least one field must be provided" | Zwróć 400 z details |
-| Nieprawidłowy typ | 400 | VALIDATION_ERROR | "Expected boolean, received..." | Zwróć 400 z details |
-| `restore: false` | 400 | VALIDATION_ERROR | "restore can only be true" | Zwróć 400 z details |
-| Nieprawidłowy JSON | 400 | BAD_REQUEST | "Invalid JSON in request body" | Zwróć 400 |
-| Profil nie istnieje | 404 | PROFILE_NOT_FOUND | "User profile not found" | Zwróć 404, loguj |
-| Restore aktywnego profilu | 409 | CONFLICT | "Profile is already active" | Zwróć 409 |
-| Update usuniętego profilu | 422 | UNPROCESSABLE_ENTITY | "Cannot update deleted profile" | Zwróć 422 |
-| Błąd połączenia z DB | 500 | DATABASE_ERROR | "Database error" | Zwróć 500, loguj |
-| Nieobsłużony wyjątek | 500 | INTERNAL_SERVER_ERROR | "Unexpected error" | Zwróć 500, loguj stack |
+| Scenariusz                | Kod HTTP | Kod błędu             | Komunikat                             | Akcja                  |
+| ------------------------- | -------- | --------------------- | ------------------------------------- | ---------------------- |
+| Brak tokenu JWT           | 401      | UNAUTHORIZED          | "Authentication required"             | Zwróć 401              |
+| Token nieprawidłowy       | 401      | UNAUTHORIZED          | "Invalid or expired token"            | Zwróć 401              |
+| Pusty body                | 400      | VALIDATION_ERROR      | "At least one field must be provided" | Zwróć 400 z details    |
+| Nieprawidłowy typ         | 400      | VALIDATION_ERROR      | "Expected boolean, received..."       | Zwróć 400 z details    |
+| `restore: false`          | 400      | VALIDATION_ERROR      | "restore can only be true"            | Zwróć 400 z details    |
+| Nieprawidłowy JSON        | 400      | BAD_REQUEST           | "Invalid JSON in request body"        | Zwróć 400              |
+| Profil nie istnieje       | 404      | PROFILE_NOT_FOUND     | "User profile not found"              | Zwróć 404, loguj       |
+| Restore aktywnego profilu | 409      | CONFLICT              | "Profile is already active"           | Zwróć 409              |
+| Update usuniętego profilu | 422      | UNPROCESSABLE_ENTITY  | "Cannot update deleted profile"       | Zwróć 422              |
+| Błąd połączenia z DB      | 500      | DATABASE_ERROR        | "Database error"                      | Zwróć 500, loguj       |
+| Nieobsłużony wyjątek      | 500      | INTERNAL_SERVER_ERROR | "Unexpected error"                    | Zwróć 500, loguj stack |
 
 ### Strategia obsługi błędów
 
 #### Walidacja (Zod)
+
 ```typescript
 const result = UpdateProfileSchema.safeParse(body);
 
 if (!result.success) {
-  const errors = result.error.errors.map(err => ({
-    field: err.path.join('.') || '_root',
-    message: err.message
+  const errors = result.error.errors.map((err) => ({
+    field: err.path.join(".") || "_root",
+    message: err.message,
   }));
 
-  return new Response(JSON.stringify({
-    error: {
-      code: 'VALIDATION_ERROR',
-      message: 'Validation failed',
-      errors
-    }
-  }), { status: 400 });
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "Validation failed",
+        errors,
+      },
+    }),
+    { status: 400 }
+  );
 }
 ```
 
 #### Logika biznesowa (Service)
+
 ```typescript
 // Custom error classes
 class ConflictError extends Error {
-  constructor(message: string, public details?: string) {
+  constructor(
+    message: string,
+    public details?: string
+  ) {
     super(message);
-    this.name = 'ConflictError';
+    this.name = "ConflictError";
   }
 }
 
 class UnprocessableError extends Error {
-  constructor(message: string, public details?: string) {
+  constructor(
+    message: string,
+    public details?: string
+  ) {
     super(message);
-    this.name = 'UnprocessableError';
+    this.name = "UnprocessableError";
   }
 }
 
 // W service
 if (command.restore && !currentProfile.deletedAt) {
-  throw new ConflictError(
-    'Cannot restore profile that is not deleted',
-    'Profile is already active'
-  );
+  throw new ConflictError("Cannot restore profile that is not deleted", "Profile is already active");
 }
 ```
 
 #### Handler (catch block)
+
 ```typescript
 catch (error) {
   if (error instanceof ConflictError) {
@@ -746,11 +819,12 @@ catch (error) {
 ### Formatowanie błędów walidacji
 
 #### Zod error formatting
+
 ```typescript
 function formatZodErrors(zodError: ZodError) {
-  return zodError.errors.map(err => ({
-    field: err.path.length > 0 ? err.path.join('.') : '_root',
-    message: err.message
+  return zodError.errors.map((err) => ({
+    field: err.path.length > 0 ? err.path.join(".") : "_root",
+    message: err.message,
   }));
 }
 
@@ -766,14 +840,17 @@ if (!result.success) {
 ### Optymalizacje zapytań
 
 #### Pattern: Read-Update-Return
+
 Aktualne podejście wymaga dwóch zapytań:
+
 1. SELECT (sprawdzenie stanu) - opcjonalne, ale zalecane
 2. UPDATE ... RETURNING (aktualizacja + zwrócenie)
 
 **Optymalizacja**: Można połączyć w jedno zapytanie UPDATE z walidacją w SQL:
+
 ```sql
 UPDATE public.profiles
-SET 
+SET
   privacy_consent = COALESCE($2, privacy_consent),
   deleted_at = CASE WHEN $3 THEN NULL ELSE deleted_at END
 WHERE id = $1
@@ -789,6 +866,7 @@ RETURNING *;
 ### Transaction handling
 
 #### Kiedy używać transakcji?
+
 - **Nie potrzeba dla prostych UPDATE**: Single UPDATE jest atomowy
 - **Potrzebne dla złożonych operacji**: Np. update profilu + insert do audyt log
 
@@ -797,15 +875,18 @@ RETURNING *;
 ### Caching
 
 #### Strategia cachowania
+
 **Nie cachować odpowiedzi PATCH** - to operacja mutująca.
 
 **Cache invalidation**: Po update profilu:
+
 - Invalidate cache dla GET /api/v1/profile (jeśli był cachowany)
 - W przyszłości: użyć Redis/Upstash dla distributed cache
 
 ### Wydajność zapytań
 
 #### Index usage
+
 - UPDATE po PK (`id`) wykorzystuje primary key index → bardzo szybkie (O(log n))
 - Trigger `update_updated_at_column` działa w ramach tego samego zapytania → minimalny overhead
 
@@ -814,6 +895,7 @@ RETURNING *;
 ### Rate limiting
 
 **Rekomendowane limity**:
+
 - **Per user**: 10 req/min (update profilu jest rzadki)
 - **Per IP**: 50 req/min
 
@@ -822,37 +904,42 @@ RETURNING *;
 ### Potencjalne wąskie gardła
 
 #### 1. Walidacja stanu (SELECT przed UPDATE)
+
 **Problem**: Dodatkowe zapytanie SELECT
 
 **Rozwiązanie**:
+
 - Cache rezultatu SELECT w pamięci (w ramach jednego request)
 - Lub użyj SQL CASE + constraints zamiast SELECT
 
 #### 2. Trigger updated_at
+
 **Problem**: Minimalny overhead
 
 **Rozwiązanie**: Nie wymaga optymalizacji (trigger jest bardzo szybki)
 
 #### 3. Równoczesne aktualizacje
+
 **Problem**: Dwa użytkowników aktualizuje ten sam profil jednocześnie (mało prawdopodobne)
 
 **Rozwiązacja**: PostgreSQL's MVCC (Multi-Version Concurrency Control) automatycznie zarządza
 
 ### Metryki wydajności do monitorowania
 
-| Metryka | Docelowa wartość | Alert przy |
-|---------|------------------|------------|
-| Response time (p50) | < 150ms | > 500ms |
-| Response time (p95) | < 300ms | > 1000ms |
-| Database query time | < 20ms | > 100ms |
-| Error rate | < 0.1% | > 2% |
-| Validation errors | < 5% | > 20% |
+| Metryka             | Docelowa wartość | Alert przy |
+| ------------------- | ---------------- | ---------- |
+| Response time (p50) | < 150ms          | > 500ms    |
+| Response time (p95) | < 300ms          | > 1000ms   |
+| Database query time | < 20ms           | > 100ms    |
+| Error rate          | < 0.1%           | > 2%       |
+| Validation errors   | < 5%             | > 20%      |
 
 ## 9. Etapy wdrożenia
 
 ### Faza 1: Przygotowanie (jeśli nie zrobione w GET endpoint)
 
 #### 1.1. Dodanie polityk RLS
+
 **Plik**: `supabase/migrations/[timestamp]_add_profiles_rls_policies.sql`
 
 ```sql
@@ -864,6 +951,7 @@ CREATE POLICY "Users can update own profile"
 ```
 
 Uruchom migrację:
+
 ```bash
 npx supabase db push
 ```
@@ -871,24 +959,31 @@ npx supabase db push
 ### Faza 2: Rozszerzenie ProfileService
 
 #### 2.1. Dodanie metody updateProfile
+
 **Plik**: `src/lib/services/profile.service.ts`
 
 ```typescript
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { DbProfile, ProfileDTO, UpdateProfileCommand } from '../../../types';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbProfile, ProfileDTO, UpdateProfileCommand } from "../../../types";
 
 // Custom error classes
 export class ConflictError extends Error {
-  constructor(message: string, public details?: string) {
+  constructor(
+    message: string,
+    public details?: string
+  ) {
     super(message);
-    this.name = 'ConflictError';
+    this.name = "ConflictError";
   }
 }
 
 export class UnprocessableError extends Error {
-  constructor(message: string, public details?: string) {
+  constructor(
+    message: string,
+    public details?: string
+  ) {
     super(message);
-    this.name = 'UnprocessableError';
+    this.name = "UnprocessableError";
   }
 }
 
@@ -914,7 +1009,7 @@ export class ProfileService {
     const currentProfile = await this.getProfile(userId, supabase);
 
     if (!currentProfile) {
-      throw new Error('Profile not found');
+      throw new Error("Profile not found");
     }
 
     // Krok 2: Walidacja logiki biznesowej
@@ -932,19 +1027,14 @@ export class ProfileService {
     }
 
     // Krok 4: Wykonaj update
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updateData)
-      .eq('id', userId)
-      .select()
-      .single();
+    const { data, error } = await supabase.from("profiles").update(updateData).eq("id", userId).select().single();
 
     if (error) {
       throw new Error(`Database error: ${error.message}`);
     }
 
     if (!data) {
-      throw new Error('Update failed: no data returned');
+      throw new Error("Update failed: no data returned");
     }
 
     // Krok 5: Zwróć zmapowany DTO
@@ -955,27 +1045,20 @@ export class ProfileService {
    * Waliduje command względem obecnego stanu profilu
    * @throws ConflictError, UnprocessableError
    */
-  private static validateUpdateCommand(
-    command: UpdateProfileCommand,
-    currentProfile: ProfileDTO
-  ): void {
+  private static validateUpdateCommand(command: UpdateProfileCommand, currentProfile: ProfileDTO): void {
     // Walidacja 1: Restore tylko dla usuniętych profili
     if (command.restore === true && currentProfile.deletedAt === null) {
       throw new ConflictError(
-        'Cannot restore profile that is not deleted',
-        'Profile is already active (deletedAt is null)'
+        "Cannot restore profile that is not deleted",
+        "Profile is already active (deletedAt is null)"
       );
     }
 
     // Walidacja 2: Nie można zmieniać privacyConsent na usuniętym profilu
     // (bez równoczesnego restore)
-    if (
-      command.privacyConsent !== undefined &&
-      currentProfile.deletedAt !== null &&
-      command.restore !== true
-    ) {
+    if (command.privacyConsent !== undefined && currentProfile.deletedAt !== null && command.restore !== true) {
       throw new UnprocessableError(
-        'Cannot update privacy consent on deleted profile',
+        "Cannot update privacy consent on deleted profile",
         'Please restore the profile first or include "restore": true in the request'
       );
     }
@@ -986,25 +1069,26 @@ export class ProfileService {
 ```
 
 #### 2.2. Unit tests dla updateProfile
+
 **Plik**: `src/lib/services/profile.service.test.ts`
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest';
-import { ProfileService, ConflictError, UnprocessableError } from './profile.service';
+import { describe, it, expect, vi } from "vitest";
+import { ProfileService, ConflictError, UnprocessableError } from "./profile.service";
 
-describe('ProfileService.updateProfile', () => {
-  it('should update privacyConsent successfully', async () => {
+describe("ProfileService.updateProfile", () => {
+  it("should update privacyConsent successfully", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: {
-                id: '123',
+                id: "123",
                 privacy_consent: true,
                 deleted_at: null,
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z',
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
               },
               error: null,
             })),
@@ -1015,11 +1099,11 @@ describe('ProfileService.updateProfile', () => {
             select: vi.fn(() => ({
               single: vi.fn(() => ({
                 data: {
-                  id: '123',
+                  id: "123",
                   privacy_consent: true,
                   deleted_at: null,
-                  created_at: '2024-01-01T00:00:00Z',
-                  updated_at: '2024-01-01T01:00:00Z',
+                  created_at: "2024-01-01T00:00:00Z",
+                  updated_at: "2024-01-01T01:00:00Z",
                 },
                 error: null,
               })),
@@ -1029,28 +1113,24 @@ describe('ProfileService.updateProfile', () => {
       })),
     };
 
-    const result = await ProfileService.updateProfile(
-      '123',
-      { privacyConsent: true },
-      mockSupabase as any
-    );
+    const result = await ProfileService.updateProfile("123", { privacyConsent: true }, mockSupabase as any);
 
     expect(result.privacyConsent).toBe(true);
-    expect(result.updatedAt).toBe('2024-01-01T01:00:00Z');
+    expect(result.updatedAt).toBe("2024-01-01T01:00:00Z");
   });
 
-  it('should throw ConflictError when trying to restore active profile', async () => {
+  it("should throw ConflictError when trying to restore active profile", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: {
-                id: '123',
+                id: "123",
                 privacy_consent: true,
                 deleted_at: null, // Active profile
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z',
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
               },
               error: null,
             })),
@@ -1059,23 +1139,23 @@ describe('ProfileService.updateProfile', () => {
       })),
     };
 
-    await expect(
-      ProfileService.updateProfile('123', { restore: true }, mockSupabase as any)
-    ).rejects.toThrow(ConflictError);
+    await expect(ProfileService.updateProfile("123", { restore: true }, mockSupabase as any)).rejects.toThrow(
+      ConflictError
+    );
   });
 
-  it('should throw UnprocessableError when updating deleted profile without restore', async () => {
+  it("should throw UnprocessableError when updating deleted profile without restore", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: {
-                id: '123',
+                id: "123",
                 privacy_consent: false,
-                deleted_at: '2024-01-10T00:00:00Z', // Deleted profile
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z',
+                deleted_at: "2024-01-10T00:00:00Z", // Deleted profile
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
               },
               error: null,
             })),
@@ -1086,25 +1166,25 @@ describe('ProfileService.updateProfile', () => {
 
     await expect(
       ProfileService.updateProfile(
-        '123',
+        "123",
         { privacyConsent: true }, // Without restore
         mockSupabase as any
       )
     ).rejects.toThrow(UnprocessableError);
   });
 
-  it('should successfully restore and update privacyConsent together', async () => {
+  it("should successfully restore and update privacyConsent together", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: {
-                id: '123',
+                id: "123",
                 privacy_consent: false,
-                deleted_at: '2024-01-10T00:00:00Z', // Deleted
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z',
+                deleted_at: "2024-01-10T00:00:00Z", // Deleted
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
               },
               error: null,
             })),
@@ -1115,11 +1195,11 @@ describe('ProfileService.updateProfile', () => {
             select: vi.fn(() => ({
               single: vi.fn(() => ({
                 data: {
-                  id: '123',
+                  id: "123",
                   privacy_consent: true,
                   deleted_at: null, // Restored
-                  created_at: '2024-01-01T00:00:00Z',
-                  updated_at: '2024-01-15T00:00:00Z',
+                  created_at: "2024-01-01T00:00:00Z",
+                  updated_at: "2024-01-15T00:00:00Z",
                 },
                 error: null,
               })),
@@ -1130,7 +1210,7 @@ describe('ProfileService.updateProfile', () => {
     };
 
     const result = await ProfileService.updateProfile(
-      '123',
+      "123",
       { restore: true, privacyConsent: true },
       mockSupabase as any
     );
@@ -1144,10 +1224,11 @@ describe('ProfileService.updateProfile', () => {
 ### Faza 3: Implementacja Zod Schema
 
 #### 3.1. Utworzenie validation schemas
+
 **Plik**: `src/lib/validation/profile.schemas.ts` (nowy plik)
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Schema walidacji dla PATCH /api/v1/profile
@@ -1156,30 +1237,24 @@ export const UpdateProfileSchema = z
   .object({
     privacyConsent: z
       .boolean({
-        invalid_type_error: 'privacyConsent must be a boolean',
+        invalid_type_error: "privacyConsent must be a boolean",
       })
       .optional(),
 
     restore: z
       .boolean({
-        invalid_type_error: 'restore must be a boolean',
+        invalid_type_error: "restore must be a boolean",
       })
       .optional(),
   })
   .strict() // Nie pozwól na dodatkowe pola
-  .refine(
-    (data) => data.privacyConsent !== undefined || data.restore !== undefined,
-    {
-      message: 'At least one field (privacyConsent or restore) must be provided',
-    }
-  )
-  .refine(
-    (data) => data.restore === undefined || data.restore === true,
-    {
-      message: 'restore field can only be true (or omitted)',
-      path: ['restore'],
-    }
-  );
+  .refine((data) => data.privacyConsent !== undefined || data.restore !== undefined, {
+    message: "At least one field (privacyConsent or restore) must be provided",
+  })
+  .refine((data) => data.restore === undefined || data.restore === true, {
+    message: "restore field can only be true (or omitted)",
+    path: ["restore"],
+  });
 
 /**
  * Type inferred from schema
@@ -1188,10 +1263,11 @@ export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
 ```
 
 #### 3.2. Helper do formatowania błędów Zod
+
 **Plik**: `src/lib/utils/zod-errors.ts` (nowy plik)
 
 ```typescript
-import type { ZodError } from 'zod';
+import type { ZodError } from "zod";
 
 export interface ValidationError {
   field: string;
@@ -1203,7 +1279,7 @@ export interface ValidationError {
  */
 export function formatZodErrors(zodError: ZodError): ValidationError[] {
   return zodError.errors.map((err) => ({
-    field: err.path.length > 0 ? err.path.join('.') : '_root',
+    field: err.path.length > 0 ? err.path.join(".") : "_root",
     message: err.message,
   }));
 }
@@ -1212,15 +1288,16 @@ export function formatZodErrors(zodError: ZodError): ValidationError[] {
 ### Faza 4: Implementacja PATCH handler
 
 #### 4.1. Rozszerzenie route handler
+
 **Plik**: `src/pages/api/v1/profile.ts`
 
 Dodaj do istniejącego pliku (który ma GET handler):
 
 ```typescript
-import type { APIRoute } from 'astro';
-import { ProfileService, ConflictError, UnprocessableError } from '@/lib/services/profile.service';
-import { UpdateProfileSchema } from '@/lib/validation/profile.schemas';
-import { formatZodErrors } from '@/lib/utils/zod-errors';
+import type { APIRoute } from "astro";
+import { ProfileService, ConflictError, UnprocessableError } from "@/lib/services/profile.service";
+import { UpdateProfileSchema } from "@/lib/validation/profile.schemas";
+import { formatZodErrors } from "@/lib/utils/zod-errors";
 
 // ... existing GET handler ...
 
@@ -1231,19 +1308,22 @@ import { formatZodErrors } from '@/lib/utils/zod-errors';
 export const PATCH: APIRoute = async ({ request, locals }) => {
   try {
     // Krok 1: Sprawdź autentykację
-    const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required. Please provide a valid access token.',
+            code: "UNAUTHORIZED",
+            message: "Authentication required. Please provide a valid access token.",
           },
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -1256,13 +1336,13 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'BAD_REQUEST',
-            message: 'Invalid JSON in request body',
+            code: "BAD_REQUEST",
+            message: "Invalid JSON in request body",
           },
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -1276,27 +1356,23 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Validation failed',
+            code: "VALIDATION_ERROR",
+            message: "Validation failed",
             errors,
           },
         }),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Krok 4: Wykonaj update przez service
-    const updatedProfile = await ProfileService.updateProfile(
-      user.id,
-      validationResult.data,
-      locals.supabase
-    );
+    const updatedProfile = await ProfileService.updateProfile(user.id, validationResult.data, locals.supabase);
 
     // Krok 5: Logowanie (opcjonalnie)
-    console.info('[PATCH /api/v1/profile] Profile updated:', {
+    console.info("[PATCH /api/v1/profile] Profile updated:", {
       userId: user.id,
       changes: validationResult.data,
       timestamp: new Date().toISOString(),
@@ -1306,25 +1382,24 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify(updatedProfile), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });
-
   } catch (error) {
     // Obsługa błędów logiki biznesowej
     if (error instanceof ConflictError) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'CONFLICT',
+            code: "CONFLICT",
             message: error.message,
             details: error.details,
           },
         }),
         {
           status: 409,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -1333,44 +1408,44 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNPROCESSABLE_ENTITY',
+            code: "UNPROCESSABLE_ENTITY",
             message: error.message,
             details: error.details,
           },
         }),
         {
           status: 422,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Obsługa błędu "Profile not found"
-    if (error instanceof Error && error.message === 'Profile not found') {
-      console.error('[PATCH /api/v1/profile] Profile not found for user:', user?.id);
+    if (error instanceof Error && error.message === "Profile not found") {
+      console.error("[PATCH /api/v1/profile] Profile not found for user:", user?.id);
 
       return new Response(
         JSON.stringify({
           error: {
-            code: 'PROFILE_NOT_FOUND',
-            message: 'User profile not found. Please contact support if this issue persists.',
+            code: "PROFILE_NOT_FOUND",
+            message: "User profile not found. Please contact support if this issue persists.",
           },
         }),
         {
           status: 404,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Błąd serwera
-    console.error('[PATCH /api/v1/profile] Unexpected error:', error);
+    console.error("[PATCH /api/v1/profile] Unexpected error:", error);
 
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'An unexpected error occurred. Please try again later.',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred. Please try again later.",
           // W DEV mode: dodaj szczegóły
           ...(import.meta.env.DEV && {
             details: error instanceof Error ? error.message : String(error),
@@ -1379,7 +1454,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -1392,6 +1467,7 @@ export const prerender = false;
 ### Faza 5: Testowanie
 
 #### 5.1. Testy jednostkowe
+
 ```bash
 # Test ProfileService
 npm run test src/lib/services/profile.service.test.ts
@@ -1403,6 +1479,7 @@ npm run test src/lib/validation/profile.schemas.test.ts
 #### 5.2. Testy integracyjne
 
 **Test 1: Aktualizacja privacyConsent**
+
 ```bash
 curl -X PATCH http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>" \
@@ -1413,6 +1490,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 2: Restore profilu**
+
 ```bash
 # Najpierw soft-delete profilu (przez DELETE endpoint)
 curl -X DELETE http://localhost:4321/api/v1/profile \
@@ -1428,6 +1506,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 3: Restore + privacyConsent razem**
+
 ```bash
 curl -X PATCH http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>" \
@@ -1438,6 +1517,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 4: Pusty body (błąd walidacji)**
+
 ```bash
 curl -X PATCH http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>" \
@@ -1448,6 +1528,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 5: Nieprawidłowy typ (błąd walidacji)**
+
 ```bash
 curl -X PATCH http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>" \
@@ -1458,6 +1539,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 6: Restore aktywnego profilu (409 Conflict)**
+
 ```bash
 # Profil jest już aktywny
 curl -X PATCH http://localhost:4321/api/v1/profile \
@@ -1469,6 +1551,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 7: Update usuniętego profilu bez restore (422)**
+
 ```bash
 # Najpierw soft-delete profilu
 curl -X DELETE http://localhost:4321/api/v1/profile \
@@ -1484,6 +1567,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 8: Brak tokenu (401)**
+
 ```bash
 curl -X PATCH http://localhost:4321/api/v1/profile \
   -H "Content-Type: application/json" \
@@ -1493,6 +1577,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 9: Dodatkowe pola (błąd walidacji)**
+
 ```bash
 curl -X PATCH http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>" \
@@ -1503,6 +1588,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 ```
 
 **Test 10: restore=false (błąd walidacji)**
+
 ```bash
 curl -X PATCH http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>" \
@@ -1515,6 +1601,7 @@ curl -X PATCH http://localhost:4321/api/v1/profile \
 #### 5.3. Testy idempotentności
 
 **Test**: Wielokrotne wywołanie z tymi samymi danymi
+
 ```bash
 # Wywołaj 3 razy
 for i in {1..3}; do
@@ -1531,34 +1618,40 @@ done
 ### Faza 6: Dokumentacja
 
 #### 6.1. Przykłady użycia w docs
+
 Dodać do dokumentacji API:
 
 **Plik**: `docs/api/profile/update-profile.md` (jeśli istnieje)
 
-```markdown
+````markdown
 ## Update Profile
 
 ### Endpoint
+
 `PATCH /api/v1/profile`
 
 ### Examples
 
 #### Accept Privacy Consent
+
 ```bash
 curl -X PATCH https://api.example.com/api/v1/profile \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"privacyConsent": true}'
 ```
+````
 
 #### Restore Deleted Profile
+
 ```bash
 curl -X PATCH https://api.example.com/api/v1/profile \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"restore": true}'
 ```
-```
+
+````
 
 #### 6.2. Changelog
 ```markdown
@@ -1569,7 +1662,7 @@ curl -X PATCH https://api.example.com/api/v1/profile \
 - UpdateProfileCommand i UpdateProfileSchema (Zod validation)
 - ConflictError i UnprocessableError classes
 - Profile restoration functionality (soft-delete undo)
-```
+````
 
 ### Faza 7: Code Review Checklist
 
@@ -1593,12 +1686,14 @@ Przed mergem PR, sprawdź:
 ### Faza 8: Deployment
 
 #### 8.1. Pre-deployment checklist
+
 - [ ] Wszystkie punkty z Code Review Checklist ✓
 - [ ] Smoke tests w staging przeszły
 - [ ] Performance tests przeszły (response time < 300ms p95)
 - [ ] Security audit przeprowadzony
 
 #### 8.2. Deployment do staging
+
 ```bash
 git checkout feature/profile-patch-endpoint
 git push origin feature/profile-patch-endpoint
@@ -1606,6 +1701,7 @@ git push origin feature/profile-patch-endpoint
 ```
 
 #### 8.3. Deployment do production
+
 ```bash
 git checkout main
 git pull origin main
@@ -1615,6 +1711,7 @@ npm run deploy
 #### 8.4. Post-deployment verification
 
 **Smoke test**:
+
 ```bash
 # Test update privacyConsent w produkcji
 curl -X PATCH https://api.production.com/api/v1/profile \
@@ -1626,6 +1723,7 @@ curl -X PATCH https://api.production.com/api/v1/profile \
 ```
 
 **Monitoring**:
+
 - Sprawdź logi w Supabase Dashboard
 - Monitoruj error rate (powinien być < 1%)
 - Sprawdź response times (p95 < 300ms)
@@ -1636,17 +1734,20 @@ curl -X PATCH https://api.production.com/api/v1/profile \
 #### 9.1. Metryki do śledzenia
 
 **Application metrics**:
+
 - Request rate (req/s)
 - Response time distribution (p50, p95, p99)
 - Error rate (ogólny i per error code)
 - Validation error rate (% requestów z błędami walidacji)
 
 **Database metrics**:
+
 - UPDATE query performance
 - Connection pool utilization
 - RLS policy execution time
 
 **Business metrics**:
+
 - Privacy consent acceptance rate
 - Profile restoration rate
 - Most common validation errors
@@ -1654,6 +1755,7 @@ curl -X PATCH https://api.production.com/api/v1/profile \
 #### 9.2. Alerty
 
 Skonfigurować alerty dla:
+
 - Error rate > 2%
 - p95 response time > 500ms
 - Validation error rate > 20% (może wskazywać na problemy z API docs)
@@ -1663,11 +1765,13 @@ Skonfigurować alerty dla:
 #### 9.3. Utrzymanie
 
 **Co tydzień**:
+
 - Przejrzyj logi błędów
 - Sprawdź trendy w validation errors
 - Analyze most common update operations
 
 **Co miesiąc**:
+
 - Review performance metrics
 - Optimize jeśli potrzeba
 - Update dokumentacji jeśli pojawiły się nowe use cases
@@ -1691,4 +1795,3 @@ Ten plan wdrożenia zapewnia kompleksowe wskazówki dla implementacji endpointu 
 **Zależności**: GET /api/v1/profile, polityki RLS, Zod library
 
 **Następny krok**: DELETE /api/v1/profile (soft delete profilu)
-

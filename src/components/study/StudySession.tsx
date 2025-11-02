@@ -1,16 +1,13 @@
 /**
  * StudySession Component
- * 
+ *
  * Main component for managing the study session flow.
  * Fetches due cards, displays current card, handles answer reveal,
  * submits reviews, and transitions to next card.
  */
 
 import { useState, useEffect } from "react";
-import type {
-  StudyState,
-  StudySessionStats,
-} from "./types";
+import type { StudyState, StudySessionStats } from "./types";
 import type { ReviewGrade } from "@/types";
 import LoadingState from "./LoadingState";
 import EmptyState from "./EmptyState";
@@ -142,10 +139,7 @@ export default function StudySession({ deckId }: StudySessionProps) {
 
       {showAnswer && (
         <div className="mt-6">
-          <ReviewControls
-            disabled={isSubmitting}
-            onGrade={handleGrade}
-          />
+          <ReviewControls disabled={isSubmitting} onGrade={handleGrade} />
         </div>
       )}
     </div>

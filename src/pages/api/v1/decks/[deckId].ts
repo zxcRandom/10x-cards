@@ -12,8 +12,7 @@ export const prerender = false;
  * Validates if a string is a valid UUID v4
  */
 function isValidUUID(uuid: string): boolean {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
 
@@ -305,12 +304,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     }
 
     // Step 5: Update deck through service
-    const updatedDeck = await DeckService.updateDeck(
-      deckId,
-      user.id,
-      validationResult.data,
-      locals.supabase
-    );
+    const updatedDeck = await DeckService.updateDeck(deckId, user.id, validationResult.data, locals.supabase);
 
     // Step 6: Handle deck not found (or doesn't belong to user)
     if (!updatedDeck) {
@@ -374,7 +368,6 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   }
 };
 
-
 /**
  * DELETE /api/v1/decks/{deckId}
  * Delete a deck and all its cards/reviews (CASCADE)
@@ -435,11 +428,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     }
 
     // Step 3: Delete deck via service (CASCADE will delete all cards/reviews)
-    const deleted = await DeckService.deleteDeck(
-      deckId,
-      user.id,
-      locals.supabase
-    );
+    const deleted = await DeckService.deleteDeck(deckId, user.id, locals.supabase);
 
     // Step 4: Return 404 if deck not found or doesn't belong to user
     if (!deleted) {

@@ -49,18 +49,18 @@ interface CardWithDeck {
  * Type guard to validate CardWithDeck structure
  */
 function isCardWithDeck(data: unknown): data is CardWithDeck {
-  if (!data || typeof data !== 'object') return false;
+  if (!data || typeof data !== "object") return false;
   const card = data as Record<string, unknown>;
   return (
-    typeof card.id === 'string' &&
-    typeof card.deck_id === 'string' &&
-    typeof card.ease_factor === 'number' &&
-    typeof card.interval_days === 'number' &&
-    typeof card.repetitions === 'number' &&
-    typeof card.next_review_date === 'string' &&
-    typeof card.deck === 'object' &&
+    typeof card.id === "string" &&
+    typeof card.deck_id === "string" &&
+    typeof card.ease_factor === "number" &&
+    typeof card.interval_days === "number" &&
+    typeof card.repetitions === "number" &&
+    typeof card.next_review_date === "string" &&
+    typeof card.deck === "object" &&
     card.deck !== null &&
-    typeof (card.deck as Record<string, unknown>).user_id === 'string'
+    typeof (card.deck as Record<string, unknown>).user_id === "string"
   );
 }
 
@@ -111,10 +111,7 @@ function calculateSM2Parameters(
     newIntervalDays = 1;
     newEaseFactor = Math.max(
       SM2_CONSTANTS.MIN_EASE_FACTOR,
-      Math.min(
-        SM2_CONSTANTS.MAX_EASE_FACTOR,
-        currentEaseFactor - SM2_CONSTANTS.EASE_FACTOR_DECREASE
-      )
+      Math.min(SM2_CONSTANTS.MAX_EASE_FACTOR, currentEaseFactor - SM2_CONSTANTS.EASE_FACTOR_DECREASE)
     );
   } else {
     // Success - increase progress
@@ -134,9 +131,7 @@ function calculateSM2Parameters(
       SM2_CONSTANTS.MIN_EASE_FACTOR,
       Math.min(
         SM2_CONSTANTS.MAX_EASE_FACTOR,
-        currentEaseFactor +
-          SM2_CONSTANTS.EASE_FACTOR_INCREASE -
-          (5 - grade) * SM2_CONSTANTS.GRADE_PENALTY
+        currentEaseFactor + SM2_CONSTANTS.EASE_FACTOR_INCREASE - (5 - grade) * SM2_CONSTANTS.GRADE_PENALTY
       )
     );
   }
@@ -287,13 +282,10 @@ export const ReviewService = {
       }
 
       if (!review) {
-        console.error(
-          "[ReviewService.createReview] No data returned after review insert:",
-          {
-            cardId,
-            userId,
-          }
-        );
+        console.error("[ReviewService.createReview] No data returned after review insert:", {
+          cardId,
+          userId,
+        });
         return { error: "DATABASE_ERROR" as ErrorCode };
       }
 
@@ -321,13 +313,10 @@ export const ReviewService = {
       }
 
       if (!updatedCard) {
-        console.error(
-          "[ReviewService.createReview] No data returned after card update:",
-          {
-            cardId,
-            userId,
-          }
-        );
+        console.error("[ReviewService.createReview] No data returned after card update:", {
+          cardId,
+          userId,
+        });
         return { error: "DATABASE_ERROR" as ErrorCode };
       }
 

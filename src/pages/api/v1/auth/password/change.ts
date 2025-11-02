@@ -1,14 +1,14 @@
 /**
  * POST /api/v1/auth/password/change
  * Change password for authenticated user
- * 
+ *
  * Requires current password verification.
  * US-003: Change Password
  */
 
-import type { APIRoute } from 'astro';
-import { passwordChangeSchema } from '@/lib/validation/auth.schemas';
-import type { ErrorResponse, ValidationErrorResponse } from '@/types';
+import type { APIRoute } from "astro";
+import { passwordChangeSchema } from "@/lib/validation/auth.schemas";
+import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
@@ -24,13 +24,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required',
+            code: "UNAUTHORIZED",
+            message: "Authentication required",
           },
         } satisfies ErrorResponse),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -43,13 +43,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'BAD_REQUEST',
-            message: 'Invalid JSON in request body',
+            code: "BAD_REQUEST",
+            message: "Invalid JSON in request body",
           },
         } satisfies ErrorResponse),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -59,17 +59,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Validation failed',
+            code: "VALIDATION_ERROR",
+            message: "Validation failed",
             errors: validation.error.errors.map((err) => ({
-              field: err.path.join('.'),
+              field: err.path.join("."),
               message: err.message,
             })),
           },
         } satisfies ValidationErrorResponse),
         {
           status: 400,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -86,13 +86,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'INVALID_CREDENTIALS',
-            message: 'Current password is incorrect',
+            code: "INVALID_CREDENTIALS",
+            message: "Current password is incorrect",
           },
         } satisfies ErrorResponse),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -103,17 +103,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
 
     if (updateError) {
-      console.error('[Auth] Password change error:', updateError);
+      console.error("[Auth] Password change error:", updateError);
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UPDATE_FAILED',
-            message: updateError.message || 'Failed to update password',
+            code: "UPDATE_FAILED",
+            message: updateError.message || "Failed to update password",
           },
         } satisfies ErrorResponse),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -121,29 +121,27 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // 5. Success
     return new Response(
       JSON.stringify({
-        status: 'success',
-        message: 'Password changed successfully',
+        status: "success",
+        message: "Password changed successfully",
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (err) {
-    console.error('[Auth] Unexpected error in password change:', err);
+    console.error("[Auth] Unexpected error in password change:", err);
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_ERROR',
-          message: 'Internal server error',
+          code: "INTERNAL_ERROR",
+          message: "Internal server error",
         },
       } satisfies ErrorResponse),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
 };
-
-

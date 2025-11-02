@@ -3,9 +3,11 @@
 ## 1. Przegląd punktu końcowego
 
 ### Cel
+
 Endpoint usuwa talię fiszek należącą do zalogowanego użytkownika wraz ze wszystkimi kartami (CASCADE delete).
 
 ### Funkcjonalność
+
 - Uwierzytelnienie użytkownika poprzez Supabase JWT
 - Walidacja formatu UUID dla deckId
 - Sprawdzenie czy użytkownik jest właścicielem talii (ownership verification)
@@ -19,9 +21,11 @@ Endpoint usuwa talię fiszek należącą do zalogowanego użytkownika wraz ze ws
 ## 2. Szczegóły żądania
 
 ### Metoda HTTP
+
 `DELETE`
 
 ### Struktura URL
+
 ```
 /api/v1/decks/{deckId}
 ```
@@ -30,26 +34,28 @@ Endpoint usuwa talię fiszek należącą do zalogowanego użytkownika wraz ze ws
 
 #### Wymagane parametry
 
-| Parametr | Typ | Lokalizacja | Walidacja | Opis |
-|----------|-----|-------------|-----------|------|
-| `deckId` | string (UUID) | Path | Valid UUID format | Unikalny identyfikator talii do usunięcia |
-| Authorization | string (JWT) | Header | Valid Bearer token | Token uwierzytelniający |
+| Parametr      | Typ           | Lokalizacja | Walidacja          | Opis                                      |
+| ------------- | ------------- | ----------- | ------------------ | ----------------------------------------- |
+| `deckId`      | string (UUID) | Path        | Valid UUID format  | Unikalny identyfikator talii do usunięcia |
+| Authorization | string (JWT)  | Header      | Valid Bearer token | Token uwierzytelniający                   |
 
 #### Przykłady żądań
 
 **Podstawowe żądanie:**
+
 ```http
 DELETE /api/v1/decks/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer eyJhbGc...
 ```
 
 **W JavaScript/TypeScript:**
+
 ```typescript
 const response = await fetch(`/api/v1/decks/${deckId}`, {
-  method: 'DELETE',
+  method: "DELETE",
   headers: {
-    'Authorization': `Bearer ${token}`
-  }
+    Authorization: `Bearer ${token}`,
+  },
 });
 
 if (response.ok) {
@@ -59,11 +65,13 @@ if (response.ok) {
 ```
 
 ### Request Headers
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 ### Request Body
+
 **Brak** - metoda DELETE nie przyjmuje request body.
 
 ---
@@ -73,19 +81,21 @@ Authorization: Bearer <jwt_token>
 ### DTOs (Data Transfer Objects)
 
 #### DeckDeletedDTO
+
 ```typescript
 // src/types.ts (już zdefiniowany)
 export type DeckDeletedDTO = DeletedDTO;
 
 // Rozwija się do:
 export interface DeletedDTO {
-  status: 'deleted';
+  status: "deleted";
 }
 ```
 
 ### Typy błędów
 
 #### ErrorResponse
+
 ```typescript
 // src/types.ts (już zdefiniowany)
 export interface ErrorResponse {
@@ -93,17 +103,18 @@ export interface ErrorResponse {
     code: string;
     message: string;
     details?: string;
-  }
+  };
 }
 ```
 
 ### Typy wewnętrzne
 
 #### Path Parameter Validation (reuse)
+
 ```typescript
 // Z GET i PATCH - już zdefiniowany
 const DeckIdParamSchema = z.object({
-  deckId: z.string().uuid('Invalid deck ID format')
+  deckId: z.string().uuid("Invalid deck ID format"),
 });
 ```
 
@@ -114,6 +125,7 @@ const DeckIdParamSchema = z.object({
 ### Sukces (200 OK)
 
 #### Struktura odpowiedzi
+
 ```json
 {
   "status": "deleted"
@@ -121,6 +133,7 @@ const DeckIdParamSchema = z.object({
 ```
 
 **Uwagi:**
+
 - Status code: `200 OK` (zgodnie ze specyfikacją API)
 - Alternatywny standard REST to `204 No Content` z pustym body, ale używamy 200 dla konsystencji
 - Prosta struktura potwierdza operację
@@ -128,6 +141,7 @@ const DeckIdParamSchema = z.object({
 ### Błąd walidacji (400 Bad Request)
 
 **Scenariusz: Invalid UUID format**
+
 ```json
 {
   "error": {
@@ -139,6 +153,7 @@ const DeckIdParamSchema = z.object({
 ```
 
 **Przykłady invalid UUID:**
+
 - `"123"` - za krótki
 - `"not-a-uuid"` - nieprawidłowy format
 - `""` - pusty string
@@ -157,6 +172,7 @@ const DeckIdParamSchema = z.object({
 ### Nie znaleziono (404 Not Found)
 
 **Scenariusze (oba zwracają ten sam response):**
+
 1. Talia nie istnieje w bazie danych
 2. Talia istnieje ale należy do innego użytkownika (**security przez obscurity**)
 3. Talia została już usunięta wcześniej (**idempotent DELETE**)
@@ -227,18 +243,21 @@ Client receives confirmation
 ### SQL Queries
 
 #### Main DELETE query
+
 ```sql
 DELETE FROM decks
 WHERE id = $1 AND user_id = $2;
 ```
 
 **Parametry:**
+
 - `$1` - deckId (z path parameter)
 - `$2` - userId (z auth.uid())
 
 **Co dzieje się automatycznie (CASCADE):**
 
 #### Cascade DELETE do cards
+
 ```sql
 -- Automatycznie wykonywane przez foreign key constraint:
 DELETE FROM cards
@@ -247,6 +266,7 @@ WHERE deck_id = $deckId;
 ```
 
 #### Cascade DELETE do reviews
+
 ```sql
 -- Automatycznie wykonywane gdy cards są usuwane:
 DELETE FROM reviews
@@ -255,6 +275,7 @@ WHERE card_id IN (SELECT id FROM cards WHERE deck_id = $deckId);
 ```
 
 #### AI Generation Logs - SET NULL (nie CASCADE)
+
 ```sql
 -- deck_id jest ustawiane na NULL, logs pozostają:
 UPDATE ai_generation_logs
@@ -276,11 +297,13 @@ ai_generation_logs.deck_id → SET NULL
 ```
 
 **Indeksy wykorzystane:**
+
 - PRIMARY KEY index na `decks.id`
 - Foreign key index na `cards.deck_id` (dla CASCADE)
 - Foreign key index na `reviews.card_id` (dla CASCADE chain)
 
 **Wydajność:**
+
 - DELETE deck: < 10ms (PRIMARY KEY lookup)
 - CASCADE to cards: O(n) gdzie n = liczba kart (zwykle < 100)
 - CASCADE to reviews: O(m) gdzie m = liczba review (zwykle < 1000)
@@ -289,6 +312,7 @@ ai_generation_logs.deck_id → SET NULL
 ### Row Level Security (RLS)
 
 Supabase automatycznie egzekwuje RLS policy:
+
 ```sql
 -- Policy dla DELETE
 CREATE POLICY "Users can delete own decks"
@@ -298,11 +322,13 @@ USING (user_id = auth.uid());
 ```
 
 **Jak to działa:**
+
 - DELETE może być wykonany tylko na wierszach WHERE `user_id = auth.uid()`
 - Jeśli deck należy do innego użytkownika, DELETE zwraca 0 rows
 - Dla klienta wygląda jak "deck not found"
 
 **CASCADE też respektuje RLS:**
+
 - CASCADE DELETE do cards działa tylko na cards belonging to deleted deck
 - RLS na cards NIE blokuje CASCADE (to jest foreign key operation)
 
@@ -317,18 +343,24 @@ USING (user_id = auth.uid());
 Identyczne jak w poprzednich endpoints - sprawdzenie JWT tokenu.
 
 ```typescript
-const { data: { user }, error: authError } = await context.locals.supabase.auth.getUser();
+const {
+  data: { user },
+  error: authError,
+} = await context.locals.supabase.auth.getUser();
 
 if (authError || !user) {
-  return new Response(JSON.stringify({
-    error: {
-      code: ErrorCode.UNAUTHORIZED,
-      message: 'Authentication required'
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: ErrorCode.UNAUTHORIZED,
+        message: "Authentication required",
+      },
+    }),
+    {
+      status: HttpStatus.UNAUTHORIZED,
+      headers: { "Content-Type": "application/json" },
     }
-  }), {
-    status: HttpStatus.UNAUTHORIZED,
-    headers: { 'Content-Type': 'application/json' }
-  });
+  );
 }
 ```
 
@@ -337,17 +369,20 @@ if (authError || !user) {
 #### Row Level Security (RLS)
 
 **Policy enforcement:**
+
 - `USING (user_id = auth.uid())` - tylko owner może usunąć
 - Jeśli user nie jest owner, DELETE zwraca 0 rows (wygląda jak "not found")
 
 #### CASCADE Security
 
 **Automatyczna ochrona:**
+
 - CASCADE DELETE usuwa tylko cards z usuwanej talii
 - RLS na cards NIE jest sprawdzane dla CASCADE operations (bezpieczne, bo działa w context FK constraint)
 - User nie może przypadkowo usunąć cards z talii innych użytkowników
 
 **Weryfikacja ownership:**
+
 ```sql
 -- User może usunąć tylko swoje talie
 DELETE FROM decks WHERE id = $id AND user_id = $userId;
@@ -361,26 +396,31 @@ DELETE FROM decks WHERE id = $id AND user_id = $userId;
 #### Security przez obscurity
 
 **Consistent z GET i PATCH:**
+
 - Zawsze zwracaj **404 Not Found** dla:
   - Talia nie istnieje
   - Talia istnieje ale należy do innego użytkownika
   - Talia została już usunięta
 
 **Implementacja:**
+
 ```typescript
 const deleted = await deckService.deleteDeck(user.id, deckId);
 
 if (!deleted) {
   // NIE sprawdzamy dlaczego - zawsze 404
-  return new Response(JSON.stringify({
-    error: {
-      code: ErrorCode.DECK_NOT_FOUND,
-      message: 'Deck not found'
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: ErrorCode.DECK_NOT_FOUND,
+        message: "Deck not found",
+      },
+    }),
+    {
+      status: HttpStatus.NOT_FOUND,
+      headers: { "Content-Type": "application/json" },
     }
-  }), {
-    status: HttpStatus.NOT_FOUND,
-    headers: { 'Content-Type': 'application/json' }
-  });
+  );
 }
 ```
 
@@ -391,6 +431,7 @@ if (!deleted) {
 **Dla przyszłości - opcjonalne safeguards:**
 
 **1. Confirmation required (client-side):**
+
 ```typescript
 // Frontend asks for confirmation
 if (confirm(`Delete deck "${deckName}" and all ${cardCount} cards?`)) {
@@ -399,6 +440,7 @@ if (confirm(`Delete deck "${deckName}" and all ${cardCount} cards?`)) {
 ```
 
 **2. Soft delete zamiast hard delete:**
+
 ```sql
 -- Dodać pole deleted_at
 ALTER TABLE decks ADD COLUMN deleted_at TIMESTAMPTZ;
@@ -411,6 +453,7 @@ SELECT * FROM decks WHERE deleted_at IS NULL;
 ```
 
 **3. Archive before delete:**
+
 ```sql
 -- Backup do archive table
 INSERT INTO decks_archive SELECT * FROM decks WHERE id = $id;
@@ -422,10 +465,12 @@ DELETE FROM decks WHERE id = $id;
 ### 5. Rate Limiting
 
 #### Specyfikacja
+
 - Globalny limit: 100 req/min per IP i per user
 - DELETE operations: standardowy limit
 
 #### Enhanced protection (opcjonalne)
+
 - Niższy limit dla DELETE: np. 10 req/min (zapobiega mass deletion abuse)
 - Alert jeśli użytkownik usuwa > 5 decks w minucie
 
@@ -434,6 +479,7 @@ DELETE FROM decks WHERE id = $id;
 #### DELETE Idempotency
 
 **Behavior:**
+
 ```bash
 # First DELETE
 DELETE /api/v1/decks/{id}
@@ -445,6 +491,7 @@ Response: 404 Not Found, { error: { code: "DECK_NOT_FOUND" } }
 ```
 
 **Uwaga:** DELETE nie jest ściśle idempotent (różne response codes), ale praktycznie OK:
+
 - Efekt jest idempotent: deck is gone
 - Status code się różni (200 vs 404), ale end result jest ten sam
 
@@ -453,6 +500,7 @@ Response: 404 Not Found, { error: { code: "DECK_NOT_FOUND" } }
 #### Scenariusz: Race Condition
 
 **Problem:**
+
 - Request A: DELETE deck X (start: 10:00:00)
 - Request B: DELETE deck X (start: 10:00:01)
 - Request A completes: 10:00:02 (200 OK)
@@ -465,18 +513,21 @@ Response: 404 Not Found, { error: { code: "DECK_NOT_FOUND" } }
 ### 8. Logging i Monitoring
 
 #### Co logować (server-side only)
+
 - Successful deletions (user_id, deck_id, timestamp)
 - Failed deletions (404, 400)
 - CASCADE stats (liczba usuniętych cards, opcjonalnie)
 - Mass deletion patterns (alert jeśli > 5 decks w minucie)
 
 #### Metryki
+
 - Delete frequency per user
 - Average time to delete (including CASCADE)
 - % 404 responses (może wskazywać na bugs lub abuse)
 - CASCADE impact (avg cards deleted per deck)
 
 #### Alerts
+
 - User deletes > 10 decks w krótkim czasie
 - Unusual deletion patterns
 - DELETE operations > 500ms (duże talie)
@@ -488,6 +539,7 @@ Response: 404 Not Found, { error: { code: "DECK_NOT_FOUND" } }
 ### Strategia obsługi błędów
 
 #### Zasady
+
 1. **Early returns** - waliduj UUID na początku
 2. **Guard clauses** - sprawdź auth przed DB access
 3. **Consistent 404** - nie rozróżniaj "not found" vs "already deleted" vs "forbidden"
@@ -501,6 +553,7 @@ Response: 404 Not Found, { error: { code: "DECK_NOT_FOUND" } }
 **Scenariusz:** Path parameter `deckId` nie jest prawidłowym UUID.
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -512,6 +565,7 @@ Response: 404 Not Found, { error: { code: "DECK_NOT_FOUND" } }
 ```
 
 **Przykłady:**
+
 ```bash
 DELETE /api/v1/decks/123
 DELETE /api/v1/decks/not-a-uuid
@@ -519,20 +573,24 @@ DELETE /api/v1/decks/<script>alert(1)</script>
 ```
 
 **Implementacja:**
+
 ```typescript
 const validationResult = DeckIdParamSchema.safeParse(context.params);
 
 if (!validationResult.success) {
-  return new Response(JSON.stringify({
-    error: {
-      code: ErrorCode.VALIDATION_ERROR,
-      message: 'Invalid deck ID format',
-      details: 'Deck ID must be a valid UUID'
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: ErrorCode.VALIDATION_ERROR,
+        message: "Invalid deck ID format",
+        details: "Deck ID must be a valid UUID",
+      },
+    }),
+    {
+      status: HttpStatus.BAD_REQUEST,
+      headers: { "Content-Type": "application/json" },
     }
-  }), {
-    status: HttpStatus.BAD_REQUEST,
-    headers: { 'Content-Type': 'application/json' }
-  });
+  );
 }
 ```
 
@@ -543,11 +601,13 @@ Identyczny jak w poprzednich endpoints.
 #### 3. 404 Not Found
 
 **Scenariusze:**
+
 1. Deck nie istnieje w bazie
 2. Deck istnieje ale należy do innego użytkownika
 3. Deck został już usunięty przez poprzedni request (idempotency)
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -558,31 +618,37 @@ Identyczny jak w poprzednich endpoints.
 ```
 
 **Implementacja:**
+
 ```typescript
 const deleted = await deckService.deleteDeck(user.id, deckId);
 
 if (!deleted) {
-  return new Response(JSON.stringify({
-    error: {
-      code: ErrorCode.DECK_NOT_FOUND,
-      message: 'Deck not found'
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: ErrorCode.DECK_NOT_FOUND,
+        message: "Deck not found",
+      },
+    }),
+    {
+      status: HttpStatus.NOT_FOUND,
+      headers: { "Content-Type": "application/json" },
     }
-  }), {
-    status: HttpStatus.NOT_FOUND,
-    headers: { 'Content-Type': 'application/json' }
-  });
+  );
 }
 ```
 
 #### 4. 500 Internal Server Error
 
 **Scenariusze:**
+
 - Błąd połączenia z bazą
 - CASCADE operation failure (bardzo rzadkie)
 - Foreign key constraint issues
 - Database timeout (duża talia z tysiącami kart)
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -593,56 +659,58 @@ if (!deleted) {
 ```
 
 **Implementacja:**
+
 ```typescript
 try {
   const deleted = await deckService.deleteDeck(user.id, deckId);
-  
+
   if (!deleted) {
     return /* 404 */;
   }
-  
-  return new Response(JSON.stringify({ status: 'deleted' }), {
+
+  return new Response(JSON.stringify({ status: "deleted" }), {
     status: HttpStatus.OK,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
 } catch (error) {
-  console.error('Error deleting deck:', error);
-  
-  return new Response(JSON.stringify({
-    error: {
-      code: ErrorCode.INTERNAL_SERVER_ERROR,
-      message: 'An unexpected error occurred'
+  console.error("Error deleting deck:", error);
+
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: ErrorCode.INTERNAL_SERVER_ERROR,
+        message: "An unexpected error occurred",
+      },
+    }),
+    {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      headers: { "Content-Type": "application/json" },
     }
-  }), {
-    status: HttpStatus.INTERNAL_SERVER_ERROR,
-    headers: { 'Content-Type': 'application/json' }
-  });
+  );
 }
 ```
 
 #### 5. CASCADE Failures (very rare)
 
 **Możliwe problemy:**
+
 - Foreign key constraint violation (nie powinno się zdarzyć jeśli schema jest OK)
 - Timeout przy usuwaniu bardzo dużej talii (> 10k cards)
 - Lock contention (concurrent access do cards)
 
 **Handling:**
+
 ```typescript
 // W DeckService
 try {
-  const { error, count } = await this.supabase
-    .from('decks')
-    .delete()
-    .eq('id', deckId)
-    .eq('user_id', userId);
-    
+  const { error, count } = await this.supabase.from("decks").delete().eq("id", deckId).eq("user_id", userId);
+
   if (error) {
     // Log detailed error (może być CASCADE issue)
-    console.error('Delete error:', error);
+    console.error("Delete error:", error);
     throw new Error(`Failed to delete deck: ${error.message}`);
   }
-  
+
   return count > 0;
 } catch (error) {
   // Re-throw for route handler
@@ -657,18 +725,21 @@ try {
 ### 1. DELETE Performance
 
 #### Typowa talia (< 100 cards)
+
 - DELETE deck: < 10ms
 - CASCADE to cards: < 50ms
 - CASCADE to reviews: < 50ms
 - **Total: < 100ms**
 
 #### Duża talia (1000+ cards)
+
 - DELETE deck: < 10ms
 - CASCADE to cards: 200-500ms
 - CASCADE to reviews: 500ms-2s
 - **Total: 1-3 seconds**
 
 #### Bardzo duża talia (10k+ cards) - edge case
+
 - Total time: 10-30 seconds
 - Risk timeout (default HTTP timeout: 30s)
 - Potrzebne async deletion lub timeout zwiększenie
@@ -678,6 +749,7 @@ try {
 #### Database level
 
 **Indeksy dla CASCADE:**
+
 ```sql
 -- Zapewnij indeksy na foreign keys
 CREATE INDEX IF NOT EXISTS idx_cards_deck_id ON cards(deck_id);
@@ -685,6 +757,7 @@ CREATE INDEX IF NOT EXISTS idx_reviews_card_id ON reviews(card_id);
 ```
 
 **Query plan:**
+
 ```sql
 EXPLAIN ANALYZE DELETE FROM decks WHERE id = 'uuid';
 -- Shows CASCADE operations and their costs
@@ -695,6 +768,7 @@ EXPLAIN ANALYZE DELETE FROM decks WHERE id = 'uuid';
 **Dla bardzo dużych talii:**
 
 **Opcja 1: Background job**
+
 ```typescript
 // Mark for deletion
 UPDATE decks SET delete_scheduled_at = NOW() WHERE id = $id;
@@ -705,6 +779,7 @@ DELETE FROM decks WHERE delete_scheduled_at IS NOT NULL AND delete_scheduled_at 
 ```
 
 **Opcja 2: Soft delete**
+
 ```typescript
 // Immediate response
 UPDATE decks SET deleted_at = NOW() WHERE id = $id;
@@ -719,9 +794,11 @@ DELETE FROM decks WHERE deleted_at < NOW() - INTERVAL '30 days';
 ### 4. Lock Contention
 
 #### Problem
+
 Jeśli inne operations (GET, UPDATE cards) działają na tej samej talii podczas DELETE, mogą wystąpić locks.
 
 #### Mitigation
+
 - PostgreSQL używa MVCC - reads nie blokują deletes
 - Writes (INSERT/UPDATE cards) podczas DELETE mogą failować
 - Dla MVP: akceptowalne - rare case
@@ -729,6 +806,7 @@ Jeśli inne operations (GET, UPDATE cards) działają na tej samej talii podczas
 ### 5. Transaction Isolation
 
 #### CASCADE w transakcji
+
 ```sql
 BEGIN;
 DELETE FROM decks WHERE id = 'uuid';
@@ -738,18 +816,21 @@ COMMIT;
 ```
 
 **Korzyści:**
+
 - Atomic operation - either all deleted or nothing
 - No partial state (deck deleted but cards remain)
 
 ### 6. Monitoring
 
 #### Metryki do śledzenia
+
 - **Delete latency**: P50, P95, P99, P99.9
 - **CASCADE impact**: Average cards deleted per deck
 - **Slow deletes**: Operations > 1s
 - **Timeout rate**: % operations that timeout
 
 #### Alerts
+
 - P95 latency > 500ms
 - Any operation > 5s (may indicate very large deck)
 - Timeout rate > 1%
@@ -777,12 +858,12 @@ async deleteDeck(userId: string, deckId: string): Promise<boolean> {
     .delete()
     .eq('id', deckId)
     .eq('user_id', userId);
-    
+
   if (error) {
     console.error('Database error in deleteDeck:', error);
     throw new Error(`Failed to delete deck: ${error.message}`);
   }
-  
+
   // count === 0 means deck not found or not owned by user
   // count === 1 means deck was successfully deleted (with CASCADE)
   return count > 0;
@@ -790,6 +871,7 @@ async deleteDeck(userId: string, deckId: string): Promise<boolean> {
 ```
 
 **Uwagi:**
+
 - Używamy `count` do sprawdzenia czy usunięto wiersz
 - `WHERE id = deckId AND user_id = userId` - ownership check
 - CASCADE dzieje się automatycznie (foreign key constraints)
@@ -797,13 +879,14 @@ async deleteDeck(userId: string, deckId: string): Promise<boolean> {
 - Nie używamy `.select()` - DELETE nie zwraca danych (tylko count)
 
 **Alternatywna implementacja (z RETURNING):**
+
 ```typescript
 // Jeśli chcemy zwrócić usunięte dane
 const { data, error } = await this.supabase
-  .from('decks')
+  .from("decks")
   .delete()
-  .eq('id', deckId)
-  .eq('user_id', userId)
+  .eq("id", deckId)
+  .eq("user_id", userId)
   .select()
   .maybeSingle();
 
@@ -827,95 +910,99 @@ export async function DELETE(context: APIContext): Promise<Response> {
   try {
     // Step 1: Validate path parameter (reuse from GET/PATCH)
     const validationResult = DeckIdParamSchema.safeParse(context.params);
-    
+
     if (!validationResult.success) {
       const errorResponse: ErrorResponse = {
         error: {
           code: ErrorCode.VALIDATION_ERROR,
-          message: 'Invalid deck ID format',
-          details: 'Deck ID must be a valid UUID'
-        }
+          message: "Invalid deck ID format",
+          details: "Deck ID must be a valid UUID",
+        },
       };
-      
+
       return new Response(JSON.stringify(errorResponse), {
         status: HttpStatus.BAD_REQUEST,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
     }
-    
+
     const { deckId } = validationResult.data;
-    
+
     // Step 2: Authenticate user
-    const { data: { user }, error: authError } = await context.locals.supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await context.locals.supabase.auth.getUser();
+
     if (authError || !user) {
       const errorResponse: ErrorResponse = {
         error: {
           code: ErrorCode.UNAUTHORIZED,
-          message: 'Authentication required'
-        }
+          message: "Authentication required",
+        },
       };
-      
+
       return new Response(JSON.stringify(errorResponse), {
         status: HttpStatus.UNAUTHORIZED,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
     }
-    
+
     // Step 3: Delete deck using DeckService
     const deckService = new DeckService(context.locals.supabase);
     const deleted = await deckService.deleteDeck(user.id, deckId);
-    
+
     // Step 4: Check if deck was found and deleted
     if (!deleted) {
       const errorResponse: ErrorResponse = {
         error: {
           code: ErrorCode.DECK_NOT_FOUND,
-          message: 'Deck not found'
-        }
+          message: "Deck not found",
+        },
       };
-      
+
       return new Response(JSON.stringify(errorResponse), {
         status: HttpStatus.NOT_FOUND,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
     }
-    
+
     // Step 5: Return success response
     const successResponse: DeckDeletedDTO = {
-      status: 'deleted'
+      status: "deleted",
     };
-    
+
     return new Response(JSON.stringify(successResponse), {
       status: HttpStatus.OK,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
-    
   } catch (error) {
     // Step 6: Handle unexpected errors
-    console.error('Error in DELETE /api/v1/decks/[deckId]:', error);
-    
+    console.error("Error in DELETE /api/v1/decks/[deckId]:", error);
+
     const errorResponse: ErrorResponse = {
       error: {
         code: ErrorCode.INTERNAL_SERVER_ERROR,
-        message: 'An unexpected error occurred'
-      }
+        message: "An unexpected error occurred",
+      },
     };
-    
+
     return new Response(JSON.stringify(errorResponse), {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
 ```
 
 **Imports:**
+
 ```typescript
-import type { DeckDeletedDTO } from '../../../types';
+import type { DeckDeletedDTO } from "../../../types";
 ```
 
 **Uwagi:**
+
 - Najprostszy handler ze wszystkich (brak body validation)
 - Reuse DeckIdParamSchema z GET/PATCH
 - Consistent 404 dla not found i not owner
@@ -953,6 +1040,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
 ```
 
 **Test CASCADE w development:**
+
 ```sql
 -- Create test deck
 INSERT INTO decks (id, user_id, name) VALUES ('test-uuid', 'user-uuid', 'Test Deck');
@@ -976,6 +1064,7 @@ SELECT COUNT(*) FROM cards WHERE deck_id = 'test-uuid'; -- Should be 0
 ### Etap 4: Testowanie manualne
 
 **Przygotowanie:**
+
 1. Utworzyć test deck z kilkoma kartami
 2. Sprawdzić że deck i cards istnieją
 3. Wykonać DELETE
@@ -984,6 +1073,7 @@ SELECT COUNT(*) FROM cards WHERE deck_id = 'test-uuid'; -- Should be 0
 **Test cases:**
 
 **1. Successful deletion:**
+
 ```bash
 # First, verify deck exists
 curl -X GET "http://localhost:4321/api/v1/decks/550e8400-e29b-41d4-a716-446655440000" \
@@ -1004,6 +1094,7 @@ curl -X GET "http://localhost:4321/api/v1/decks/550e8400-e29b-41d4-a716-44665544
 ```
 
 **2. Verify CASCADE (cards deleted):**
+
 ```bash
 # Before delete: Get cards in deck
 curl -X GET "http://localhost:4321/api/v1/decks/550e8400-e29b-41d4-a716-446655440000/cards" \
@@ -1021,6 +1112,7 @@ curl -X GET "http://localhost:4321/api/v1/cards/CARD_ID" \
 ```
 
 **3. Idempotent DELETE:**
+
 ```bash
 # First delete
 curl -X DELETE "http://localhost:4321/api/v1/decks/550e8400-e29b-41d4-a716-446655440000" \
@@ -1034,6 +1126,7 @@ curl -X DELETE "http://localhost:4321/api/v1/decks/550e8400-e29b-41d4-a716-44665
 ```
 
 **4. Deck not found:**
+
 ```bash
 curl -X DELETE "http://localhost:4321/api/v1/decks/00000000-0000-0000-0000-000000000000" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -1042,6 +1135,7 @@ curl -X DELETE "http://localhost:4321/api/v1/decks/00000000-0000-0000-0000-00000
 ```
 
 **5. Deck belongs to another user:**
+
 ```bash
 curl -X DELETE "http://localhost:4321/api/v1/decks/OTHER_USER_DECK_ID" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -1050,6 +1144,7 @@ curl -X DELETE "http://localhost:4321/api/v1/decks/OTHER_USER_DECK_ID" \
 ```
 
 **6. Invalid UUID:**
+
 ```bash
 curl -X DELETE "http://localhost:4321/api/v1/decks/invalid-uuid" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -1058,6 +1153,7 @@ curl -X DELETE "http://localhost:4321/api/v1/decks/invalid-uuid" \
 ```
 
 **7. No authentication:**
+
 ```bash
 curl -X DELETE "http://localhost:4321/api/v1/decks/550e8400-e29b-41d4-a716-446655440000"
 
@@ -1065,6 +1161,7 @@ curl -X DELETE "http://localhost:4321/api/v1/decks/550e8400-e29b-41d4-a716-44665
 ```
 
 **8. Large deck performance test (if available):**
+
 ```bash
 # Create deck with many cards (e.g., 500)
 # Then time the deletion
@@ -1084,112 +1181,112 @@ time curl -X DELETE "http://localhost:4321/api/v1/decks/LARGE_DECK_ID" \
 **Dodać testy dla DELETE:**
 
 ```typescript
-describe('DELETE /api/v1/decks/{deckId}', () => {
-  describe('Authentication', () => {
-    it('should return 401 if not authenticated', async () => {
+describe("DELETE /api/v1/decks/{deckId}", () => {
+  describe("Authentication", () => {
+    it("should return 401 if not authenticated", async () => {
       const context = createMockContext({
         authenticated: false,
-        method: 'DELETE',
-        params: { deckId: '550e8400-e29b-41d4-a716-446655440000' }
+        method: "DELETE",
+        params: { deckId: "550e8400-e29b-41d4-a716-446655440000" },
       });
-      
+
       const response = await DELETE(context);
       expect(response.status).toBe(401);
     });
   });
 
-  describe('Validation', () => {
-    it('should return 400 for invalid UUID', async () => {
+  describe("Validation", () => {
+    it("should return 400 for invalid UUID", async () => {
       const context = createMockContext({
         authenticated: true,
-        method: 'DELETE',
-        params: { deckId: 'invalid-uuid' }
+        method: "DELETE",
+        params: { deckId: "invalid-uuid" },
       });
-      
+
       const response = await DELETE(context);
       expect(response.status).toBe(400);
     });
   });
 
-  describe('Success cases', () => {
-    it('should delete deck successfully', async () => {
-      const deckId = '550e8400-e29b-41d4-a716-446655440000';
+  describe("Success cases", () => {
+    it("should delete deck successfully", async () => {
+      const deckId = "550e8400-e29b-41d4-a716-446655440000";
       const context = createMockContext({
         authenticated: true,
-        userId: 'test-user-id',
-        method: 'DELETE',
+        userId: "test-user-id",
+        method: "DELETE",
         params: { deckId },
         mockDbData: {
-          deleteCount: 1 // Deck was deleted
-        }
+          deleteCount: 1, // Deck was deleted
+        },
       });
-      
+
       const response = await DELETE(context);
-      
+
       expect(response.status).toBe(200);
       const body = await response.json();
-      expect(body).toEqual({ status: 'deleted' });
+      expect(body).toEqual({ status: "deleted" });
     });
   });
 
-  describe('Not found cases', () => {
-    it('should return 404 for non-existent deck', async () => {
+  describe("Not found cases", () => {
+    it("should return 404 for non-existent deck", async () => {
       const context = createMockContext({
         authenticated: true,
-        userId: 'test-user-id',
-        method: 'DELETE',
-        params: { deckId: '00000000-0000-0000-0000-000000000000' },
+        userId: "test-user-id",
+        method: "DELETE",
+        params: { deckId: "00000000-0000-0000-0000-000000000000" },
         mockDbData: {
-          deleteCount: 0 // Deck not found
-        }
+          deleteCount: 0, // Deck not found
+        },
       });
-      
+
       const response = await DELETE(context);
       expect(response.status).toBe(404);
     });
 
-    it('should return 404 for deck owned by another user', async () => {
+    it("should return 404 for deck owned by another user", async () => {
       const context = createMockContext({
         authenticated: true,
-        userId: 'user-A',
-        method: 'DELETE',
-        params: { deckId: 'deck-owned-by-user-B' },
+        userId: "user-A",
+        method: "DELETE",
+        params: { deckId: "deck-owned-by-user-B" },
         mockDbData: {
-          deleteCount: 0 // RLS prevents deletion
-        }
+          deleteCount: 0, // RLS prevents deletion
+        },
       });
-      
+
       const response = await DELETE(context);
       expect(response.status).toBe(404);
       expect(response.status).not.toBe(403);
     });
   });
 
-  describe('Idempotency', () => {
-    it('should return 404 on second DELETE (already deleted)', async () => {
-      const deckId = '550e8400-e29b-41d4-a716-446655440000';
-      
+  describe("Idempotency", () => {
+    it("should return 404 on second DELETE (already deleted)", async () => {
+      const deckId = "550e8400-e29b-41d4-a716-446655440000";
+
       // First delete
       const context1 = createMockContext({
         authenticated: true,
-        userId: 'test-user-id',
-        method: 'DELETE',
+        userId: "test-user-id",
+        method: "DELETE",
         params: { deckId },
-        mockDbData: { deleteCount: 1 }
+        mockDbData: { deleteCount: 1 },
       });
-      
+
       const response1 = await DELETE(context1);
       expect(response1.status).toBe(200);
-      
+
       // Second delete (deck already gone)
       const context2 = createMockContext({
         authenticated: true,
-        userId: 'test-user-id',
-        method: 'DELETE',
+        userId: "test-user-id",
+        method: "DELETE",
         params: { deckId },
-        mockDbData: { deleteCount: 0 } // Already deleted
+        mockDbData: { deleteCount: 0 }, // Already deleted
       });
-      
+
       const response2 = await DELETE(context2);
       expect(response2.status).toBe(404);
     });
@@ -1200,8 +1297,8 @@ describe('DELETE /api/v1/decks/{deckId}', () => {
 **Testy dla DeckService.deleteDeck():**
 
 ```typescript
-describe('DeckService.deleteDeck', () => {
-  it('should return true when deck is deleted', async () => {
+describe("DeckService.deleteDeck", () => {
+  it("should return true when deck is deleted", async () => {
     const mockSupabase = createMockSupabaseClient({
       deleteResponse: {
         count: 1,
@@ -1210,12 +1307,12 @@ describe('DeckService.deleteDeck', () => {
     });
 
     const service = new DeckService(mockSupabase);
-    const result = await service.deleteDeck('user-123', 'deck-123');
+    const result = await service.deleteDeck("user-123", "deck-123");
 
     expect(result).toBe(true);
   });
 
-  it('should return false when deck not found', async () => {
+  it("should return false when deck not found", async () => {
     const mockSupabase = createMockSupabaseClient({
       deleteResponse: {
         count: 0,
@@ -1224,12 +1321,12 @@ describe('DeckService.deleteDeck', () => {
     });
 
     const service = new DeckService(mockSupabase);
-    const result = await service.deleteDeck('user-123', 'non-existent');
+    const result = await service.deleteDeck("user-123", "non-existent");
 
     expect(result).toBe(false);
   });
 
-  it('should return false when user is not owner', async () => {
+  it("should return false when user is not owner", async () => {
     const mockSupabase = createMockSupabaseClient({
       deleteResponse: {
         count: 0, // RLS prevents deletion
@@ -1238,44 +1335,43 @@ describe('DeckService.deleteDeck', () => {
     });
 
     const service = new DeckService(mockSupabase);
-    const result = await service.deleteDeck('user-A', 'deck-owned-by-user-B');
+    const result = await service.deleteDeck("user-A", "deck-owned-by-user-B");
 
     expect(result).toBe(false);
   });
 
-  it('should throw error when database deletion fails', async () => {
+  it("should throw error when database deletion fails", async () => {
     const mockSupabase = createMockSupabaseClient({
       deleteResponse: {
         count: 0,
-        error: { message: 'Database error' },
+        error: { message: "Database error" },
       },
     });
 
     const service = new DeckService(mockSupabase);
-    
-    await expect(
-      service.deleteDeck('user-123', 'deck-123')
-    ).rejects.toThrow('Failed to delete deck');
+
+    await expect(service.deleteDeck("user-123", "deck-123")).rejects.toThrow("Failed to delete deck");
   });
 });
 ```
 
 **Integration test - CASCADE behavior:**
+
 ```typescript
-describe('CASCADE deletion (integration)', () => {
-  it('should delete cards when deck is deleted', async () => {
+describe("CASCADE deletion (integration)", () => {
+  it("should delete cards when deck is deleted", async () => {
     // This requires real DB or comprehensive mock
     const deckId = await createTestDeck();
-    await createTestCard(deckId, 'Question 1', 'Answer 1');
-    await createTestCard(deckId, 'Question 2', 'Answer 2');
-    
+    await createTestCard(deckId, "Question 1", "Answer 1");
+    await createTestCard(deckId, "Question 2", "Answer 2");
+
     // Verify cards exist
     const cardsBefore = await getCardsForDeck(deckId);
     expect(cardsBefore).toHaveLength(2);
-    
+
     // Delete deck
     await deckService.deleteDeck(userId, deckId);
-    
+
     // Verify cards are gone
     const cardsAfter = await getCardsForDeck(deckId);
     expect(cardsAfter).toHaveLength(0);
@@ -1288,12 +1384,14 @@ describe('CASCADE deletion (integration)', () => {
 ## 10. Checklist końcowy
 
 ### Przed rozpoczęciem implementacji
+
 - [ ] Przeczytać cały plan
 - [ ] Zrozumieć CASCADE behavior
 - [ ] Zweryfikować foreign key constraints w schema
 - [ ] Przygotować test data (deck + cards)
 
 ### Podczas implementacji
+
 - [ ] Rozszerzyć DeckService o deleteDeck() (Etap 1)
 - [ ] Zaimplementować DELETE handler (Etap 2)
 - [ ] Zweryfikować CASCADE (Etap 3)
@@ -1301,6 +1399,7 @@ describe('CASCADE deletion (integration)', () => {
 - [ ] Napisać testy automatyczne (Etap 5)
 
 ### Po implementacji
+
 - [ ] Wszystkie testy przechodzą
 - [ ] CASCADE działa (cards są usuwane)
 - [ ] Idempotency works (drugi DELETE → 404)
@@ -1308,6 +1407,7 @@ describe('CASCADE deletion (integration)', () => {
 - [ ] Performance OK (< 500ms dla typowych talii)
 
 ### Production readiness
+
 - [ ] RLS DELETE policy aktywna
 - [ ] CASCADE constraints są poprawne
 - [ ] Monitoring delete operations
@@ -1320,6 +1420,7 @@ describe('CASCADE deletion (integration)', () => {
 ## Appendix A: CASCADE Verification
 
 ### Sprawdzenie foreign key constraints
+
 ```sql
 -- Lista wszystkich foreign keys z CASCADE
 SELECT
@@ -1347,6 +1448,7 @@ ORDER BY tc.table_name, kcu.column_name;
 ```
 
 ### Test CASCADE chain
+
 ```sql
 -- Setup
 INSERT INTO decks (id, user_id, name) VALUES ('test-deck', 'test-user', 'Test');
@@ -1382,6 +1484,7 @@ USING (user_id = auth.uid());
 ```
 
 **Test policy:**
+
 ```sql
 -- Set user context
 SET request.jwt.claims TO '{"sub": "user-123"}';
@@ -1403,4 +1506,3 @@ RESET request.jwt.claims;
 **Koniec planu implementacji**
 
 Ten dokument stanowi kompletny przewodnik do implementacji endpointu DELETE /api/v1/decks/{deckId}. Szczególną uwagę zwrócono na CASCADE behavior i jego weryfikację.
-

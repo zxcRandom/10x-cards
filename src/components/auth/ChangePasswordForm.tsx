@@ -1,21 +1,21 @@
 /**
  * ChangePasswordForm Component
- * 
+ *
  * Allows authenticated users to change their password.
  * Requires current password for verification.
  */
 
-import { useState, useId } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { passwordChangeSchema, type PasswordChangeInput } from '@/lib/validation/auth.schemas';
+import { useState, useId } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { passwordChangeSchema, type PasswordChangeInput } from "@/lib/validation/auth.schemas";
 
 export default function ChangePasswordForm() {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof PasswordChangeInput, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,10 +51,10 @@ export default function ChangePasswordForm() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/v1/auth/password/change', {
-        method: 'POST',
+      const response = await fetch("/api/v1/auth/password/change", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           currentPassword,
@@ -65,11 +65,11 @@ export default function ChangePasswordForm() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          setErrors({ currentPassword: 'Nieprawidłowe obecne hasło' });
+          setErrors({ currentPassword: "Nieprawidłowe obecne hasło" });
           return;
         }
         if (response.status === 429) {
-          toast.error('Zbyt wiele prób. Spróbuj ponownie później.');
+          toast.error("Zbyt wiele prób. Spróbuj ponownie później.");
           return;
         }
         if (response.status === 400) {
@@ -83,19 +83,18 @@ export default function ChangePasswordForm() {
             return;
           }
         }
-        throw new Error('Wystąpił błąd podczas zmiany hasła');
+        throw new Error("Wystąpił błąd podczas zmiany hasła");
       }
 
       // Success
-      toast.success('Hasło zostało zmienione');
-      
+      toast.success("Hasło zostało zmienione");
+
       // Clear form
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Nieznany błąd';
+      const errorMessage = err instanceof Error ? err.message : "Nieznany błąd";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -116,7 +115,7 @@ export default function ChangePasswordForm() {
             disabled={isSubmitting}
             required
             autoComplete="current-password"
-            aria-invalid={errors.currentPassword ? 'true' : 'false'}
+            aria-invalid={errors.currentPassword ? "true" : "false"}
             aria-describedby={errors.currentPassword ? currentPasswordErrorId : undefined}
           />
           {errors.currentPassword && (
@@ -137,7 +136,7 @@ export default function ChangePasswordForm() {
             disabled={isSubmitting}
             required
             autoComplete="new-password"
-            aria-invalid={errors.newPassword ? 'true' : 'false'}
+            aria-invalid={errors.newPassword ? "true" : "false"}
             aria-describedby={errors.newPassword ? newPasswordErrorId : undefined}
           />
           {errors.newPassword && (
@@ -145,9 +144,7 @@ export default function ChangePasswordForm() {
               {errors.newPassword}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
-            Hasło musi mieć co najmniej 8 znaków
-          </p>
+          <p className="text-xs text-muted-foreground">Hasło musi mieć co najmniej 8 znaków</p>
         </div>
 
         <div className="space-y-2">
@@ -161,7 +158,7 @@ export default function ChangePasswordForm() {
             disabled={isSubmitting}
             required
             autoComplete="new-password"
-            aria-invalid={errors.confirmNewPassword ? 'true' : 'false'}
+            aria-invalid={errors.confirmNewPassword ? "true" : "false"}
             aria-describedby={errors.confirmNewPassword ? confirmNewPasswordErrorId : undefined}
           />
           {errors.confirmNewPassword && (
@@ -172,11 +169,8 @@ export default function ChangePasswordForm() {
         </div>
       </div>
 
-      <Button
-        type="submit"
-        disabled={isSubmitting || !currentPassword || !newPassword || !confirmNewPassword}
-      >
-        {isSubmitting ? 'Zmiana hasła...' : 'Zmień hasło'}
+      <Button type="submit" disabled={isSubmitting || !currentPassword || !newPassword || !confirmNewPassword}>
+        {isSubmitting ? "Zmiana hasła..." : "Zmień hasło"}
       </Button>
     </form>
   );

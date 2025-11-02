@@ -15,21 +15,25 @@ Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `m
 ### Jobs
 
 #### 1. Lint Code
+
 - **Cel**: Sprawdzenie jakości kodu za pomocą ESLint
 - **Komendy**: `npm ci` → `npm run lint`
 - **Czas**: ~1-2 minuty
 
 #### 2. Unit Tests
+
 - **Cel**: Uruchomienie testów jednostkowych
 - **Komendy**: `npm ci` → `npm run test:unit`
 - **Czas**: ~1-2 minuty
 
 #### 3. Build Check
+
 - **Cel**: Weryfikacja, czy projekt buduje się poprawnie
 - **Komendy**: `npm ci` → `npm run build`
 - **Czas**: ~2-3 minuty
 
 #### 4. E2E Tests (opcjonalne - obecnie wyłączone)
+
 - **Cel**: Testy end-to-end z Playwright
 - **Status**: Wyłączone (`if: false`)
 - **Wymaga**: Konfiguracji secrets w GitHub
@@ -44,12 +48,14 @@ Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `m
    - Czyści `node_modules` przed instalacją
 
 2. **Caching zależności Node.js**
+
    ```yaml
    uses: actions/setup-node@v4
    with:
-     node-version: '20.x'
-     cache: 'npm'
+     node-version: "20.x"
+     cache: "npm"
    ```
+
    - Przyspiesza instalację dependencies
    - Zmniejsza obciążenie npm registry
 
@@ -59,6 +65,7 @@ Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `m
    - Zapewnia stabilność i bezpieczeństwo
 
 4. **Minimalne wymagane uprawnienia**
+
    ```yaml
    permissions:
      contents: read
@@ -70,9 +77,11 @@ Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `m
    - Skraca całkowity czas wykonania workflow
 
 6. **Dependency chain dla testów E2E**
+
    ```yaml
    needs: [lint, unit-tests, build]
    ```
+
    - E2E testy uruchamiają się tylko jeśli podstawowe sprawdzenia przejdą
 
 7. **Upload artifacts dla diagnostyki**
@@ -97,10 +106,13 @@ Workflow uruchamia się automatycznie przy każdym Pull Requeście do brancha `m
 ### Krok 2: Włącz job E2E
 
 W pliku `.github/workflows/pr-validation.yml` zmień:
+
 ```yaml
-if: false  # Ustaw na 'true' gdy skonfigurujesz secrets w GitHub
+if: false # Ustaw na 'true' gdy skonfigurujesz secrets w GitHub
 ```
+
 na:
+
 ```yaml
 if: true
 ```
@@ -130,13 +142,17 @@ act pull_request
 ## Troubleshooting
 
 ### Problem: npm ci zawodzi
+
 **Rozwiązanie**: Upewnij się, że `package-lock.json` jest zaktualizowany i commitnięty.
 
 ### Problem: Build timeout
+
 **Rozwiązanie**: Zwiększ timeout w workflow lub zoptymalizuj build.
 
 ### Problem: Testy E2E nie przechodzą w CI
-**Rozwiązanie**: 
+
+**Rozwiązanie**:
+
 1. Sprawdź czy secrets są poprawnie skonfigurowane
 2. Uruchom testy lokalnie z `CI=true npm run test:e2e:fast`
 3. Sprawdź logi artifacts (Playwright report)

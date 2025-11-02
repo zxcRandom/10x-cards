@@ -44,9 +44,7 @@ export interface SupabaseClientWithCookies extends SupabaseClient<Database> {
  */
 export function hasCookiesToSet(client: unknown): client is SupabaseClientWithCookies {
   return (
-    typeof client === "object" &&
-    client !== null &&
-    Array.isArray((client as SupabaseClientWithCookies).__cookiesToSet)
+    typeof client === "object" && client !== null && Array.isArray((client as SupabaseClientWithCookies).__cookiesToSet)
   );
 }
 
@@ -66,7 +64,7 @@ export function createServerClient(
   authHeader?: string | null
 ): SupabaseClientWithCookies {
   const cookiesToSet: CookieOptions[] = [];
-  
+
   const client = createSSRClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -74,7 +72,7 @@ export function createServerClient(
         if (cookieHeader) {
           return parseCookieHeader(cookieHeader)
             .filter((cookie): cookie is { name: string; value: string } => cookie.value !== undefined)
-            .map(cookie => ({ name: cookie.name, value: cookie.value }));
+            .map((cookie) => ({ name: cookie.name, value: cookie.value }));
         }
         return [];
       },

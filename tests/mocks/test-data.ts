@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 /**
  * Mock Supabase client for testing
@@ -25,19 +25,19 @@ export const mockSupabaseClient = {
  * Mock OpenRouter API response
  */
 export const mockOpenRouterResponse = {
-  id: 'test-123',
+  id: "test-123",
   choices: [
     {
       message: {
-        role: 'assistant',
+        role: "assistant",
         content: JSON.stringify({
           cards: [
-            { question: 'Q1', answer: 'A1' },
-            { question: 'Q2', answer: 'A2' },
+            { question: "Q1", answer: "A1" },
+            { question: "Q2", answer: "A2" },
           ],
         }),
       },
-      finish_reason: 'stop',
+      finish_reason: "stop",
     },
   ],
   usage: {
@@ -51,8 +51,8 @@ export const mockOpenRouterResponse = {
  * Mock test user
  */
 export const testUser = {
-  id: 'test-user-123',
-  email: 'test@example.com',
+  id: "test-user-123",
+  email: "test@example.com",
   created_at: new Date().toISOString(),
 };
 
@@ -60,10 +60,10 @@ export const testUser = {
  * Mock test deck
  */
 export const testDeck = {
-  id: 'test-deck-123',
-  user_id: 'test-user-123',
-  name: 'Test Deck',
-  description: 'A test deck',
+  id: "test-deck-123",
+  user_id: "test-user-123",
+  name: "Test Deck",
+  description: "A test deck",
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
@@ -72,10 +72,10 @@ export const testDeck = {
  * Mock test card
  */
 export const testCard = {
-  id: 'test-card-123',
-  deck_id: 'test-deck-123',
-  question: 'What is TypeScript?',
-  answer: 'A typed superset of JavaScript',
+  id: "test-card-123",
+  deck_id: "test-deck-123",
+  question: "What is TypeScript?",
+  answer: "A typed superset of JavaScript",
   ease_factor: 2.5,
   interval_days: 1,
   repetitions: 0,
