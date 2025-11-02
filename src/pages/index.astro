@@ -8,6 +8,9 @@ import { RecentDecksList } from "@/components/dashboard/RecentDecksList";
 // Check authentication status
 const { data: { user } } = await Astro.locals.supabase.auth.getUser();
 
+// Temporary log to verify runtime env keys in Cloudflare production
+console.log("runtime env keys", Object.keys(Astro.locals.runtime?.env ?? {}));
+
 // Different title for authenticated vs unauthenticated users
 const pageTitle = user ? "Dashboard - 10x Cards" : "10x Cards - Inteligentne fiszki do nauki";
 ---
