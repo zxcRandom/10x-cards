@@ -18,7 +18,7 @@ import type { ErrorResponse } from "@/types";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ locals, cookies }) => {
+export const POST: APIRoute = async ({ locals }) => {
   try {
     // Sign out from Supabase Auth
     const { error } = await locals.supabase.auth.signOut();
@@ -45,7 +45,7 @@ export const POST: APIRoute = async ({ locals, cookies }) => {
     const responseHeaders = new Headers();
 
     // Get cookies that were set/cleared by Supabase during signOut
-    const cookiesToSet = hasCookiesToSet(locals.supabase) ? locals.supabase.__cookiesToSet! : [];
+    const cookiesToSet = hasCookiesToSet(locals.supabase) ? (locals.supabase.__cookiesToSet ?? []) : [];
 
     cookiesToSet.forEach(({ name, value, options }) => {
       // Serialize cookie with proper options (usually MaxAge=0 for deletion)

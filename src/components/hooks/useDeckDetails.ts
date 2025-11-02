@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { CardDTO, CardsListDTO, DeckDTO } from "@/types";
+import type { CardsListDTO, DeckDTO } from "@/types";
 import type { CardsListQuery, DeckDetailsState, CardsSort, SortOrder } from "../deck/types";
 import { toast } from "sonner";
 

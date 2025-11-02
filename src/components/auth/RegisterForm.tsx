@@ -5,7 +5,7 @@
  * Includes password confirmation and validation.
  */
 
-import { useState, useTransition, useId } from "react";
+import { useState, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +23,6 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof SignUpInput, string>>>({});
-  const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const emailId = useId();
@@ -33,7 +32,7 @@ export default function RegisterForm() {
   const passwordErrorId = useId();
   const confirmPasswordErrorId = useId();
 
-  const loading = isPending || isSubmitting;
+  const loading = isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -18,10 +18,9 @@ import type { CardDialogState } from "./types";
 
 interface DeckCardsPanelProps {
   deck: DeckDTO;
-  onDeckUpdated: (updated: DeckDTO) => void;
 }
 
-export default function DeckCardsPanel({ deck, onDeckUpdated }: DeckCardsPanelProps) {
+export default function DeckCardsPanel({ deck }: DeckCardsPanelProps) {
   const { state, actions } = useDeckDetails({
     deckId: deck.id,
     initialDeck: deck,
@@ -72,7 +71,7 @@ export default function DeckCardsPanel({ deck, onDeckUpdated }: DeckCardsPanelPr
     });
   };
 
-  const handleCardSuccess = (card: CardDTO) => {
+  const handleCardSuccess = () => {
     const message = dialogState.mode === "create" ? "Fiszka została dodana" : "Fiszka została zaktualizowana";
 
     toast.success(message);

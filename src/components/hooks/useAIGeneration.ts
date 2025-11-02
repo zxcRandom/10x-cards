@@ -68,15 +68,16 @@ export function useAIGeneration(): UseAIGenerationResult {
           const errorCode = errorData?.error?.code;
 
           switch (response.status) {
-            case 400:
+            case 400: {
               // Validation error
               const validationError = errorData as ValidationErrorResponse;
               setError(validationError.error.message || "Błąd walidacji danych");
               break;
+            }
             case 401:
               setError("Wymagane zalogowanie");
               break;
-            case 422:
+            case 422: {
               // AI processing error
               const processingError = errorData as UnprocessableErrorResponse;
               setError(
@@ -84,6 +85,7 @@ export function useAIGeneration(): UseAIGenerationResult {
                   "Nie udało się przetworzyć odpowiedzi AI. Spróbuj skrócić tekst lub zmniejszyć liczbę kart."
               );
               break;
+            }
             case 429:
               setError("Przekroczono limit żądań. Spróbuj ponownie później.");
               break;
@@ -98,9 +100,10 @@ export function useAIGeneration(): UseAIGenerationResult {
                   : "Wystąpił błąd serwera. Spróbuj ponownie później."
               );
               break;
-            default:
+            default: {
               const genericError = errorData as ErrorResponse;
               setError(genericError.error.message || "Wystąpił nieoczekiwany błąd");
+            }
           }
         } else {
           setError("Wystąpił błąd serwera");

@@ -5,7 +5,6 @@
  */
 
 import { Button } from "@/components/ui/button";
-import type { PaginationState } from "./types";
 
 interface PaginationControlsProps {
   total: number;

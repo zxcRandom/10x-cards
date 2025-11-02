@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { CardDTO, CardsListDTO, CreateCardCommand, DbCard, ErrorCode } from "../../types";
 import { CardRepository } from "../repositories/card.repository";

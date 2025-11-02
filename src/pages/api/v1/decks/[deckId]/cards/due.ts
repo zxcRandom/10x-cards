@@ -155,7 +155,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       });
     }
 
-    const { before, limit, offset, sort, order } = validationResult.data;
+    const { before, limit, offset, order } = validationResult.data;
 
     // =========================================================================
     // STEP 4: Verify Deck Ownership

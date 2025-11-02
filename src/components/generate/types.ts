@@ -5,7 +5,7 @@
  * These types extend or complement the API DTOs from @/types.
  */
 
-import type { DeckDTO, CardDTO, AIDeckResponseDTO } from "@/types";
+import type { DeckDTO } from "@/types";
 
 /**
  * Review card view model

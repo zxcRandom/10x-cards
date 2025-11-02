@@ -32,7 +32,7 @@ export default function DecksPage() {
   const [editDeck, setEditDeck] = useState<DeckDTO | null>(null);
   const [deleteDeck, setDeleteDeck] = useState<DeckDTO | null>(null);
 
-  const { data, loading, error, state, refetch } = useDecksList(query);
+  const { data, loading, error, refetch } = useDecksList(query);
 
   const handleQueryChange = (next: DeckListQuery) => {
     setQuery(next);
@@ -42,19 +42,19 @@ export default function DecksPage() {
     setQuery({ ...query, ...next });
   };
 
-  const handleCreateSuccess = (created: DeckDTO) => {
+  const handleCreateSuccess = () => {
     setIsCreateOpen(false);
     toast.success("Talia została utworzona");
     refetch();
   };
 
-  const handleEditSuccess = (updated: DeckDTO) => {
+  const handleEditSuccess = () => {
     setEditDeck(null);
     toast.success("Talia została zaktualizowana");
     refetch();
   };
 
-  const handleDeleteSuccess = (deletedId: string) => {
+  const handleDeleteSuccess = () => {
     setDeleteDeck(null);
     toast.success("Talia została usunięta");
 

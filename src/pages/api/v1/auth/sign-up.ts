@@ -23,7 +23,7 @@ import { formatZodErrors } from "@/lib/utils/zod-errors";
 import { RateLimitService } from "@/lib/services/rate-limit.service";
 import { hasCookiesToSet } from "@/db/supabase.client";
 import { HttpStatus, ErrorCode } from "@/types";
-import type { AuthSuccessDTO, ErrorResponse, ValidationErrorResponse } from "@/types";
+import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
@@ -155,7 +155,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const responseHeaders = new Headers();
 
     // Get cookies that were set by Supabase during signUp
-    const cookiesToSet = hasCookiesToSet(locals.supabase) ? locals.supabase.__cookiesToSet! : [];
+    const cookiesToSet = hasCookiesToSet(locals.supabase) ? (locals.supabase.__cookiesToSet ?? []) : [];
 
     cookiesToSet.forEach(({ name, value, options }) => {
       // Serialize cookie with proper options

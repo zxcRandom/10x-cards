@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     let requestBody: unknown;
     try {
       requestBody = await request.json();
-    } catch (error) {
+    } catch {
       return new Response(
         JSON.stringify({
           error: {
@@ -121,7 +121,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // STEP 5: Create deck and cards in database
     let deckId: string | null = null;
-    let cards: any[] = [];
+    let cards: { id: string; question: string; answer: string }[] = [];
 
     try {
       // Create deck

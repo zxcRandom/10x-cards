@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-  DialogOverlay,
 } from "../dialog";
 
 describe("Dialog", () => {
@@ -81,7 +80,7 @@ describe("Dialog", () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
-        <DialogContent onInteractOutside={() => {}}>
+        <DialogContent onInteractOutside={() => undefined}>
           <DialogTitle>Test Dialog</DialogTitle>
           <p>Content</p>
         </DialogContent>
@@ -101,7 +100,9 @@ describe("Dialog", () => {
     // For this test, we'll skip the close assertion since it's not configured
     const overlay = document.querySelector('[data-slot="dialog-overlay"]');
     expect(overlay).toBeInTheDocument();
-    fireEvent.click(overlay!);
+    if (overlay) {
+      fireEvent.click(overlay);
+    }
 
     // Note: Dialog may not close on overlay click by default in this implementation
     // This test verifies overlay exists and is clickable

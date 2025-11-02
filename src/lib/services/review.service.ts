@@ -1,13 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client";
-import type {
-  ReviewDTO,
-  ReviewResponseDTO,
-  CreateReviewCommand,
-  DbReview,
-  DbCard,
-  ErrorCode,
-  ReviewGrade,
-} from "../../types";
+import type { ReviewDTO, ReviewResponseDTO, CreateReviewCommand, DbReview, ErrorCode, ReviewGrade } from "../../types";
 
 /**
  * SM-2 Algorithm Constants

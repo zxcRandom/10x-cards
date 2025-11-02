@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import type { CardDTO, UpdateCardCommand, ErrorResponse, ValidationErrorResponse } from "../../../../types";
+import type { UpdateCardCommand, ErrorResponse, ValidationErrorResponse } from "../../../../types";
 import { CardService } from "../../../../lib/services/card.service";
 import { updateCardSchema, cardIdParamSchema } from "../../../../lib/validation/card.schemas";
 import { formatZodErrors } from "../../../../lib/utils/zod-errors";

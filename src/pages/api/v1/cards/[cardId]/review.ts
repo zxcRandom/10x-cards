@@ -1,11 +1,6 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import type {
-  ReviewResponseDTO,
-  CreateReviewCommand,
-  ErrorResponse,
-  ValidationErrorResponse,
-} from "../../../../../types";
+import type { CreateReviewCommand, ErrorResponse, ValidationErrorResponse } from "../../../../../types";
 import { ReviewService } from "../../../../../lib/services/review.service";
 import { CreateReviewSchema, CardIdSchema } from "../../../../../lib/validation/review.schemas";
 import { formatZodErrors } from "../../../../../lib/utils/zod-errors";

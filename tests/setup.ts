@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function, @typescript-eslint/no-explicit-any */
 import "@testing-library/jest-dom";
-import { expect, afterEach, vi } from "vitest";
+import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
 // Cleanup after each test
@@ -23,6 +24,7 @@ Object.defineProperty(window, "matchMedia", {
 });
 
 // Mock IntersectionObserver
+// eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function, @typescript-eslint/no-explicit-any
 global.IntersectionObserver = class IntersectionObserver {
   constructor() {}
   disconnect() {}

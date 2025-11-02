@@ -204,7 +204,7 @@ export const DeckService = {
    */
   async deleteDeck(deckId: string, userId: string, supabase: SupabaseClient): Promise<boolean> {
     // Step 1: Execute DELETE with RLS enforcement
-    const { data, error, count } = await supabase
+    const { error, count } = await supabase
       .from("decks")
       .delete({ count: "exact" })
       .eq("id", deckId)

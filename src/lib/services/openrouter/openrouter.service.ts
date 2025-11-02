@@ -664,7 +664,7 @@ export class OpenRouterService {
         let parsed: unknown;
         try {
           parsed = JSON.parse(payload);
-        } catch (error) {
+        } catch {
           this.logger.warn("Failed to parse OpenRouter stream chunk", { payload });
           continue;
         }

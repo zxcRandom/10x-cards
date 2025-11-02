@@ -15,7 +15,7 @@ interface DeckDetailsViewProps {
 }
 
 export default function DeckDetailsView({ deck }: DeckDetailsViewProps) {
-  const handleDeckUpdated = (updated: DeckDTO) => {
+  const handleDeckUpdated = () => {
     // Deck update is handled by DeckHeader internally
     // This could trigger a parent state update if needed
   };
@@ -28,7 +28,7 @@ export default function DeckDetailsView({ deck }: DeckDetailsViewProps) {
     <div className="container mx-auto px-4 py-8 space-y-8">
       <DeckHeader deck={deck} onDeckUpdated={handleDeckUpdated} onDeckDeleted={handleDeckDeleted} canStudy={true} />
 
-      <DeckCardsPanel deck={deck} onDeckUpdated={handleDeckUpdated} />
+      <DeckCardsPanel deck={deck} />
 
       <Toaster />
     </div>

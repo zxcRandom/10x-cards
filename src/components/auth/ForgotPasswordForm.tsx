@@ -75,7 +75,7 @@ export default function ForgotPasswordForm() {
       // Show OTP input form
       setIsOtpSent(true);
       toast.success("Kod weryfikacyjny został wysłany na podany adres e-mail");
-    } catch (err) {
+    } catch {
       // Even on error, show neutral success message
       setIsOtpSent(true);
       toast.success("Kod weryfikacyjny został wysłany na podany adres e-mail");

@@ -65,7 +65,7 @@ test.describe("Study Session with Cleanup", () => {
     const reviewUrl = authenticatedPage.url();
     const match = reviewUrl.match(/deckId=([^&]+)/);
     expect(match).toBeTruthy();
-    createdDeckId = match![1];
+    createdDeckId = match?.[1] ?? null;
     console.log(`Created deck for study: ${createdDeckId}`);
 
     // STEP 2: Navigate to study session
@@ -142,7 +142,7 @@ test.describe("Study Session with Cleanup", () => {
 
     const reviewUrl = authenticatedPage.url();
     const match = reviewUrl.match(/deckId=([^&]+)/);
-    createdDeckId = match![1];
+    createdDeckId = match?.[1] ?? null;
     console.log(`Created math deck: ${createdDeckId}`);
 
     // STEP 2: Go to study

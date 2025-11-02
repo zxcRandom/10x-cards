@@ -82,7 +82,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Always get user session for authenticated requests
   const {
     data: { user },
-    error: authError,
   } = await locals.supabase.auth.getUser();
 
   // Store user in locals for easy access in pages/endpoints

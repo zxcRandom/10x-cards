@@ -5,7 +5,6 @@
  */
 
 import { test as teardown } from "@playwright/test";
-import { SupabaseClient } from "@supabase/supabase-js";
 
 teardown("cleanup test environment", async ({ request }) => {
   console.log("🧹 Cleaning up test environment...");

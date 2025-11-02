@@ -6,7 +6,6 @@ import type {
   CreateCardCommand,
   ErrorResponse,
   ValidationErrorResponse,
-  HttpStatus,
 } from "../../../../../types";
 import { CardService } from "../../../../../lib/services/card.service";
 import { createCardSchema, deckIdParamSchema } from "../../../../../lib/validation/card.schemas";

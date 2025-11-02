@@ -64,7 +64,7 @@ test.describe("AI Flashcard Generation with Cleanup", () => {
     const url = authenticatedPage.url();
     const match = url.match(/deckId=([^&]+)/);
     expect(match).toBeTruthy();
-    createdDeckId = match![1];
+    createdDeckId = match?.[1] ?? null;
 
     console.log(`Created deck with ID: ${createdDeckId}`);
 

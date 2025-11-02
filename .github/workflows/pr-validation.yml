@@ -29,10 +29,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: true  # Nie blokuj PR z powodu linting warnings  # Job 2: Testy jednostkowe
+        continue-on-error: true # Nie blokuj PR z powodu linting warnings  # Job 2: Testy jednostkowe
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -49,10 +49,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run unit tests
         run: npm run test:unit
-        continue-on-error: true  # Nie blokuj PR z powodu testów - w trakcie rozwoju  # Job 3: Build verification
+        continue-on-error: true # Nie blokuj PR z powodu testów - w trakcie rozwoju  # Job 3: Build verification
   build:
     name: Build Check
     runs-on: ubuntu-latest
@@ -69,10 +69,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build project
         run: npm run build
-        continue-on-error: true  # Nie blokuj PR z powodu błędów buildu - w trakcie rozwoju  # Job 4: Testy E2E (opcjonalne - wymaga konfiguracji secrets)
+        continue-on-error: true # Nie blokuj PR z powodu błędów buildu - w trakcie rozwoju  # Job 4: Testy E2E (opcjonalne - wymaga konfiguracji secrets)
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest

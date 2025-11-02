@@ -66,16 +66,18 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
       }
 
       const cardsData = await cardsResponse.json();
-      const loadedCards: ReviewCardVM[] = cardsData.items.map((card: any) => ({
-        id: card.id,
-        question: card.question,
-        answer: card.answer,
-        selected: true, // All selected by default
-        edited: false,
-        discarded: false,
-        originalQuestion: card.question,
-        originalAnswer: card.answer,
-      }));
+      const loadedCards: ReviewCardVM[] = cardsData.items.map(
+        (card: { id: string; question: string; answer: string }) => ({
+          id: card.id,
+          question: card.question,
+          answer: card.answer,
+          selected: true, // All selected by default
+          edited: false,
+          discarded: false,
+          originalQuestion: card.question,
+          originalAnswer: card.answer,
+        })
+      );
 
       setCards(loadedCards);
       setState("idle");
