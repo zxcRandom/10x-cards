@@ -31,8 +31,7 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint
-        continue-on-error: true # Nie blokuj PR z powodu linting warnings  # Job 2: Testy jednostkowe
+        run: npm run lint  # Job 2: Testy jednostkowe
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -51,8 +50,7 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        run: npm run test:unit
-        continue-on-error: true # Nie blokuj PR z powodu testów - w trakcie rozwoju  # Job 3: Build verification
+        run: npm run test:unit  # Job 3: Build verification
   build:
     name: Build Check
     runs-on: ubuntu-latest
@@ -71,15 +69,14 @@ jobs:
         run: npm ci
 
       - name: Build project
-        run: npm run build
-        continue-on-error: true # Nie blokuj PR z powodu błędów buildu - w trakcie rozwoju  # Job 4: Testy E2E (opcjonalne - wymaga konfiguracji secrets)
+        run: npm run build  # Job 4: Testy E2E (opcjonalne - wymaga konfiguracji secrets)
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
     # Uruchamiamy E2E tylko jeśli poprzednie joby się powiodły
     needs: [lint, unit-tests, build]
-    # Dodaj warunek - E2E testy będą pomijane jeśli nie ma skonfigurowanych secrets
-    if: false # Ustaw na 'true' gdy skonfigurujesz secrets w GitHub
+    # Włączamy E2E testy
+    if: true
 
     steps:
       - name: Checkout code
