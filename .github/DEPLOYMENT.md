@@ -134,20 +134,36 @@ npm run lint:fix
 
 **REQUIRED MANUAL CONFIGURATION**:
 
-1. **Configure in Cloudflare Dashboard** (See [CLOUDFLARE_SETUP.md](./CLOUDFLARE_SETUP.md) for step-by-step guide):
-   - Go to https://dash.cloudflare.com/
-   - Navigate to: Workers & Pages → 10x-cards → Settings → Functions
-   - **Add compatibility flag**: `nodejs_compat` for both Preview and Production
-   - **Alternative**: Add environment variable `COMPATIBILITY_FLAGS=nodejs_compat`
+1. **Configure in Cloudflare Dashboard** (See [CLOUDFLARE_SETUP.md](./CLOUDFLARE_SETUP.md) for detailed guide):
+   
+   a. Go to https://dash.cloudflare.com/
+   
+   b. Navigate to: Workers & Pages → 10x-cards → Settings → Functions → Runtime
+   
+   c. **Configure BOTH Preview AND Production environments**:
+      - Click **Edit** for each environment
+      - Set **Compatibility date**: `2025-11-02` (or current date)
+      - Set **Compatibility flags**: `nodejs_compat`
+      - **Save** each environment
+   
+   d. **Critical**: Make sure compatibility_date is **>= 2024-09-23**
+      - Earlier dates do NOT support MessageChannel
+      - If you see `Nov 2, 2024` in Preview - update to `Nov 2, 2025`
 
 2. **Why wrangler.toml alone is not enough**:
    - The `compatibility_flags = ["nodejs_compat"]` in `wrangler.toml` works for local development
-   - Cloudflare Pages automatic deployments from GitHub have limitations
-   - Manual Dashboard configuration takes precedence and is required for production
+   - Cloudflare Pages automatic deployments from GitHub READ but DO NOT APPLY these settings
+   - Manual Dashboard configuration takes precedence and is REQUIRED for production
 
 3. **After Dashboard configuration**: Push a new commit or manually redeploy from Cloudflare Dashboard
+   ```bash
+   git commit --allow-empty -m "chore: trigger redeploy after runtime settings update"
+   git push origin <your-branch>
+   ```
 
-**Root cause**: React 19 SSR uses Node.js APIs (MessageChannel) not available in Cloudflare Workers without `nodejs_compat` flag.
+**Root cause**: React 19 SSR uses Node.js APIs (MessageChannel) not available in Cloudflare Workers without `nodejs_compat` flag AND `compatibility_date >= 2024-09-23`.
+
+**Common mistake**: Having `nodejs_compat` flag set but outdated `compatibility_date` (e.g., `Nov 2, 2024` instead of `Nov 2, 2025`). The date MUST be recent enough to include full MessageChannel implementation.
 
 ### Deployment fails z błędem "Context access might be invalid"
 - To są tylko ostrzeżenia ESLint, nie błędy
