@@ -1,39 +1,40 @@
 /**
  * AI Generation E2E Tests with Cleanup
- * 
+ *
  * Tests that create decks with AI and clean them up afterwards.
  * Uses afterEach hook for cleanup.
  */
 
-import { test, expect } from './fixtures';
-import { AIGeneratorPage } from './page-objects';
+import { test, expect } from "./fixtures";
+import { AIGeneratorPage } from "./page-objects";
 
-test.describe('AI Flashcard Generation with Cleanup', () => {
+test.describe("AI Flashcard Generation with Cleanup", () => {
   // Increase timeout for AI generation tests (can take 60s+)
   test.setTimeout(120000); // 2 minutes
-  
+
   // Mark as slow test (3x timeout)
   test.slow();
-  
+
   let createdDeckId: string | null = null;
-  
+
   test.beforeEach(async ({ authenticatedPage }) => {
-    await authenticatedPage.goto('/');
+    await authenticatedPage.goto("/");
   });
-  
+
   test.afterEach(async ({ authenticatedPage }) => {
     // Cleanup: Delete created deck if exists
     if (createdDeckId) {
       const response = await authenticatedPage.request.delete(`/api/v1/decks/${createdDeckId}`);
       expect(response.ok()).toBeTruthy();
+      // eslint-disable-next-line no-console
       console.log(`Cleaned up deck: ${createdDeckId}`);
       createdDeckId = null;
     }
   });
-  
-  test('@slow can generate ML deck and review cards', async ({ authenticatedPage }) => {
+
+  test("@slow can generate ML deck and review cards", async ({ authenticatedPage }) => {
     const generatorPage = new AIGeneratorPage(authenticatedPage);
-    
+
     // Generate flashcards about Machine Learning
     const mlText = `
       Machine learning is a subset of artificial intelligence that focuses on the development 
@@ -49,26 +50,27 @@ test.describe('AI Flashcard Generation with Cleanup', () => {
       computers to mimic human behavior, while machine learning is a specific approach within AI 
       that focuses on learning from data.
     `.trim();
-    
+
     await generatorPage.fillInputText(mlText);
-    await generatorPage.fillDeckName('ML Deck');
+    await generatorPage.fillDeckName("ML Deck");
     await generatorPage.fillMaxCards(5);
-    
+
     // Click generate and wait for navigation
     await Promise.all([
       authenticatedPage.waitForURL(/\/generate\/review\?deckId=.+/, { timeout: 60000 }),
       generatorPage.clickGenerate(),
     ]);
-    
+
     // Extract deck ID from URL
     const url = authenticatedPage.url();
     const match = url.match(/deckId=([^&]+)/);
     expect(match).toBeTruthy();
-    createdDeckId = match![1];
-    
+    createdDeckId = match?.[1] ?? null;
+
+    // eslint-disable-next-line no-console
     console.log(`Created deck with ID: ${createdDeckId}`);
-    
+
     // Simply verify we're on the review page
-    expect(url).toContain('/generate/review');
+    expect(url).toContain("/generate/review");
   });
 });

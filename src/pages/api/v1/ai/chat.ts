@@ -96,15 +96,19 @@ const flashcardSchema = z.object({
 
 const logger: Logger = {
   debug(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.debug(`[openrouter] ${message}`, redact(meta));
   },
   info(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.info(`[openrouter] ${message}`, redact(meta));
   },
   warn(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.warn(`[openrouter] ${message}`, redact(meta));
   },
   error(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.error(`[openrouter] ${message}`, redact(meta));
   },
 };
@@ -114,7 +118,7 @@ const rateLimiterHooks: RateLimiterHooks = {
     const result = await rateLimitService.checkAIRateLimit(key);
     return {
       allowed: result.allowed,
-      retryAfterMs: result.allowed ? undefined : result.resetInMs ?? 60_000,
+      retryAfterMs: result.allowed ? undefined : (result.resetInMs ?? 60_000),
     };
   },
   async consume(key: string) {
@@ -370,6 +374,7 @@ async function handleFlashcardGeneration(
       );
     }
 
+    // eslint-disable-next-line no-console
     console.error("Failed to generate deck via OpenRouter", error);
     return jsonResponse(
       {
@@ -415,9 +420,7 @@ function mapOpenRouterError(error: unknown): {
   if (error instanceof ThrottledError) {
     return {
       status: 429,
-      headers: error.retryAfterMs
-        ? { "Retry-After": Math.ceil(error.retryAfterMs / 1000).toString() }
-        : undefined,
+      headers: error.retryAfterMs ? { "Retry-After": Math.ceil(error.retryAfterMs / 1000).toString() } : undefined,
       body: {
         error: {
           code: "TOO_MANY_REQUESTS",
@@ -486,9 +489,7 @@ function mapOpenRouterError(error: unknown): {
   };
 }
 
-function validationError(
-  issues: z.ZodIssue[]
-): Response {
+function validationError(issues: z.ZodIssue[]): Response {
   return jsonResponse(
     {
       error: {
@@ -543,6 +544,7 @@ async function logFailure(
       errorMessage: params.error instanceof Error ? params.error.message : "Unknown error",
     });
   } catch (logError) {
+    // eslint-disable-next-line no-console
     console.error("Failed to record AI generation failure log", logError);
   }
 }

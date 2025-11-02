@@ -1,13 +1,13 @@
 /**
  * CardsToolbar Component
- * 
+ *
  * Toolbar with search, page size selector, and add card button.
  */
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, Plus } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface CardsToolbarProps {
   q: string;
@@ -17,13 +17,7 @@ interface CardsToolbarProps {
   onCreate: () => void;
 }
 
-export default function CardsToolbar({
-  q,
-  limit,
-  onSearchChange,
-  onLimitChange,
-  onCreate,
-}: CardsToolbarProps) {
+export default function CardsToolbar({ q, limit, onSearchChange, onLimitChange, onCreate }: CardsToolbarProps) {
   const [searchValue, setSearchValue] = useState(q);
 
   // Debounce search

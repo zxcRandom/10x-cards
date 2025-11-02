@@ -5,7 +5,7 @@
  * These types extend or complement the API DTOs from @/types.
  */
 
-import type { DeckDTO, CardDTO, AIDeckResponseDTO } from "@/types";
+import type { DeckDTO } from "@/types";
 
 /**
  * Review card view model
@@ -16,12 +16,12 @@ export interface ReviewCardVM {
   id: string;
   question: string;
   answer: string;
-  
+
   // UI state
   selected: boolean; // Whether card is selected for saving
   edited: boolean; // Whether card has been modified
   discarded: boolean; // Whether card was discarded (soft delete in UI)
-  
+
   // Original values (for detecting changes)
   originalQuestion: string;
   originalAnswer: string;
@@ -30,7 +30,7 @@ export interface ReviewCardVM {
 /**
  * Deck destination mode - where to save reviewed cards
  */
-export type DeckDestinationMode = 'new' | 'existing';
+export type DeckDestinationMode = "new" | "existing";
 
 /**
  * Deck destination view model
@@ -78,7 +78,7 @@ export interface SavePlan {
 /**
  * Review state for the entire view
  */
-export type ReviewState = 'idle' | 'loading' | 'saving' | 'error';
+export type ReviewState = "idle" | "loading" | "saving" | "error";
 
 /**
  * Complete component state for ReviewAICardsView
@@ -88,18 +88,18 @@ export interface ReviewComponentState {
   sourceDeckId: string; // Original deck created by AI
   sourceDeckName: string; // Original deck name
   cards: ReviewCardVM[]; // All cards being reviewed
-  
+
   // Destination
   destination: DeckDestinationVM;
-  
+
   // Available decks for selection
   availableDecks: DeckDTO[];
   availableDecksLoading: boolean;
-  
+
   // UI state
   state: ReviewState;
   errorMessage?: string;
-  
+
   // Dirty tracking
   hasUnsavedChanges: boolean;
 }
@@ -110,9 +110,9 @@ export interface ReviewComponentState {
  */
 export interface ReviewInitialData {
   deck: DeckDTO;
-  cards: Array<{
+  cards: {
     id: string;
     question: string;
     answer: string;
-  }>;
+  }[];
 }

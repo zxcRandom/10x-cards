@@ -1,24 +1,24 @@
 /**
  * ResetPasswordForm Component
- * 
+ *
  * Handles password reset with new password entry.
  * Used after clicking the reset link from email.
  */
 
-import { useState, useTransition, useId } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { passwordResetSchema, type PasswordResetInput } from '@/lib/validation/auth.schemas';
+import { useState, useTransition, useId } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { passwordResetSchema, type PasswordResetInput } from "@/lib/validation/auth.schemas";
 
 interface ResetPasswordFormProps {
   hasValidCode?: boolean;
 }
 
 export default function ResetPasswordForm({ hasValidCode = true }: ResetPasswordFormProps) {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof PasswordResetInput, string>>>({});
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,24 +51,24 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/v1/auth/password/reset', {
-        method: 'POST',
+      const response = await fetch("/api/v1/auth/password/reset", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ newPassword }),
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('Link do resetowania hasła wygasł lub jest nieprawidłowy');
+          toast.error("Link do resetowania hasła wygasł lub jest nieprawidłowy");
           setTimeout(() => {
-            window.location.href = '/auth/forgot-password';
+            window.location.href = "/auth/forgot-password";
           }, 2000);
           return;
         }
         if (response.status === 429) {
-          toast.error('Zbyt wiele prób. Spróbuj ponownie później.');
+          toast.error("Zbyt wiele prób. Spróbuj ponownie później.");
           return;
         }
         if (response.status === 400) {
@@ -82,20 +82,19 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
             return;
           }
         }
-        throw new Error('Wystąpił błąd podczas resetowania hasła');
+        throw new Error("Wystąpił błąd podczas resetowania hasła");
       }
 
       // Success - redirect to login
       startTransition(() => {
-        toast.success('Hasło zostało zmienione');
-        
+        toast.success("Hasło zostało zmienione");
+
         setTimeout(() => {
-          window.location.href = '/auth/login';
+          window.location.href = "/auth/login";
         }, 200);
       });
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Nieznany błąd';
+      const errorMessage = err instanceof Error ? err.message : "Nieznany błąd";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -107,13 +106,7 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
       <div className="space-y-6">
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center space-y-2">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-destructive/20 text-destructive mb-2">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -124,8 +117,7 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
           </div>
           <h3 className="font-semibold text-lg">Link wygasł</h3>
           <p className="text-sm text-muted-foreground">
-            Link do resetowania hasła wygasł lub jest nieprawidłowy.
-            Linki są ważne przez 60 minut.
+            Link do resetowania hasła wygasł lub jest nieprawidłowy. Linki są ważne przez 60 minut.
           </p>
         </div>
 
@@ -155,7 +147,7 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
             disabled={loading}
             required
             autoComplete="new-password"
-            aria-invalid={errors.newPassword ? 'true' : 'false'}
+            aria-invalid={errors.newPassword ? "true" : "false"}
             aria-describedby={errors.newPassword ? newPasswordErrorId : undefined}
           />
           {errors.newPassword && (
@@ -163,9 +155,7 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
               {errors.newPassword}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
-            Hasło musi mieć co najmniej 8 znaków
-          </p>
+          <p className="text-xs text-muted-foreground">Hasło musi mieć co najmniej 8 znaków</p>
         </div>
 
         <div className="space-y-2">
@@ -179,7 +169,7 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
             disabled={loading}
             required
             autoComplete="new-password"
-            aria-invalid={errors.confirmNewPassword ? 'true' : 'false'}
+            aria-invalid={errors.confirmNewPassword ? "true" : "false"}
             aria-describedby={errors.confirmNewPassword ? confirmNewPasswordErrorId : undefined}
           />
           {errors.confirmNewPassword && (
@@ -190,12 +180,8 @@ export default function ResetPasswordForm({ hasValidCode = true }: ResetPassword
         </div>
       </div>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={loading || !newPassword || !confirmNewPassword}
-      >
-        {loading ? 'Resetowanie hasła...' : 'Ustaw nowe hasło'}
+      <Button type="submit" className="w-full" disabled={loading || !newPassword || !confirmNewPassword}>
+        {loading ? "Resetowanie hasła..." : "Ustaw nowe hasło"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">

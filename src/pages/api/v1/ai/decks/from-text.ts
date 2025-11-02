@@ -6,11 +6,11 @@ import { DeckService } from "../../../../../lib/services/deck.service";
 import { CardService } from "../../../../../lib/services/card.service";
 import { AILogService } from "../../../../../lib/services/ai-log.service";
 import { RateLimitService } from "../../../../../lib/services/rate-limit.service";
-import type { 
+import type {
   AIDeckResponseDTO,
-  ErrorResponse, 
-  ValidationErrorResponse, 
-  UnprocessableErrorResponse 
+  ErrorResponse,
+  ValidationErrorResponse,
+  UnprocessableErrorResponse,
 } from "../../../../../types";
 
 /**
@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // STEP 2: Rate limiting
     const rateLimitService = new RateLimitService();
     const rateLimit = await rateLimitService.checkAIRateLimit(user.id);
-    
+
     if (!rateLimit.allowed) {
       return new Response(
         JSON.stringify({
@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     let requestBody: unknown;
     try {
       requestBody = await request.json();
-    } catch (error) {
+    } catch {
       return new Response(
         JSON.stringify({
           error: {
@@ -115,38 +115,27 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // STEP 4: Generate cards using AI
+    // eslint-disable-next-line no-console
     console.log(`� AI generation for user ${user.id}, maxCards: ${validated.maxCards}`);
 
-    const generatedCards = await aiService.generateFlashcardsFromText(
-      validated.inputText,
-      validated.maxCards
-    );
+    const generatedCards = await aiService.generateFlashcardsFromText(validated.inputText, validated.maxCards);
 
     // STEP 5: Create deck and cards in database
     let deckId: string | null = null;
-    let cards: any[] = [];
+    let cards: { id: string; question: string; answer: string }[] = [];
 
     try {
       // Create deck
-      const deckName =
-        validated.deckName || `AI Generated Deck - ${new Date().toLocaleDateString()}`;
+      const deckName = validated.deckName || `AI Generated Deck - ${new Date().toLocaleDateString()}`;
 
-      const deckResult = await DeckService.createDeck(
-        user.id,
-        { name: deckName, createdByAi: true },
-        locals.supabase
-      );
+      const deckResult = await DeckService.createDeck(user.id, { name: deckName, createdByAi: true }, locals.supabase);
 
       deckId = deckResult.id;
 
       // Create cards in batch
       if (generatedCards.length > 0) {
         const cardService = new CardService(locals.supabase);
-        const cardsResult = await cardService.createCardsBatch(
-          deckId,
-          user.id,
-          generatedCards
-        );
+        const cardsResult = await cardService.createCardsBatch(deckId, user.id, generatedCards);
 
         const cardsResultValue = cardsResult.toUnion();
         if ("error" in cardsResultValue) {
@@ -169,6 +158,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       await rateLimitService.incrementAIRateLimit(user.id);
 
       const duration = Date.now() - startTime;
+      // eslint-disable-next-line no-console
       console.log(`✅ AI generation completed in ${duration}ms: ${cards.length} cards created`);
 
       // STEP 6: Return success response
@@ -191,6 +181,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         },
       });
     } catch (dbError) {
+      // eslint-disable-next-line no-console
       console.error("Database operation failed:", dbError);
 
       // Log the failed attempt
@@ -200,10 +191,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
           deckId: deckId,
           inputTextLength: validated.inputText.length,
           generatedCardsCount: 0,
-          errorMessage:
-            dbError instanceof Error ? dbError.message : "Unknown database error",
+          errorMessage: dbError instanceof Error ? dbError.message : "Unknown database error",
         });
       } catch (logError) {
+        // eslint-disable-next-line no-console
         console.error("Failed to log error:", logError);
       }
 
@@ -211,6 +202,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
   } catch (error) {
     const duration = Date.now() - startTime;
+    // eslint-disable-next-line no-console
     console.error(`❌ AI test failed after ${duration}ms:`, error);
 
     // Handle specific error types

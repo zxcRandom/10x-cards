@@ -1,6 +1,6 @@
 /**
  * OtpPasswordResetForm Component
- * 
+ *
  * Handles OTP verification and password reset.
  * User enters:
  * - 6-digit OTP code from email
@@ -8,21 +8,21 @@
  * - Password confirmation
  */
 
-import { useState, useTransition, useId } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { otpPasswordResetSchema, type OtpPasswordResetInput } from '@/lib/validation/auth.schemas';
+import { useState, useTransition, useId } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { otpPasswordResetSchema, type OtpPasswordResetInput } from "@/lib/validation/auth.schemas";
 
 interface OtpPasswordResetFormProps {
   email: string;
 }
 
 export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProps) {
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof OtpPasswordResetInput, string>>>({});
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,10 +63,10 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/v1/auth/password/verify-and-reset', {
-        method: 'POST',
+      const response = await fetch("/api/v1/auth/password/verify-and-reset", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
@@ -79,13 +79,13 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
       if (!response.ok) {
         if (response.status === 400) {
           const errorData = await response.json();
-          
+
           // Check for OTP verification error
-          if (errorData.error?.message?.includes('kod')) {
-            toast.error('Nieprawidłowy lub wygasły kod weryfikacyjny');
+          if (errorData.error?.message?.includes("kod")) {
+            toast.error("Nieprawidłowy lub wygasły kod weryfikacyjny");
             return;
           }
-          
+
           // Handle validation errors
           if (errorData.error?.errors) {
             const fieldErrors: Partial<Record<keyof OtpPasswordResetInput, string>> = {};
@@ -96,21 +96,20 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
             return;
           }
         }
-        
-        throw new Error('Wystąpił błąd podczas resetowania hasła');
+
+        throw new Error("Wystąpił błąd podczas resetowania hasła");
       }
 
       // Success - redirect to login
       startTransition(() => {
-        toast.success('Hasło zostało zmienione pomyślnie');
-        
+        toast.success("Hasło zostało zmienione pomyślnie");
+
         setTimeout(() => {
-          window.location.href = '/auth/login';
+          window.location.href = "/auth/login";
         }, 200);
       });
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Nieznany błąd';
+      const errorMessage = err instanceof Error ? err.message : "Nieznany błąd";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -132,14 +131,14 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
             value={otp}
             onChange={(e) => {
               // Only allow digits and enforce max length of 6
-              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+              const value = e.target.value.replace(/\D/g, "").slice(0, 6);
               setOtp(value);
             }}
             placeholder="123456"
             disabled={loading}
             required
             autoComplete="one-time-code"
-            aria-invalid={errors.otp ? 'true' : 'false'}
+            aria-invalid={errors.otp ? "true" : "false"}
             aria-describedby={errors.otp ? otpErrorId : undefined}
             className="text-center text-2xl tracking-widest font-mono"
           />
@@ -148,9 +147,7 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
               {errors.otp}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
-            Wpisz kod 6-cyfrowy z e-maila (ważny 60 sekund)
-          </p>
+          <p className="text-xs text-muted-foreground">Wpisz kod 6-cyfrowy z e-maila (ważny 60 sekund)</p>
         </div>
 
         {/* New Password Input */}
@@ -165,7 +162,7 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
             disabled={loading}
             required
             autoComplete="new-password"
-            aria-invalid={errors.newPassword ? 'true' : 'false'}
+            aria-invalid={errors.newPassword ? "true" : "false"}
             aria-describedby={errors.newPassword ? newPasswordErrorId : undefined}
           />
           {errors.newPassword && (
@@ -173,9 +170,7 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
               {errors.newPassword}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
-            Hasło musi mieć co najmniej 8 znaków
-          </p>
+          <p className="text-xs text-muted-foreground">Hasło musi mieć co najmniej 8 znaków</p>
         </div>
 
         {/* Confirm Password Input */}
@@ -190,7 +185,7 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
             disabled={loading}
             required
             autoComplete="new-password"
-            aria-invalid={errors.confirmNewPassword ? 'true' : 'false'}
+            aria-invalid={errors.confirmNewPassword ? "true" : "false"}
             aria-describedby={errors.confirmNewPassword ? confirmNewPasswordErrorId : undefined}
           />
           {errors.confirmNewPassword && (
@@ -201,12 +196,8 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
         </div>
       </div>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={loading || !otp || !newPassword || !confirmNewPassword}
-      >
-        {loading ? 'Resetowanie hasła...' : 'Ustaw nowe hasło'}
+      <Button type="submit" className="w-full" disabled={loading || !otp || !newPassword || !confirmNewPassword}>
+        {loading ? "Resetowanie hasła..." : "Ustaw nowe hasło"}
       </Button>
     </form>
   );

@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom';
-import { expect, afterEach, vi } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import "@testing-library/jest-dom";
+import { afterEach, vi } from "vitest";
+import { cleanup } from "@testing-library/react";
 
 // Cleanup after each test
 afterEach(() => {
@@ -8,9 +8,9 @@ afterEach(() => {
 });
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -23,12 +23,15 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver
+
 global.IntersectionObserver = class IntersectionObserver {
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
   constructor() {}
-  disconnect() {}
-  observe() {}
+  disconnect() {} // eslint-disable-line @typescript-eslint/no-empty-function
+  observe() {} // eslint-disable-line @typescript-eslint/no-empty-function
   takeRecords() {
     return [];
   }
-  unobserve() {}
+  unobserve() {} // eslint-disable-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;

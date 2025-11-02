@@ -64,6 +64,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     });
 
     if ("error" in result) {
+      // eslint-disable-next-line no-console
       console.error(`Failed to fetch AI logs for user ${user.id}:`, result.error);
       return new Response(
         JSON.stringify({
@@ -92,6 +93,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error fetching AI logs:", error);
     return new Response(
       JSON.stringify({

@@ -1,6 +1,7 @@
 # Health Check Implementation Checklist
 
 ## Development
+
 - [x] API route handler implemented (`src/pages/api/v1/health.ts`)
 - [x] Database connectivity check (minimal SELECT query on profiles table)
 - [x] Error handling for all scenarios (database errors, system errors)
@@ -11,29 +12,34 @@
 - [ ] Manual testing with curl
 
 ## Configuration
+
 - [ ] Verify Supabase connection in environment
 - [ ] Test database accessibility
 - [ ] Verify response time < 1 second
 
 ## Security
+
 - [x] No sensitive information in response (only status and time)
 - [x] Generic error messages (no stack traces, no detailed DB errors)
 - [x] No stack traces in production (caught and logged safely)
 - [x] Proper cache headers (no-cache, no-store, must-revalidate)
 
 ## Performance
+
 - [x] Response time logging implemented
 - [x] Database query optimized (minimal SELECT with head:true, limit:1)
 - [x] No unnecessary processing (direct database check)
 - [ ] Load testing completed
 
 ## Monitoring
+
 - [ ] Health check endpoint accessible
 - [x] Response time metrics logged to console
 - [x] Error rate tracking (all errors logged)
 - [ ] Alerting configured for failures
 
 ## Production Deployment
+
 - [ ] Endpoint accessible at /api/v1/health
 - [ ] Load balancer health check configured
 - [ ] Monitoring system configured
@@ -41,6 +47,7 @@
 - [ ] Documentation updated
 
 ## Post-Deployment
+
 - [ ] Health check returns 200 OK
 - [ ] Response time < 100ms
 - [ ] No errors in logs
@@ -50,6 +57,7 @@
 ## Implementation Notes
 
 ### Completed (Steps 1-3):
+
 1. ✅ **API Route Handler** - Created `src/pages/api/v1/health.ts`
    - Public endpoint (no authentication required)
    - Database connectivity check using minimal query
@@ -72,6 +80,7 @@
    - Ready for deployment verification
 
 ### Next Steps (Steps 4-5):
+
 4. **Integration Tests** - Create `tests/api/health.test.ts`
    - End-to-end tests with real HTTP requests
    - Test against running server
@@ -85,6 +94,7 @@
    - Configure error tracking (Sentry, etc.)
 
 ### Dependencies Required:
+
 - [ ] Install vitest for running tests
 - [ ] Configure test environment
 - [ ] Set up CI/CD pipeline for tests

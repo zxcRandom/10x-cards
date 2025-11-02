@@ -4,20 +4,20 @@
  * Displays a single deck card with basic information and navigation.
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, Sparkles } from 'lucide-react';
-import type { DeckDTO } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { BookOpen, Sparkles } from "lucide-react";
+import type { DeckDTO } from "@/types";
 
 interface DeckCardProps {
   deck: DeckDTO;
 }
 
 export function DeckCard({ deck }: DeckCardProps) {
-  const formattedDate = new Date(deck.updatedAt).toLocaleDateString('pl-PL', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+  const formattedDate = new Date(deck.updatedAt).toLocaleDateString("pl-PL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 
   return (

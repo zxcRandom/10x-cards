@@ -13,7 +13,10 @@ type TypedSupabaseClient = SupabaseClient<Database>;
  * Example: Trying to restore a profile that is already active
  */
 export class ConflictError extends Error {
-  constructor(message: string, public details?: string) {
+  constructor(
+    message: string,
+    public details?: string
+  ) {
     super(message);
     this.name = "ConflictError";
   }
@@ -24,7 +27,10 @@ export class ConflictError extends Error {
  * Example: Trying to update privacy consent on a deleted profile without restoring it
  */
 export class UnprocessableError extends Error {
-  constructor(message: string, public details?: string) {
+  constructor(
+    message: string,
+    public details?: string
+  ) {
     super(message);
     this.name = "UnprocessableError";
   }
@@ -117,12 +123,7 @@ export const ProfileService = {
     }
 
     // Step 4: Execute update
-    const { data, error } = await supabase
-      .from("profiles")
-      .update(updateData)
-      .eq("id", userId)
-      .select()
-      .single();
+    const { data, error } = await supabase.from("profiles").update(updateData).eq("id", userId).select().single();
 
     if (error) {
       throw new Error(`Database error: ${error.message}`);
@@ -153,11 +154,7 @@ export const ProfileService = {
     }
 
     // Validation 2: Cannot update privacyConsent on deleted profile without restore
-    if (
-      command.privacyConsent !== undefined &&
-      currentProfile.deletedAt !== null &&
-      command.restore !== true
-    ) {
+    if (command.privacyConsent !== undefined && currentProfile.deletedAt !== null && command.restore !== true) {
       throw new UnprocessableError(
         "Cannot update privacy consent on deleted profile",
         'Please restore the profile first or include "restore": true in the request'
@@ -174,10 +171,7 @@ export const ProfileService = {
    * @returns ProfileDeletedDTO with deleted_at timestamp
    * @throws Error - When profile is not found or database error occurs
    */
-  async deleteProfile(
-    userId: string,
-    supabase: TypedSupabaseClient
-  ): Promise<ProfileDeletedDTO> {
+  async deleteProfile(userId: string, supabase: TypedSupabaseClient): Promise<ProfileDeletedDTO> {
     // Step 1: Retrieve current profile to ensure it exists
     const currentProfile = await this.getProfile(userId, supabase);
 

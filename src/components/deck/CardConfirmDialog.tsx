@@ -1,11 +1,11 @@
 /**
  * CardConfirmDialog Component
- * 
+ *
  * Confirmation dialog for deleting a flashcard.
  * Shows card preview and requires explicit confirmation.
  */
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { AlertTriangle } from 'lucide-react';
-import type { CardDTO } from '@/types';
+} from "@/components/ui/dialog";
+import { AlertTriangle } from "lucide-react";
+import type { CardDTO } from "@/types";
 
 interface CardConfirmDialogProps {
   open: boolean;
@@ -24,12 +24,7 @@ interface CardConfirmDialogProps {
   onConfirm: (cardId: string) => void;
 }
 
-export default function CardConfirmDialog({
-  open,
-  card,
-  onOpenChange,
-  onConfirm,
-}: CardConfirmDialogProps) {
+export default function CardConfirmDialog({ open, card, onOpenChange, onConfirm }: CardConfirmDialogProps) {
   const handleConfirm = () => {
     if (card) {
       onConfirm(card.id);
@@ -41,7 +36,7 @@ export default function CardConfirmDialog({
     ? card.question.length > 100
       ? `${card.question.substring(0, 100)}...`
       : card.question
-    : '';
+    : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,17 +46,13 @@ export default function CardConfirmDialog({
             <AlertTriangle className="h-5 w-5 text-destructive" />
             Usuń fiszkę
           </DialogTitle>
-          <DialogDescription>
-            Czy na pewno chcesz usunąć tę fiszkę? Tej operacji nie można cofnąć.
-          </DialogDescription>
+          <DialogDescription>Czy na pewno chcesz usunąć tę fiszkę? Tej operacji nie można cofnąć.</DialogDescription>
         </DialogHeader>
 
         {/* Card Preview */}
         {card && (
           <div className="rounded-lg border bg-muted/50 p-4">
-            <div className="text-sm font-medium text-muted-foreground mb-1">
-              Pytanie:
-            </div>
+            <div className="text-sm font-medium text-muted-foreground mb-1">Pytanie:</div>
             <p className="text-sm">{truncatedQuestion}</p>
           </div>
         )}
@@ -75,18 +66,10 @@ export default function CardConfirmDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Anuluj
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleConfirm}
-          >
+          <Button type="button" variant="destructive" onClick={handleConfirm}>
             Usuń fiszkę
           </Button>
         </DialogFooter>
@@ -94,5 +77,3 @@ export default function CardConfirmDialog({
     </Dialog>
   );
 }
-
-

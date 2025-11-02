@@ -1,16 +1,16 @@
 /**
  * LoginForm Component
- * 
+ *
  * Handles user login with email and password.
  * Displays validation errors and provides redirect functionality.
  */
 
-import { useState, useTransition, useId } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-import { signInSchema, type SignInInput } from '@/lib/validation/auth.schemas';
+import { useState, useTransition, useId } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { signInSchema, type SignInInput } from "@/lib/validation/auth.schemas";
 
 /**
  * Delay before redirect to allow cookies to be set by the browser
@@ -23,8 +23,8 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ nextUrl }: LoginFormProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Partial<Record<keyof SignInInput, string>>>({});
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,22 +57,22 @@ export default function LoginForm({ nextUrl }: LoginFormProps) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/v1/auth/sign-in', {
-        method: 'POST',
+      const response = await fetch("/api/v1/auth/sign-in", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'same-origin', // Important: include cookies
+        credentials: "same-origin", // Important: include cookies
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          setErrors({ email: 'Nieprawidłowy e-mail lub hasło' });
+          setErrors({ email: "Nieprawidłowy e-mail lub hasło" });
           return;
         }
         if (response.status === 429) {
-          toast.error('Zbyt wiele prób logowania. Spróbuj ponownie później.');
+          toast.error("Zbyt wiele prób logowania. Spróbuj ponownie później.");
           return;
         }
         if (response.status === 400) {
@@ -86,24 +86,23 @@ export default function LoginForm({ nextUrl }: LoginFormProps) {
             return;
           }
         }
-        throw new Error('Wystąpił błąd podczas logowania');
+        throw new Error("Wystąpił błąd podczas logowania");
       }
 
       // Success (303 redirect) - show optimistic message and redirect
       startTransition(() => {
-        toast.success('Zalogowano pomyślnie');
-        
+        toast.success("Zalogowano pomyślnie");
+
         // Get redirect URL from response Location header or use default
-        const redirectUrl = response.headers.get('Location') || nextUrl || '/';
-        
+        const redirectUrl = response.headers.get("Location") || nextUrl || "/";
+
         // Delay to allow cookies to be set and toast to show
         setTimeout(() => {
           window.location.href = redirectUrl;
         }, REDIRECT_DELAY_MS);
       });
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Nieznany błąd';
+      const errorMessage = err instanceof Error ? err.message : "Nieznany błąd";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -124,7 +123,7 @@ export default function LoginForm({ nextUrl }: LoginFormProps) {
             disabled={loading}
             required
             autoComplete="email"
-            aria-invalid={errors.email ? 'true' : 'false'}
+            aria-invalid={errors.email ? "true" : "false"}
             aria-describedby={errors.email ? emailErrorId : undefined}
           />
           {errors.email && (
@@ -154,7 +153,7 @@ export default function LoginForm({ nextUrl }: LoginFormProps) {
             disabled={loading}
             required
             autoComplete="current-password"
-            aria-invalid={errors.password ? 'true' : 'false'}
+            aria-invalid={errors.password ? "true" : "false"}
             aria-describedby={errors.password ? passwordErrorId : undefined}
           />
           {errors.password && (
@@ -165,16 +164,12 @@ export default function LoginForm({ nextUrl }: LoginFormProps) {
         </div>
       </div>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={loading || !email.trim() || !password}
-      >
-        {loading ? 'Logowanie...' : 'Zaloguj się'}
+      <Button type="submit" className="w-full" disabled={loading || !email.trim() || !password}>
+        {loading ? "Logowanie..." : "Zaloguj się"}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Nie masz konta?{' '}
+        Nie masz konta?{" "}
         <a
           href="/auth/register"
           className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"

@@ -3,9 +3,11 @@
 ## 1. Przegląd punktu końcowego
 
 ### Cel
+
 Endpoint służy do soft delete profilu zalogowanego użytkownika. Ustawia pole `deleted_at` na bieżącą datę i czas, nie usuwając fizycznie rekordu z bazy danych. Soft delete pozwala na zachowanie integralności danych historycznych (reviews, decks, cards) oraz umożliwia potencjalne przywrócenie konta przez endpoint PATCH.
 
 ### Charakterystyka
+
 - **Metoda HTTP**: DELETE
 - **Ścieżka**: `/api/v1/profile`
 - **Uwierzytelnianie**: Wymagane (Supabase JWT w nagłówku Authorization)
@@ -32,9 +34,11 @@ Endpoint służy do soft delete profilu zalogowanego użytkownika. Ustawia pole 
 ## 2. Szczegóły żądania
 
 ### Metoda HTTP
+
 `DELETE`
 
 ### Struktura URL
+
 ```
 /api/v1/profile
 ```
@@ -42,20 +46,25 @@ Endpoint służy do soft delete profilu zalogowanego użytkownika. Ustawia pole 
 ### Parametry
 
 #### Parametry ścieżki (path parameters)
+
 Brak
 
 #### Parametry zapytania (query parameters)
+
 Brak
 
 #### Request Body
+
 Brak (metoda DELETE nie przyjmuje body dla tego endpointu)
 
 ### Nagłówki wymagane
+
 ```
 Authorization: Bearer <supabase_jwt_token>
 ```
 
 ### Przykład żądania
+
 ```http
 DELETE /api/v1/profile HTTP/1.1
 Host: api.example.com
@@ -67,24 +76,27 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### DTOs (Data Transfer Objects)
 
 #### ProfileDeletedDTO
-```typescript
+
+````typescript
 ```typescript
 import type { APIRoute } from 'astro';
 import { ProfileService, ConflictError } from '@/lib/services/profile.service';
 // ... other imports ...
-```
+````
 
 ### Typy pomocnicze
 
 #### DbProfile
+
 ```typescript
 // Już zdefiniowany w src/types.ts
-export type DbProfile = Tables<'profiles'>;
+export type DbProfile = Tables<"profiles">;
 ```
 
 ### Typy błędów
 
 #### ErrorResponse
+
 ```typescript
 // Wspólny typ dla wszystkich endpointów (już powinien być zdefiniowany)
 interface ErrorResponse {
@@ -92,13 +104,14 @@ interface ErrorResponse {
     code: string;
     message: string;
     details?: string;
-  }
+  };
 }
 ```
 
 ### Internal types
 
 #### DeleteProfileData
+
 ```typescript
 // Wewnętrzny typ dla update query (soft delete to UPDATE, nie DELETE)
 interface DeleteProfileData {
@@ -112,11 +125,13 @@ interface DeleteProfileData {
 ### Sukces (200 OK)
 
 #### Status HTTP
+
 `200 OK`
 
 **Uwaga**: Używamy 200 OK zamiast 204 No Content, ponieważ zwracamy body z informacją o czasie usunięcia.
 
 #### Response Body
+
 ```json
 {
   "status": "deleted",
@@ -125,6 +140,7 @@ interface DeleteProfileData {
 ```
 
 #### Nagłówki odpowiedzi
+
 ```
 Content-Type: application/json
 Cache-Control: no-cache, no-store, must-revalidate
@@ -133,6 +149,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Błędy
 
 #### 401 Unauthorized
+
 **Przyczyna**: Brak tokenu JWT, token wygasły lub nieprawidłowy
 
 ```json
@@ -145,6 +162,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 #### 404 Not Found
+
 **Przyczyna**: Profil użytkownika nie istnieje w bazie danych
 
 ```json
@@ -159,6 +177,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 **Uwaga**: Ten błąd nie powinien wystąpić w normalnym przepływie, ponieważ profil jest tworzony automatycznie przy rejestracji.
 
 #### 409 Conflict
+
 **Przyczyna**: Profil jest już usunięty (opcjonalnie - zależnie od strategii idempotentności)
 
 ```json
@@ -172,12 +191,14 @@ Cache-Control: no-cache, no-store, must-revalidate
 ```
 
 **Uwaga strategii**: Możemy:
+
 - **Opcja A** (zalecana): Zwrócić 200 OK z obecnym `deletedAt` (true idempotency)
 - **Opcja B**: Zwrócić 409 Conflict (informacja o już usuniętym profilu)
 
 **Rekomendacja**: Użyć Opcji A dla prawdziwej idempotentności (wielokrotne DELETE daje 200).
 
 #### 500 Internal Server Error
+
 **Przyczyna**: Błąd połączenia z bazą danych lub nieobsłużony wyjątek
 
 ```json
@@ -192,6 +213,7 @@ Cache-Control: no-cache, no-store, must-revalidate
 ## 5. Przepływ danych
 
 ### Diagram przepływu
+
 ```
 ┌─────────────┐
 │   Klient    │
@@ -262,19 +284,26 @@ Cache-Control: no-cache, no-store, must-revalidate
 ### Szczegółowy opis przepływu
 
 #### Krok 1: Weryfikacja autentykacji (Middleware)
+
 Identyczny jak w GET i PATCH:
+
 - Middleware pobiera token JWT z nagłówka `Authorization`
 - Tworzy klienta Supabase: `context.locals.supabase`
 - Wywołuje `supabase.auth.getUser()` aby zweryfikować użytkownika
 
 #### Krok 2: Handler endpointu
+
 1. **Sprawdzenie autentykacji**:
+
    ```typescript
-   const { data: { user } } = await locals.supabase.auth.getUser();
+   const {
+     data: { user },
+   } = await locals.supabase.auth.getUser();
    if (!user) return 401;
    ```
 
 2. **Wywołanie service**:
+
    ```typescript
    const result = await ProfileService.deleteProfile(user.id, supabase);
    ```
@@ -287,15 +316,16 @@ Identyczny jak w GET i PATCH:
 #### Krok 3: Logika biznesowa (Service)
 
 **Strategia A (Zalecana): True Idempotency**
+
 ```typescript
 async deleteProfile(userId, supabase) {
   // Pobierz obecny profil
   const currentProfile = await getProfile(userId, supabase);
-  
+
   if (!currentProfile) {
     throw new Error('Profile not found');
   }
-  
+
   // Jeśli już usunięty, zwróć obecny deletedAt (idempotentność)
   if (currentProfile.deletedAt) {
     return {
@@ -303,7 +333,7 @@ async deleteProfile(userId, supabase) {
       deletedAt: currentProfile.deletedAt
     };
   }
-  
+
   // Wykonaj soft delete używając czasu serwera (NOW())
   // Note: W produkcji zaleca się użycie RPC funkcji z SECURITY DEFINER
   // która wykonuje UPDATE ... SET deleted_at = NOW() dla lepszej spójności
@@ -313,7 +343,7 @@ async deleteProfile(userId, supabase) {
     .eq('id', userId)
     .select('deleted_at')
     .single();
-  
+
   return {
     status: 'deleted',
     deletedAt: data.deleted_at
@@ -322,14 +352,15 @@ async deleteProfile(userId, supabase) {
 ```
 
 **Strategia B: Explicit Conflict**
+
 ```typescript
 async deleteProfile(userId, supabase) {
   const currentProfile = await getProfile(userId, supabase);
-  
+
   if (!currentProfile) {
     throw new Error('Profile not found');
   }
-  
+
   // Jeśli już usunięty, throw ConflictError
   if (currentProfile.deletedAt) {
     throw new ConflictError(
@@ -337,7 +368,7 @@ async deleteProfile(userId, supabase) {
       `Profile was deleted at ${currentProfile.deletedAt}`
     );
   }
-  
+
   // Wykonaj soft delete
   // ... (jak wyżej)
 }
@@ -348,6 +379,7 @@ async deleteProfile(userId, supabase) {
 #### Krok 4: Update w bazie danych
 
 **SQL wykonywany przez Supabase**:
+
 ```sql
 UPDATE public.profiles
 SET deleted_at = NOW()
@@ -356,12 +388,15 @@ RETURNING deleted_at;
 ```
 
 **Uwagi**:
+
 - `updated_at` jest automatycznie aktualizowany przez trigger `update_updated_at_column`
 - Używamy `NOW()` zamiast client-side timestamp dla spójności z serwerem bazodanowym
 - `RETURNING deleted_at` zwraca ustawioną wartość
 
 #### Krok 5: Formatowanie odpowiedzi
+
 Zwracamy `ProfileDeletedDTO`:
+
 ```typescript
 {
   status: 'deleted',
@@ -372,6 +407,7 @@ Zwracamy `ProfileDeletedDTO`:
 ### Scenariusze brzegowe
 
 #### Scenariusz 1: Pierwsze usunięcie profilu
+
 ```
 DELETE /api/v1/profile
 → 200 OK
@@ -382,7 +418,9 @@ DELETE /api/v1/profile
 ```
 
 #### Scenariusz 2: Drugie usunięcie (już usunięty profil)
+
 **Strategia A (Zalecana)**:
+
 ```
 DELETE /api/v1/profile
 → 200 OK
@@ -393,6 +431,7 @@ DELETE /api/v1/profile
 ```
 
 **Strategia B**:
+
 ```
 DELETE /api/v1/profile
 → 409 Conflict
@@ -405,6 +444,7 @@ DELETE /api/v1/profile
 ```
 
 #### Scenariusz 3: Usunięcie → Restore → Usunięcie
+
 ```
 1. DELETE /api/v1/profile → deletedAt: "2024-01-20T15:45:30.123Z"
 2. PATCH /api/v1/profile {"restore": true} → deletedAt: null
@@ -414,11 +454,14 @@ DELETE /api/v1/profile
 ## 6. Względy bezpieczeństwa
 
 ### Uwierzytelnianie (Authentication)
+
 Identyczne jak w GET i PATCH:
+
 - Supabase JWT w nagłówku Authorization
 - Weryfikacja przez `supabase.auth.getUser()`
 
 ### Autoryzacja (Authorization)
+
 - Użytkownik może usunąć **tylko swój własny profil**
 - User ID pochodzi z tokenu JWT (nigdy z parametrów!)
 - RLS policies wymuszają `auth.uid() = id`
@@ -426,6 +469,7 @@ Identyczne jak w GET i PATCH:
 ### Row Level Security (RLS)
 
 #### Wymagane polityki RLS
+
 ```sql
 -- Polityka UPDATE: użytkownik może aktualizować tylko swój profil
 -- (soft delete to UPDATE deleted_at, nie fizyczne DELETE)
@@ -438,7 +482,9 @@ CREATE POLICY "Users can update own profile"
 **Uwaga**: Soft delete używa UPDATE (nie DELETE), więc potrzebujemy polityki UPDATE, nie DELETE.
 
 #### Polityka DELETE (opcjonalna)
+
 Jeśli w przyszłości chcemy umożliwić fizyczne usunięcie (hard delete):
+
 ```sql
 CREATE POLICY "Users can delete own profile"
   ON public.profiles
@@ -453,31 +499,38 @@ CREATE POLICY "Users can delete own profile"
 #### Co się dzieje z danymi użytkownika po soft delete?
 
 **Tabela profiles** (ON DELETE CASCADE z auth.users):
+
 - Soft delete: `deleted_at = NOW()` → profil pozostaje w bazie
 - Hard delete (fizyczne): profil usunięty + cascade do powiązanych tabel
 
 **Tabela decks** (REFERENCES auth.users ON DELETE CASCADE):
+
 - Jeśli soft delete profilu: decks **pozostają** (user_id dalej istnieje w auth.users)
 - Jeśli hard delete użytkownika z auth.users: decks **usuwane kaskadowo**
 
 **Tabela cards** (REFERENCES decks ON DELETE CASCADE):
+
 - Usuwane kaskadowo wraz z decks
 
 **Tabela reviews** (REFERENCES auth.users ON DELETE CASCADE):
+
 - Usuwane kaskadowo jeśli hard delete użytkownika
 
 **Tabela ai_generation_logs** (REFERENCES auth.users ON DELETE CASCADE):
+
 - Usuwane kaskadowo jeśli hard delete użytkownika
 
 #### Strategia dla MVP: Soft Delete Only
 
 **Zalecane podejście**:
+
 1. **Soft delete profilu**: Ustawia `deleted_at`, dane pozostają
 2. **Dane użytkownika**: Wszystkie decks, cards, reviews pozostają w bazie
 3. **Ukrywanie danych**: Middleware/RLS sprawdzają `deleted_at` i blokują dostęp
 4. **Przywrócenie**: Możliwe przez PATCH `/api/v1/profile` z `restore: true`
 
 **Hard delete** (fizyczne usunięcie):
+
 - Tylko dla użytkowników którzy tego wymagają (GDPR right to erasure)
 - Oddzielny proces: admin endpoint lub scheduled job
 - Usuwa użytkownika z `auth.users` → kaskadowe usunięcie wszystkich danych
@@ -485,15 +538,19 @@ CREATE POLICY "Users can delete own profile"
 ### Ochrona przed atakami
 
 #### SQL Injection
+
 - **Chronione**: Supabase client używa parametryzowanych zapytań
 
 #### CSRF (Cross-Site Request Forgery)
+
 - **Chronione**: JWT token w nagłówku (nie w cookie)
 
 #### Accidental Deletion Protection
+
 **Problem**: Użytkownik może przypadkowo usunąć konto.
 
 **Rozwiązania** (do rozważenia w przyszłości):
+
 1. **Confirmation required**: Wymagaj potwierdzenia (drugi request)
 2. **Grace period**: 30-dniowy okres przed fizycznym usunięciem
 3. **Email notification**: Wyślij email z linkiem do przywrócenia
@@ -505,23 +562,26 @@ CREATE POLICY "Users can delete own profile"
 #### Co logować
 
 **INFO level** (dla audytu):
+
 ```typescript
-console.info('[DELETE /api/v1/profile] Profile soft-deleted:', {
+console.info("[DELETE /api/v1/profile] Profile soft-deleted:", {
   userId: user.id,
   deletedAt: result.deletedAt,
-  timestamp: new Date().toISOString()
+  timestamp: new Date().toISOString(),
 });
 ```
 
 **WARN level** (jeśli używamy Strategii B):
+
 ```typescript
-console.warn('[DELETE /api/v1/profile] Attempt to delete already deleted profile:', {
+console.warn("[DELETE /api/v1/profile] Attempt to delete already deleted profile:", {
   userId: user.id,
-  originalDeletedAt: currentProfile.deletedAt
+  originalDeletedAt: currentProfile.deletedAt,
 });
 ```
 
 **ERROR level**:
+
 - 404 Not Found (profil nie istnieje - bardzo rzadkie)
 - 500 Internal Server Error
 
@@ -542,70 +602,79 @@ console.warn('[DELETE /api/v1/profile] Attempt to delete already deleted profile
 
 ### Macierz błędów
 
-| Scenariusz | Kod HTTP | Kod błędu | Komunikat | Akcja |
-|------------|----------|-----------|-----------|-------|
-| Brak tokenu JWT | 401 | UNAUTHORIZED | "Authentication required" | Zwróć 401 |
-| Token nieprawidłowy | 401 | UNAUTHORIZED | "Invalid or expired token" | Zwróć 401 |
-| Profil nie istnieje | 404 | PROFILE_NOT_FOUND | "User profile not found" | Zwróć 404, loguj (alert!) |
-| Profil już usunięty (Strategia A) | 200 | - | status: 'deleted' | Zwróć 200 z obecnym deletedAt |
-| Profil już usunięty (Strategia B) | 409 | CONFLICT | "Profile is already deleted" | Zwróć 409 |
-| Błąd połączenia z DB | 500 | DATABASE_ERROR | "Database error" | Zwróć 500, loguj szczegóły |
-| Nieobsłużony wyjątek | 500 | INTERNAL_SERVER_ERROR | "Unexpected error" | Zwróć 500, loguj stack |
+| Scenariusz                        | Kod HTTP | Kod błędu             | Komunikat                    | Akcja                         |
+| --------------------------------- | -------- | --------------------- | ---------------------------- | ----------------------------- |
+| Brak tokenu JWT                   | 401      | UNAUTHORIZED          | "Authentication required"    | Zwróć 401                     |
+| Token nieprawidłowy               | 401      | UNAUTHORIZED          | "Invalid or expired token"   | Zwróć 401                     |
+| Profil nie istnieje               | 404      | PROFILE_NOT_FOUND     | "User profile not found"     | Zwróć 404, loguj (alert!)     |
+| Profil już usunięty (Strategia A) | 200      | -                     | status: 'deleted'            | Zwróć 200 z obecnym deletedAt |
+| Profil już usunięty (Strategia B) | 409      | CONFLICT              | "Profile is already deleted" | Zwróć 409                     |
+| Błąd połączenia z DB              | 500      | DATABASE_ERROR        | "Database error"             | Zwróć 500, loguj szczegóły    |
+| Nieobsłużony wyjątek              | 500      | INTERNAL_SERVER_ERROR | "Unexpected error"           | Zwróć 500, loguj stack        |
 
 ### Strategia obsługi błędów
 
 #### Try-catch pattern (Strategia A - Zalecana)
+
 ```typescript
 try {
   const result = await ProfileService.deleteProfile(user.id, supabase);
-  
+
   return new Response(JSON.stringify(result), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
-
 } catch (error) {
-  if (error instanceof Error && error.message === 'Profile not found') {
-    console.error('[DELETE /api/v1/profile] Profile not found:', user.id);
-    
-    return new Response(JSON.stringify({
-      error: {
-        code: 'PROFILE_NOT_FOUND',
-        message: 'User profile not found'
-      }
-    }), { status: 404 });
+  if (error instanceof Error && error.message === "Profile not found") {
+    console.error("[DELETE /api/v1/profile] Profile not found:", user.id);
+
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "PROFILE_NOT_FOUND",
+          message: "User profile not found",
+        },
+      }),
+      { status: 404 }
+    );
   }
-  
+
   // Inne błędy → 500
-  console.error('[DELETE /api/v1/profile] Error:', error);
-  
-  return new Response(JSON.stringify({
-    error: {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'An unexpected error occurred'
-    }
-  }), { status: 500 });
+  console.error("[DELETE /api/v1/profile] Error:", error);
+
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: "An unexpected error occurred",
+      },
+    }),
+    { status: 500 }
+  );
 }
 ```
 
 #### Try-catch pattern (Strategia B - z ConflictError)
+
 ```typescript
 try {
   // ... (jak wyżej)
-
 } catch (error) {
   if (error instanceof ConflictError) {
-    console.warn('[DELETE /api/v1/profile] Already deleted:', user.id);
-    
-    return new Response(JSON.stringify({
-      error: {
-        code: 'CONFLICT',
-        message: error.message,
-        details: error.details
-      }
-    }), { status: 409 });
+    console.warn("[DELETE /api/v1/profile] Already deleted:", user.id);
+
+    return new Response(
+      JSON.stringify({
+        error: {
+          code: "CONFLICT",
+          message: error.message,
+          details: error.details,
+        },
+      }),
+      { status: 409 }
+    );
   }
-  
+
   // ... (reszta jak wyżej)
 }
 ```
@@ -615,7 +684,7 @@ try {
 ```typescript
 // ✅ Dobre - early return
 if (!user) {
-  return errorResponse(401, 'UNAUTHORIZED');
+  return errorResponse(401, "UNAUTHORIZED");
 }
 
 const result = await deleteProfile(user.id);
@@ -635,6 +704,7 @@ if (user) {
 ### Optymalizacje zapytań
 
 #### Single UPDATE query
+
 ```sql
 UPDATE public.profiles
 SET deleted_at = NOW()
@@ -645,19 +715,21 @@ RETURNING deleted_at;
 **Wydajność**: ~5-10ms (bardzo szybkie, UPDATE po PK)
 
 #### Index usage
+
 - UPDATE po PK (`id`) wykorzystuje primary key index
 - Brak dodatkowych joinów lub scans
 
 #### Strategia idempotentności
 
 **Strategia A (Zalecana): SELECT + warunkowy UPDATE**
+
 ```typescript
 // SELECT (sprawdzenie stanu)
 const profile = await getProfile(userId);
 
 // Jeśli już usunięty, return without UPDATE
 if (profile.deletedAt) {
-  return { status: 'deleted', deletedAt: profile.deletedAt };
+  return { status: "deleted", deletedAt: profile.deletedAt };
 }
 
 // UPDATE (tylko jeśli nie usunięty)
@@ -668,6 +740,7 @@ const result = await supabase.update({ deleted_at: NOW() });
 **Zaleta**: True idempotency, brak zbędnych UPDATE
 
 **Strategia B: Zawsze UPDATE**
+
 ```typescript
 // Zawsze wykonaj UPDATE (nawet jeśli deleted_at już ustawione)
 const result = await supabase.update({ deleted_at: NOW() });
@@ -681,19 +754,23 @@ const result = await supabase.update({ deleted_at: NOW() });
 ### Caching
 
 #### Strategia cachowania
+
 **Nie cachować odpowiedzi DELETE** - to operacja mutująca.
 
 **Cache invalidation**: Po soft delete:
+
 - Invalidate cache dla GET /api/v1/profile
 - Invalidate cache dla endpointów zwracających dane użytkownika
 
 ### Transakcje
 
 **Czy potrzebna transakcja?**
+
 - **NIE** dla prostego UPDATE na jednej tabeli
 - Single UPDATE jest atomowy w PostgreSQL
 
 **Kiedy transakcja jest potrzebna?**
+
 - Jeśli chcemy atomowo: soft delete profilu + insert do audit log
 - Jeśli chcemy atomowo: soft delete profilu + wysłanie notification
 
@@ -702,6 +779,7 @@ const result = await supabase.update({ deleted_at: NOW() });
 ### Rate limiting
 
 **Rekomendowane limity**:
+
 - **Per user**: 5 req/min (usunięcie konta jest bardzo rzadką operacją)
 - **Per IP**: 10 req/min
 
@@ -710,32 +788,36 @@ const result = await supabase.update({ deleted_at: NOW() });
 ### Potencjalne wąskie gardła
 
 #### 1. Sprawdzenie stanu (SELECT przed UPDATE)
+
 **Problem**: Dodatkowe zapytanie SELECT
 
-**Rozwiązanie**: 
+**Rozwiązanie**:
+
 - Cache rezultatu SELECT w ramach request
 - Lub akceptuj koszt (5ms to niewiele)
 
 #### 2. Trigger updated_at
+
 **Problem**: Minimalny overhead
 
 **Rozwiązenie**: Nie wymaga optymalizacji (trigger jest bardzo szybki)
 
 ### Metryki wydajności do monitorowania
 
-| Metryka | Docelowa wartość | Alert przy |
-|---------|------------------|------------|
-| Response time (p50) | < 100ms | > 500ms |
-| Response time (p95) | < 200ms | > 1000ms |
-| Database query time | < 15ms | > 100ms |
-| Error rate | < 0.1% | > 1% |
-| Deletion rate | Tracking | Spike > 10x normal |
+| Metryka             | Docelowa wartość | Alert przy         |
+| ------------------- | ---------------- | ------------------ |
+| Response time (p50) | < 100ms          | > 500ms            |
+| Response time (p95) | < 200ms          | > 1000ms           |
+| Database query time | < 15ms           | > 100ms            |
+| Error rate          | < 0.1%           | > 1%               |
+| Deletion rate       | Tracking         | Spike > 10x normal |
 
 ## 9. Etapy wdrożenia
 
 ### Faza 1: Przygotowanie (jeśli nie zrobione w poprzednich endpointach)
 
 #### 1.1. Weryfikacja polityk RLS
+
 **Sprawdzić**: Czy polityka UPDATE dla profiles istnieje
 
 ```sql
@@ -744,6 +826,7 @@ SELECT * FROM pg_policies WHERE tablename = 'profiles';
 ```
 
 Jeśli brak, dodaj:
+
 ```sql
 CREATE POLICY "Users can update own profile"
   ON public.profiles
@@ -752,6 +835,7 @@ CREATE POLICY "Users can update own profile"
 ```
 
 #### 1.2. Weryfikacja constraint deleted_at
+
 **Sprawdzić**: Czy constraint `valid_deleted_at` istnieje
 
 ```sql
@@ -761,6 +845,7 @@ WHERE constraint_name = 'valid_deleted_at';
 ```
 
 Powinno być:
+
 ```sql
 CHECK (deleted_at IS NULL OR deleted_at <= NOW())
 ```
@@ -768,11 +853,12 @@ CHECK (deleted_at IS NULL OR deleted_at <= NOW())
 ### Faza 2: Rozszerzenie ProfileService
 
 #### 2.1. Dodanie metody deleteProfile
+
 **Plik**: `src/lib/services/profile.service.ts`
 
 ```typescript
-import type { SupabaseClient } from '@/db/supabase.client';
-import type { ProfileDeletedDTO } from '@/types';
+import type { SupabaseClient } from "@/db/supabase.client";
+import type { ProfileDeletedDTO } from "@/types";
 
 export class ProfileService {
   // ... existing methods (getProfile, updateProfile) ...
@@ -784,31 +870,28 @@ export class ProfileService {
    * @returns ProfileDeletedDTO z timestampem usunięcia
    * @throws Error jeśli profil nie istnieje lub błąd bazy danych
    */
-  static async deleteProfile(
-    userId: string,
-    supabase: SupabaseClient
-  ): Promise<ProfileDeletedDTO> {
+  static async deleteProfile(userId: string, supabase: SupabaseClient): Promise<ProfileDeletedDTO> {
     // Krok 1: Sprawdź czy profil istnieje (opcjonalnie: sprawdź czy już usunięty)
     const currentProfile = await this.getProfile(userId, supabase);
 
     if (!currentProfile) {
-      throw new Error('Profile not found');
+      throw new Error("Profile not found");
     }
 
     // Krok 2: Idempotentność - jeśli już usunięty, zwróć obecny deletedAt
     if (currentProfile.deletedAt) {
       return {
-        status: 'deleted',
+        status: "deleted",
         deletedAt: currentProfile.deletedAt,
       };
     }
 
     // Krok 3: Wykonaj soft delete (UPDATE deleted_at = NOW())
     const { data, error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', userId)
-      .select('deleted_at')
+      .eq("id", userId)
+      .select("deleted_at")
       .single();
 
     if (error) {
@@ -816,12 +899,12 @@ export class ProfileService {
     }
 
     if (!data || !data.deleted_at) {
-      throw new Error('Delete failed: no deleted_at returned');
+      throw new Error("Delete failed: no deleted_at returned");
     }
 
     // Krok 4: Zwróć ProfileDeletedDTO
     return {
-      status: 'deleted',
+      status: "deleted",
       deletedAt: data.deleted_at,
     };
   }
@@ -831,6 +914,7 @@ export class ProfileService {
 ```
 
 #### 2.2. Wariant bez idempotentności (Strategia B)
+
 Jeśli preferujesz zwracanie 409 Conflict dla już usuniętych profili:
 
 ```typescript
@@ -857,25 +941,26 @@ static async deleteProfile(
 ```
 
 #### 2.3. Unit tests dla deleteProfile
+
 **Plik**: `src/lib/services/profile.service.test.ts`
 
 ```typescript
-import { describe, it, expect, vi } from 'vitest';
-import { ProfileService } from './profile.service';
+import { describe, it, expect, vi } from "vitest";
+import { ProfileService } from "./profile.service";
 
-describe('ProfileService.deleteProfile', () => {
-  it('should soft delete profile successfully', async () => {
+describe("ProfileService.deleteProfile", () => {
+  it("should soft delete profile successfully", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: {
-                id: '123',
+                id: "123",
                 privacy_consent: true,
                 deleted_at: null, // Active profile
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z',
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
               },
               error: null,
             })),
@@ -886,7 +971,7 @@ describe('ProfileService.deleteProfile', () => {
             select: vi.fn(() => ({
               single: vi.fn(() => ({
                 data: {
-                  deleted_at: '2024-01-20T15:45:30.123Z',
+                  deleted_at: "2024-01-20T15:45:30.123Z",
                 },
                 error: null,
               })),
@@ -896,24 +981,24 @@ describe('ProfileService.deleteProfile', () => {
       })),
     };
 
-    const result = await ProfileService.deleteProfile('123', mockSupabase as any);
+    const result = await ProfileService.deleteProfile("123", mockSupabase as any);
 
-    expect(result.status).toBe('deleted');
-    expect(result.deletedAt).toBe('2024-01-20T15:45:30.123Z');
+    expect(result.status).toBe("deleted");
+    expect(result.deletedAt).toBe("2024-01-20T15:45:30.123Z");
   });
 
-  it('should return existing deletedAt for already deleted profile (idempotency)', async () => {
+  it("should return existing deletedAt for already deleted profile (idempotency)", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: {
-                id: '123',
+                id: "123",
                 privacy_consent: true,
-                deleted_at: '2024-01-15T10:00:00Z', // Already deleted
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-15T10:00:00Z',
+                deleted_at: "2024-01-15T10:00:00Z", // Already deleted
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-15T10:00:00Z",
               },
               error: null,
             })),
@@ -922,30 +1007,28 @@ describe('ProfileService.deleteProfile', () => {
       })),
     };
 
-    const result = await ProfileService.deleteProfile('123', mockSupabase as any);
+    const result = await ProfileService.deleteProfile("123", mockSupabase as any);
 
     // Should return existing deletedAt without calling update
-    expect(result.status).toBe('deleted');
-    expect(result.deletedAt).toBe('2024-01-15T10:00:00Z');
+    expect(result.status).toBe("deleted");
+    expect(result.deletedAt).toBe("2024-01-15T10:00:00Z");
   });
 
-  it('should throw error when profile not found', async () => {
+  it("should throw error when profile not found", async () => {
     const mockSupabase = {
       from: vi.fn(() => ({
         select: vi.fn(() => ({
           eq: vi.fn(() => ({
             single: vi.fn(() => ({
               data: null,
-              error: { code: 'PGRST116', message: 'No rows found' },
+              error: { code: "PGRST116", message: "No rows found" },
             })),
           })),
         })),
       })),
     };
 
-    await expect(
-      ProfileService.deleteProfile('999', mockSupabase as any)
-    ).rejects.toThrow('Profile not found');
+    await expect(ProfileService.deleteProfile("999", mockSupabase as any)).rejects.toThrow("Profile not found");
   });
 });
 ```
@@ -953,13 +1036,14 @@ describe('ProfileService.deleteProfile', () => {
 ### Faza 3: Implementacja DELETE handler
 
 #### 3.1. Dodanie DELETE handler do route
+
 **Plik**: `src/pages/api/v1/profile.ts`
 
 Dodaj do istniejącego pliku (który ma GET i PATCH handlers):
 
 ```typescript
-import type { APIRoute } from 'astro';
-import { ProfileService, ConflictError } from '@/lib/services/profile.service';
+import type { APIRoute } from "astro";
+import { ProfileService, ConflictError } from "@/lib/services/profile.service";
 // ... other imports ...
 
 // ... existing GET handler ...
@@ -972,19 +1056,22 @@ import { ProfileService, ConflictError } from '@/lib/services/profile.service';
 export const DELETE: APIRoute = async ({ locals }) => {
   try {
     // Krok 1: Sprawdź autentykację
-    const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({
           error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required. Please provide a valid access token.',
+            code: "UNAUTHORIZED",
+            message: "Authentication required. Please provide a valid access token.",
           },
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -993,7 +1080,7 @@ export const DELETE: APIRoute = async ({ locals }) => {
     const result = await ProfileService.deleteProfile(user.id, locals.supabase);
 
     // Krok 3: Logowanie (dla audytu)
-    console.info('[DELETE /api/v1/profile] Profile soft-deleted:', {
+    console.info("[DELETE /api/v1/profile] Profile soft-deleted:", {
       userId: user.id,
       deletedAt: result.deletedAt,
       timestamp: new Date().toISOString(),
@@ -1003,57 +1090,56 @@ export const DELETE: APIRoute = async ({ locals }) => {
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });
-
   } catch (error) {
     // Obsługa ConflictError (jeśli używamy Strategii B)
     if (error instanceof ConflictError) {
-      console.warn('[DELETE /api/v1/profile] Attempt to delete already deleted profile');
-      
+      console.warn("[DELETE /api/v1/profile] Attempt to delete already deleted profile");
+
       return new Response(
         JSON.stringify({
           error: {
-            code: 'CONFLICT',
+            code: "CONFLICT",
             message: error.message,
             details: error.details,
           },
         }),
         {
           status: 409,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Obsługa błędu "Profile not found"
-    if (error instanceof Error && error.message === 'Profile not found') {
-      console.error('[DELETE /api/v1/profile] Profile not found');
+    if (error instanceof Error && error.message === "Profile not found") {
+      console.error("[DELETE /api/v1/profile] Profile not found");
 
       return new Response(
         JSON.stringify({
           error: {
-            code: 'PROFILE_NOT_FOUND',
-            message: 'User profile not found. Please contact support if this issue persists.',
+            code: "PROFILE_NOT_FOUND",
+            message: "User profile not found. Please contact support if this issue persists.",
           },
         }),
         {
           status: 404,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     // Błąd serwera
-    console.error('[DELETE /api/v1/profile] Unexpected error:', error);
+    console.error("[DELETE /api/v1/profile] Unexpected error:", error);
 
     return new Response(
       JSON.stringify({
         error: {
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'An unexpected error occurred. Please try again later.',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "An unexpected error occurred. Please try again later.",
           // W DEV mode: dodaj szczegóły
           ...(import.meta.env.DEV && {
             details: error instanceof Error ? error.message : String(error),
@@ -1062,7 +1148,7 @@ export const DELETE: APIRoute = async ({ locals }) => {
       }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
@@ -1075,6 +1161,7 @@ export const prerender = false;
 ### Faza 4: Testowanie
 
 #### 4.1. Testy jednostkowe
+
 ```bash
 # Test ProfileService
 npm run test src/lib/services/profile.service.test.ts
@@ -1083,6 +1170,7 @@ npm run test src/lib/services/profile.service.test.ts
 #### 4.2. Testy integracyjne
 
 **Test 1: Pierwsze usunięcie profilu**
+
 ```bash
 curl -X DELETE http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer <valid_token>"
@@ -1095,6 +1183,7 @@ curl -X DELETE http://localhost:4321/api/v1/profile \
 ```
 
 **Test 2: Drugie usunięcie (idempotentność)**
+
 ```bash
 # Po wykonaniu Test 1, wywołaj ponownie
 curl -X DELETE http://localhost:4321/api/v1/profile \
@@ -1105,6 +1194,7 @@ curl -X DELETE http://localhost:4321/api/v1/profile \
 ```
 
 **Test 3: Weryfikacja GET po DELETE**
+
 ```bash
 # Po DELETE, sprawdź GET
 curl -X GET http://localhost:4321/api/v1/profile \
@@ -1121,6 +1211,7 @@ curl -X GET http://localhost:4321/api/v1/profile \
 ```
 
 **Test 4: DELETE → Restore → DELETE (full cycle)**
+
 ```bash
 # 1. DELETE profilu
 curl -X DELETE http://localhost:4321/api/v1/profile \
@@ -1141,6 +1232,7 @@ curl -X DELETE http://localhost:4321/api/v1/profile \
 ```
 
 **Test 5: Brak tokenu (401)**
+
 ```bash
 curl -X DELETE http://localhost:4321/api/v1/profile
 
@@ -1148,6 +1240,7 @@ curl -X DELETE http://localhost:4321/api/v1/profile
 ```
 
 **Test 6: Nieprawidłowy token (401)**
+
 ```bash
 curl -X DELETE http://localhost:4321/api/v1/profile \
   -H "Authorization: Bearer invalid_token"
@@ -1156,6 +1249,7 @@ curl -X DELETE http://localhost:4321/api/v1/profile \
 ```
 
 **Test 7: Wielokrotne DELETE (test idempotentności)**
+
 ```bash
 # Wywołaj 5 razy z tym samym tokenem
 for i in {1..5}; do
@@ -1168,6 +1262,7 @@ done
 ```
 
 **Test 8: Sprawdzenie stanu bazy po DELETE**
+
 ```sql
 -- W Supabase SQL Editor
 SELECT id, privacy_consent, deleted_at, updated_at
@@ -1180,6 +1275,7 @@ WHERE id = '<test_user_id>';
 ```
 
 #### 4.3. Testy wydajnościowe
+
 ```bash
 # Test obciążenia (opcjonalnie)
 ab -n 100 -c 5 -H "Authorization: Bearer <token>" \
@@ -1194,24 +1290,30 @@ ab -n 100 -c 5 -H "Authorization: Bearer <token>" \
 ### Faza 5: Dokumentacja
 
 #### 5.1. Aktualizacja API docs
+
 **Plik**: `docs/api/profile/delete-profile.md` (jeśli istnieje)
 
-```markdown
+````markdown
 ## Delete Profile (Soft Delete)
 
 ### Endpoint
+
 `DELETE /api/v1/profile`
 
 ### Description
+
 Soft deletes the authenticated user's profile by setting the `deletedAt` field to the current timestamp. The profile data remains in the database and can be restored using the PATCH endpoint with `restore: true`.
 
 ### Request
+
 ```bash
 curl -X DELETE https://api.example.com/api/v1/profile \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
+````
 
 ### Response
+
 ```json
 {
   "status": "deleted",
@@ -1220,6 +1322,7 @@ curl -X DELETE https://api.example.com/api/v1/profile \
 ```
 
 ### Restoring a Deleted Profile
+
 ```bash
 curl -X PATCH https://api.example.com/api/v1/profile \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -1228,8 +1331,10 @@ curl -X PATCH https://api.example.com/api/v1/profile \
 ```
 
 ### Idempotency
+
 Calling DELETE multiple times returns the same result (200 OK with the original `deletedAt` timestamp).
-```
+
+````
 
 #### 5.2. Changelog
 ```markdown
@@ -1243,7 +1348,7 @@ Calling DELETE multiple times returns the same result (200 OK with the original 
 
 ### Changed
 - Complete Profile CRUD implementation (GET, PATCH, DELETE)
-```
+````
 
 ### Faza 6: Code Review Checklist
 
@@ -1267,6 +1372,7 @@ Przed mergem PR:
 ### Faza 7: Deployment
 
 #### 7.1. Pre-deployment checklist
+
 - [ ] Wszystkie punkty z Code Review Checklist ✓
 - [ ] Smoke tests w staging przeszły
 - [ ] Performance tests przeszły (response time < 200ms p95)
@@ -1274,6 +1380,7 @@ Przed mergem PR:
 - [ ] Backwards compatibility zweryfikowana (soft delete nie łamie istniejących endpointów)
 
 #### 7.2. Deployment do staging
+
 ```bash
 git checkout feature/profile-delete-endpoint
 git push origin feature/profile-delete-endpoint
@@ -1281,6 +1388,7 @@ git push origin feature/profile-delete-endpoint
 ```
 
 #### 7.3. Deployment do production
+
 ```bash
 git checkout main
 git pull origin main
@@ -1290,6 +1398,7 @@ npm run deploy
 #### 7.4. Post-deployment verification
 
 **Smoke test**:
+
 ```bash
 # Test DELETE w produkcji (używając test account!)
 curl -X DELETE https://api.production.com/api/v1/profile \
@@ -1307,6 +1416,7 @@ curl -X PATCH https://api.production.com/api/v1/profile \
 ```
 
 **Monitoring**:
+
 - Sprawdź logi w Supabase Dashboard
 - Monitoruj deletion rate (powinna być bardzo niska)
 - Sprawdź response times
@@ -1317,6 +1427,7 @@ curl -X PATCH https://api.production.com/api/v1/profile \
 #### 8.1. Metryki do śledzenia
 
 **Application metrics**:
+
 - Request rate (req/hour dla DELETE - powinna być bardzo niska)
 - Response time distribution (p50, p95, p99)
 - Error rate
@@ -1324,11 +1435,13 @@ curl -X PATCH https://api.production.com/api/v1/profile \
 - Restoration rate (ile usuniętych profili jest przywracanych)
 
 **Database metrics**:
+
 - UPDATE query performance dla soft delete
 - Liczba profili z deleted_at != null
 - Storage usage (soft delete nie redukuje storage)
 
 **Business metrics**:
+
 - User churn rate (deleted profiles per period)
 - Restoration rate (% deleted profiles that are restored)
 - Time to restoration (jak szybko użytkownicy przywracają konta)
@@ -1336,6 +1449,7 @@ curl -X PATCH https://api.production.com/api/v1/profile \
 #### 8.2. Alerty
 
 Skonfigurować alerty dla:
+
 - Error rate > 1%
 - p95 response time > 500ms
 - Deletion rate spike > 200% średniej (może wskazywać problem z aplikacją)
@@ -1344,6 +1458,7 @@ Skonfigurować alerty dla:
 #### 8.3. Scheduled tasks (do rozważenia w przyszłości)
 
 **Hard delete po grace period**:
+
 ```sql
 -- Scheduled job (np. co tydzień)
 -- Fizyczne usunięcie profili usuniętych > 90 dni temu
@@ -1359,11 +1474,13 @@ WHERE id IN (
 #### 8.4. Utrzymanie
 
 **Co tydzień**:
+
 - Przejrzyj logi błędów
 - Sprawdź deletion rate trendy
 - Verify restoration success rate
 
 **Co miesiąc**:
+
 - Analyze user churn patterns
 - Review grace period policy (jeśli implementowane)
 - Consider implementing hard delete if storage becomes issue
@@ -1401,4 +1518,3 @@ Po implementacji GET, PATCH i DELETE dla `/api/v1/profile`, naturalne kolejne kr
 5. **Health check**: GET `/api/v1/health`
 
 **Recommended order**: Decks → Cards → Reviews → AI Generation → Health
-

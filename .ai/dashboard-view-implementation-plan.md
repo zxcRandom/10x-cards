@@ -1,14 +1,17 @@
 # Plan implementacji widoku Dashboard
 
 ## 1. Przegląd
+
 Widok Dashboard jest centralnym punktem aplikacji (ścieżka "/"), umożliwiającym szybkie generowanie fiszek AI z wklejonego tekstu oraz podgląd ostatnio używanych/stworzonych talii. Interfejs ma być prosty (jednokolumnowy), z wyraźnym polem tekstowym, przyciskiem „Generuj/Anuluj”, stanem ładowania oraz czytelnymi komunikatami walidacji i błędów. W przypadku pomyślnej generacji użytkownik otrzymuje potwierdzenie i link do dalszych działań (docelowo: widok Recenzji).
 
 ## 2. Routing widoku
+
 - Ścieżka: `/`
 - Plik: `src/pages/index.astro`
 - Widok korzysta z layoutu `src/layouts/Layout.astro` i osadza komponenty React przez client directives Astro (`client:load` / `client:idle`).
 
 ## 3. Struktura komponentów
+
 Drzewo komponentów (wysoki poziom):
 
 - `IndexPage` (Astro, `src/pages/index.astro`)
@@ -29,6 +32,7 @@ Uwaga: jeśli `Toaster` nie jest jeszcze zainstalowany, dodać go do `Layout.ast
 ## 4. Szczegóły komponentów
 
 ### AIFlashcardGenerator
+
 - Opis: Formularz do generowania fiszek przez AI. Obsługuje wklejenie tekstu, opcjonalną nazwę talii i limit kart, uruchomienie generowania oraz anulowanie trwającej operacji.
 - Główne elementy:
   - `Textarea` (shadcn/ui) dla `inputText` z licznikiem znaków (0–20 000) i `aria-describedby` dla komunikatów.
@@ -53,6 +57,7 @@ Uwaga: jeśli `Toaster` nie jest jeszcze zainstalowany, dodać go do `Layout.ast
 - Propsy: komponent osadzony bez propsów, steruje własnym stanem i publikuje zdarzenia (np. `onSuccess?: (payload: AIDeckResponseDTO) => void`).
 
 ### RecentDecksList
+
 - Opis: Lista ostatnio używanych/stworzonych talii użytkownika (np. 5–10 pozycji). Pozwala szybko przejść do pracy z talią.
 - Główne elementy:
   - Nagłówek „Ostatnie talie” + link „Zobacz wszystkie” (gdy dostępny docelowy widok listy talii).
@@ -68,17 +73,20 @@ Uwaga: jeśli `Toaster` nie jest jeszcze zainstalowany, dodać go do `Layout.ast
 - Propsy: `limit?: number` (domyślnie 6–8), `sort?: 'updatedAt'|'createdAt'|'name'` (domyślnie `updatedAt`), `order?: 'desc'|'asc'` (domyślnie `desc`).
 
 ### DeckCard
+
 - Opis: Karta prezentująca podstawowe informacje o talii (nazwa, znacznik AI, daty) i link do akcji.
 - Elementy: `Card` (shadcn/ui) + `CardHeader` + `CardContent` + badge „AI” (gdy dotyczy), przycisk/Link do przejścia.
 - Zdarzenia: `onClick` / Link.
 - Propsy: `{ deck: DeckDTO }`.
 
 ### EmptyState
+
 - Opis: Komponent prezentujący stan pusty listy talii.
 - Elementy: ikona, krótki opis, CTA „Wygeneruj fiszki” (scroll/focus do generatora) albo „Stwórz talię”.
 - Propsy: opcjonalne CTA.
 
 ## 5. Typy
+
 - Z `@/types` (backend DTO):
   - `DeckDTO`, `DecksListDTO`, `AILogDTO`, `AILogsListDTO`, `AIDeckResponseDTO`, `ErrorResponse`, `ValidationErrorResponse`, `UnprocessableErrorResponse`.
 - Nowe typy widoku (frontend):
@@ -99,6 +107,7 @@ Uwaga: jeśli `Toaster` nie jest jeszcze zainstalowany, dodać go do `Layout.ast
 Uwaga: Typy DTO importujemy z `@/types` aby zachować spójność z backendem. Typy ViewModel są lokalne do komponentów (np. `src/components/dashboard/types.ts`).
 
 ## 6. Zarządzanie stanem
+
 - `AIFlashcardGenerator`:
   - Lokalny `useReducer` lub `useState` do zarządzania formularzem i stanem zapytania.
   - `AbortController` przechowywany w stanie do anulowania aktywnego żądania (US-017).
@@ -112,6 +121,7 @@ Uwaga: Typy DTO importujemy z `@/types` aby zachować spójność z backendem. T
   - `useDecks(params)` zwraca `{ data, isLoading, error, refetch }`.
 
 ## 7. Integracja API
+
 - Generowanie AI:
   - Endpoint: `POST /api/v1/ai/decks/from-text`
   - Body (`CreateAIDeckCommand`): `{ inputText: string; deckName?: string; maxCards?: number }`
@@ -125,6 +135,7 @@ Uwaga: Typy DTO importujemy z `@/types` aby zachować spójność z backendem. T
   - Błędy: `401`, `500`.
 
 ## 8. Interakcje użytkownika
+
 - Wklejenie/edycja tekstu w `Textarea`: natychmiastowa walidacja i licznik znaków.
 - Klik „Generuj” lub skrót Ctrl/Cmd+Enter: walidacja → POST; przycisk zmienia się na „Anuluj”, pokazuje spinner i blokuje pola formularza.
 - „Anuluj”: przerwanie żądania, powrót do stanu idle (toast: „Generowanie anulowane”).
@@ -133,6 +144,7 @@ Uwaga: Typy DTO importujemy z `@/types` aby zachować spójność z backendem. T
 - Pusta lista talii: `EmptyState` z CTA prowadzącym do generatora.
 
 ## 9. Warunki i walidacja
+
 - Zgodnie z `createAIDeckSchema` (backend):
   - `inputText`: 1–20 000 znaków.
   - `deckName?`: jeśli podane, 1–255 znaków.
@@ -142,6 +154,7 @@ Uwaga: Typy DTO importujemy z `@/types` aby zachować spójność z backendem. T
 - A11y: `aria-invalid`, `aria-describedby` dla błędów, `aria-busy` w czasie ładowania, `aria-live=polite` dla komunikatów statusu.
 
 ## 10. Obsługa błędów
+
 - 400 (VALIDATION_ERROR / BAD_REQUEST):
   - Mapowanie błędów pól do UI (np. `errors[].field` → odpowiednie pole).
   - Ogólny `Toast` z podsumowaniem.
@@ -157,31 +170,32 @@ Uwaga: Typy DTO importujemy z `@/types` aby zachować spójność z backendem. T
   - Jeśli `DOMException: AbortError`, pokazujemy łagodny komunikat i nie traktujemy jako błąd.
 
 ## 11. Kroki implementacji
-1) UI i provider:
+
+1. UI i provider:
    - Upewnij się, że shadcn/ui jest zainicjowany; dodaj `Toaster` do `src/layouts/Layout.astro` (jeśli nie ma).
-2) Struktura plików:
+2. Struktura plików:
    - `src/components/dashboard/AIFlashcardGenerator.tsx`
    - `src/components/dashboard/RecentDecksList.tsx`
    - `src/components/dashboard/DeckCard.tsx`
    - `src/components/dashboard/types.ts` (ViewModel dla tego widoku)
-3) Hooki:
+3. Hooki:
    - `src/components/dashboard/hooks/useAIGeneration.ts`: implementacja `generate(payload)`, `cancel()` z `AbortController`, mapowanie błędów.
    - `src/components/dashboard/hooks/useDecks.ts`: pobieranie ostatnich talii, zarządzanie loading/error/success.
-4) Implementacja `AIFlashcardGenerator`:
+4. Implementacja `AIFlashcardGenerator`:
    - Formularz z walidacją po stronie klienta zgodną z `createAIDeckSchema`.
    - Obsługa „Generuj/Anuluj”, spinner, blokada pól przy loading.
    - `Toast` dla sukcesu i błędów; na sukces przekazuj `onSuccess` z payloadem.
-5) Implementacja `RecentDecksList` i `DeckCard`:
+5. Implementacja `RecentDecksList` i `DeckCard`:
    - Pobierz `GET /api/v1/decks?limit=6&sort=updatedAt&order=desc`.
    - Pokaż skeleton podczas ładowania; `EmptyState` przy `items.length === 0`.
-6) Integracja na stronie:
+6. Integracja na stronie:
    - W `src/pages/index.astro` załaduj komponenty React (`client:load`/`client:idle`).
    - Na sukces generowania (callback) pokaż CTA przejścia do dalszego kroku (docelowo widok Recenzji z `deck.id`).
-7) A11y i UX szlify:
+7. A11y i UX szlify:
    - `aria-*`, focus management po błędach, skrót Ctrl/Cmd+Enter.
-8) Testy ręczne scenariuszy:
+8. Testy ręczne scenariuszy:
    - Pusty input, za długi input, nazwa talii pusta/za długa, maxCards poza zakresem.
    - Anulowanie w trakcie.
    - Odpowiedzi 401/422/429/500.
-9) Dokumentacja:
+9. Dokumentacja:
    - Krótka sekcja „Jak używać” w README lub notatka w `.ai/` z mapowaniem na endpointy.

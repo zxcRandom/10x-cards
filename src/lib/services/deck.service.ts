@@ -1,11 +1,5 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type {
-  CreateDeckCommand,
-  DbDeck,
-  DeckDTO,
-  DecksListDTO,
-  UpdateDeckCommand,
-} from "@/types";
+import type { CreateDeckCommand, DbDeck, DeckDTO, DecksListDTO, UpdateDeckCommand } from "@/types";
 
 /**
  * Options for listing decks with filtering, sorting, and pagination
@@ -42,11 +36,7 @@ export const DeckService = {
    *   supabase
    * );
    */
-  async createDeck(
-    userId: string,
-    command: CreateDeckCommand,
-    supabase: SupabaseClient
-  ): Promise<DeckDTO> {
+  async createDeck(userId: string, command: CreateDeckCommand, supabase: SupabaseClient): Promise<DeckDTO> {
     // Step 1: Prepare data for insert (snake_case for database)
     const insertData = {
       user_id: userId,
@@ -55,14 +45,11 @@ export const DeckService = {
     };
 
     // Step 2: Execute INSERT with RLS enforcement
-    const { data, error } = await supabase
-      .from("decks")
-      .insert(insertData)
-      .select()
-      .single();
+    const { data, error } = await supabase.from("decks").insert(insertData).select().single();
 
     // Step 3: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.createDeck] Database error:", {
         error: error.message,
         code: error.code,
@@ -76,6 +63,7 @@ export const DeckService = {
 
     // Step 4: Validate response data
     if (!data) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.createDeck] No data returned after insert:", {
         userId,
         deckName: command.name,
@@ -105,11 +93,7 @@ export const DeckService = {
    *   supabase
    * );
    */
-  async getDeckById(
-    deckId: string,
-    userId: string,
-    supabase: SupabaseClient
-  ): Promise<DeckDTO | null> {
+  async getDeckById(deckId: string, userId: string, supabase: SupabaseClient): Promise<DeckDTO | null> {
     // Step 1: Query deck by ID and user_id (RLS enforcement)
     const { data, error } = await supabase
       .from("decks")
@@ -120,6 +104,7 @@ export const DeckService = {
 
     // Step 2: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.getDeckById] Database error:", {
         error: error.message,
         code: error.code,
@@ -182,6 +167,7 @@ export const DeckService = {
 
     // Step 3: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.updateDeck] Database error:", {
         error: error.message,
         code: error.code,
@@ -220,13 +206,9 @@ export const DeckService = {
    *   supabase
    * );
    */
-  async deleteDeck(
-    deckId: string,
-    userId: string,
-    supabase: SupabaseClient
-  ): Promise<boolean> {
+  async deleteDeck(deckId: string, userId: string, supabase: SupabaseClient): Promise<boolean> {
     // Step 1: Execute DELETE with RLS enforcement
-    const { data, error, count } = await supabase
+    const { error, count } = await supabase
       .from("decks")
       .delete({ count: "exact" })
       .eq("id", deckId)
@@ -234,6 +216,7 @@ export const DeckService = {
 
     // Step 2: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.deleteDeck] Database error:", {
         error: error.message,
         code: error.code,
@@ -266,26 +249,14 @@ export const DeckService = {
    *   supabase
    * );
    */
-  async listDecks(
-    userId: string,
-    options: ListDecksOptions,
-    supabase: SupabaseClient
-  ): Promise<DecksListDTO> {
+  async listDecks(userId: string, options: ListDecksOptions, supabase: SupabaseClient): Promise<DecksListDTO> {
     const { limit, offset, sort, order, createdByAi, q } = options;
 
     // Step 1: Map sort field from camelCase to snake_case
-    const sortField =
-      sort === "createdAt"
-        ? "created_at"
-        : sort === "updatedAt"
-        ? "updated_at"
-        : "name";
+    const sortField = sort === "createdAt" ? "created_at" : sort === "updatedAt" ? "updated_at" : "name";
 
     // Step 2: Build base query with count
-    let query = supabase
-      .from("decks")
-      .select("*", { count: "exact" })
-      .eq("user_id", userId);
+    let query = supabase.from("decks").select("*", { count: "exact" }).eq("user_id", userId);
 
     // Step 3: Apply optional filters
     if (createdByAi !== undefined) {
@@ -297,15 +268,14 @@ export const DeckService = {
     }
 
     // Step 4: Apply sorting and pagination
-    query = query
-      .order(sortField, { ascending: order === "asc" })
-      .range(offset, offset + limit - 1);
+    query = query.order(sortField, { ascending: order === "asc" }).range(offset, offset + limit - 1);
 
     // Step 5: Execute query
     const { data, error, count } = await query;
 
     // Step 6: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.listDecks] Database error:", {
         error: error.message,
         code: error.code,

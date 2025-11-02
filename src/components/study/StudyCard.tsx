@@ -1,6 +1,6 @@
 /**
  * StudyCard Component
- * 
+ *
  * Displays a single flashcard with question and optional answer
  * Manages the reveal/hide answer interaction
  */
@@ -16,12 +16,7 @@ interface StudyCardProps {
   isSubmitting: boolean;
 }
 
-export default function StudyCard({
-  card,
-  showAnswer,
-  onShowAnswer,
-  isSubmitting,
-}: StudyCardProps) {
+export default function StudyCard({ card, showAnswer, onShowAnswer, isSubmitting }: StudyCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -31,11 +26,7 @@ export default function StudyCard({
         <div className="text-lg">{card.question}</div>
 
         {!showAnswer ? (
-          <Button
-            onClick={onShowAnswer}
-            className="w-full"
-            disabled={isSubmitting}
-          >
+          <Button onClick={onShowAnswer} className="w-full" disabled={isSubmitting}>
             Pokaż odpowiedź
           </Button>
         ) : (

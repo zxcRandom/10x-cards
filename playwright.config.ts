@@ -1,13 +1,13 @@
-import dotenv from 'dotenv';
-import path from 'path';
+import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
+dotenv.config({ path: path.resolve(process.cwd(), ".env.test") });
 
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './tests/e2e',
-  testMatch: '**/*.spec.ts',
+  testDir: "./tests/e2e",
+  testMatch: "**/*.spec.ts",
   timeout: 30000,
   expect: {
     timeout: 5000,
@@ -19,50 +19,50 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   reporter: [
-    ['html'],
-    ['json', { outputFile: 'test-results/e2e-results.json' }],
-    ['junit', { outputFile: 'test-results/e2e-junit.xml' }],
+    ["html"],
+    ["json", { outputFile: "test-results/e2e-results.json" }],
+    ["junit", { outputFile: "test-results/e2e-junit.xml" }],
   ],
 
   use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
 
   projects: [
     {
-      name: 'setup',
+      name: "setup",
       testMatch: /.*\.setup\.ts/,
-      testDir: './tests',
-      teardown: 'teardown',
+      testDir: "./tests",
+      teardown: "teardown",
     },
     {
-      name: 'teardown',
+      name: "teardown",
       testMatch: /.*\.teardown\.ts/,
-      testDir: './tests',
+      testDir: "./tests",
     },
     {
-      name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'],
-        storageState: '.auth/user.json', // Reuse auth from setup
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: ".auth/user.json", // Reuse auth from setup
       },
-      dependencies: ['setup'],
+      dependencies: ["setup"],
     },
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: "npm run dev",
+    url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 120000,
     env: {
-      PUBLIC_SUPABASE_URL: process.env.PUBLIC_SUPABASE_URL || '',
-      PUBLIC_SUPABASE_ANON_KEY: process.env.PUBLIC_SUPABASE_ANON_KEY || '',
-      SUPABASE_URL: process.env.SUPABASE_URL || '',
-      SUPABASE_KEY: process.env.SUPABASE_KEY || '',
+      PUBLIC_SUPABASE_URL: process.env.PUBLIC_SUPABASE_URL || "",
+      PUBLIC_SUPABASE_ANON_KEY: process.env.PUBLIC_SUPABASE_ANON_KEY || "",
+      SUPABASE_URL: process.env.SUPABASE_URL || "",
+      SUPABASE_KEY: process.env.SUPABASE_KEY || "",
     },
   },
 });

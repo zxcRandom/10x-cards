@@ -1,11 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SupabaseClient } from "../../db/supabase.client";
-import type {
-  CardDTO,
-  CardsListDTO,
-  CreateCardCommand,
-  DbCard,
-  ErrorCode,
-} from "../../types";
+import type { CardDTO, CardsListDTO, CreateCardCommand, DbCard, ErrorCode } from "../../types";
 import { CardRepository } from "../repositories/card.repository";
 import type { CardListOptions } from "../repositories/card.repository";
 import { SM2Parameters } from "../domain/sm2-parameters";
@@ -41,7 +36,7 @@ function mapCardToDTO(dbCard: DbCard): CardDTO {
  * - Business rule enforcement (SM-2 defaults for new cards)
  * - Error mapping from database to domain errors
  * - Data transformation (DbCard -> CardDTO)
- * 
+ *
  * Following Service Layer principles:
  * - Business logic only
  * - Delegates data access to Repository
@@ -69,29 +64,24 @@ export class CardService {
    * );
    *
    * if (result.isOk()) {
+   // eslint-disable-next-line no-console
    *   console.log("Created card:", result.value);
    * } else {
+   // eslint-disable-next-line no-console
    *   console.error("Error:", result.error);
    * }
    */
-  async createCard(
-    deckId: string,
-    command: CreateCardCommand
-  ): Promise<Result<CardDTO, ErrorCode>> {
+  async createCard(deckId: string, command: CreateCardCommand): Promise<Result<CardDTO, ErrorCode>> {
     try {
       // Business Rule: New cards get default SM-2 parameters
       const sm2Params = SM2Parameters.createDefaults();
       const now = new Date().toISOString();
 
-      const dbCard = await this.repository.create(
-        deckId,
-        command,
-        sm2Params,
-        now
-      );
+      const dbCard = await this.repository.create(deckId, command, sm2Params, now);
 
       return Result.ok(mapCardToDTO(dbCard));
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.createCard] Error:", {
         deckId,
         error: error.message,
@@ -153,16 +143,13 @@ export class CardService {
       const sm2Params = SM2Parameters.createDefaults();
       const now = new Date().toISOString();
 
-      const dbCards = await this.repository.createBatch(
-        deckId,
-        cards,
-        sm2Params,
-        now
-      );
+      const dbCards = await this.repository.createBatch(deckId, cards, sm2Params, now);
 
+      // eslint-disable-next-line no-console
       console.log(`[CardService.createCardsBatch] Created ${dbCards.length} cards for deck ${deckId}`);
       return Result.ok(dbCards.map(mapCardToDTO));
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.createCardsBatch] Error:", {
         deckId,
         userId,
@@ -193,10 +180,7 @@ export class CardService {
    *   "bee8997e-9e30-4a76-b675-15917059c46a"
    * );
    */
-  async getCardById(
-    cardId: string,
-    userId: string
-  ): Promise<CardDTO | null> {
+  async getCardById(cardId: string, userId: string): Promise<CardDTO | null> {
     try {
       const dbCard = await this.repository.findById(cardId, userId);
 
@@ -206,6 +190,7 @@ export class CardService {
 
       return mapCardToDTO(dbCard);
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.getCardById] Error:", {
         cardId,
         userId,
@@ -235,13 +220,11 @@ export class CardService {
    *   // Deck exists but doesn't belong to user (403)
    * }
    */
-  async verifyDeckOwnership(
-    deckId: string,
-    userId: string
-  ): Promise<{ exists: boolean; owned: boolean }> {
+  async verifyDeckOwnership(deckId: string, userId: string): Promise<{ exists: boolean; owned: boolean }> {
     try {
       return await this.repository.verifyDeckOwnership(deckId, userId);
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.verifyDeckOwnership] Error:", {
         deckId,
         userId,
@@ -270,8 +253,10 @@ export class CardService {
    * );
    *
    * if (result.isOk()) {
+   // eslint-disable-next-line no-console
    *   console.log("Updated card:", result.value);
    * } else {
+   // eslint-disable-next-line no-console
    *   console.error("Error:", result.error);
    * }
    */
@@ -285,6 +270,7 @@ export class CardService {
       const hasAccess = await this.repository.verifyCardOwnership(cardId, userId);
 
       if (!hasAccess) {
+        // eslint-disable-next-line no-console
         console.error("[CardService.updateCard] Card not found or access denied:", {
           cardId,
           userId,
@@ -297,6 +283,7 @@ export class CardService {
 
       return Result.ok(mapCardToDTO(dbCard));
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.updateCard] Error:", {
         cardId,
         userId,
@@ -328,11 +315,7 @@ export class CardService {
    *   { limit: 20, offset: 0, sort: 'createdAt', order: 'desc', searchTerm: 'JavaScript' }
    * );
    */
-  async listCards(
-    deckId: string,
-    userId: string,
-    options: CardListOptions
-  ): Promise<Result<CardsListDTO, ErrorCode>> {
+  async listCards(deckId: string, userId: string, options: CardListOptions): Promise<Result<CardsListDTO, ErrorCode>> {
     try {
       // Business Rule: Verify deck ownership before listing cards
       const ownership = await this.repository.verifyDeckOwnership(deckId, userId);
@@ -358,6 +341,7 @@ export class CardService {
         offset: options.offset,
       });
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.listCards] Error:", {
         deckId,
         userId,

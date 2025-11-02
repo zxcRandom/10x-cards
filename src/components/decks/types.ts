@@ -5,17 +5,17 @@
  * These types extend or complement the API DTOs from @/types.
  */
 
-import type { DeckDTO } from '@/types';
+import type { DeckDTO } from "@/types";
 
 /**
  * Sort field options for deck list
  */
-export type SortField = 'createdAt' | 'updatedAt' | 'name';
+export type SortField = "createdAt" | "updatedAt" | "name";
 
 /**
  * Sort order options
  */
-export type SortOrder = 'asc' | 'desc';
+export type SortOrder = "asc" | "desc";
 
 /**
  * Query parameters for deck list
@@ -77,4 +77,4 @@ export type DeckCardViewModel = DeckDTO;
 /**
  * State for decks list
  */
-export type DecksListState = 'idle' | 'loading' | 'error' | 'success';
+export type DecksListState = "idle" | "loading" | "error" | "success";

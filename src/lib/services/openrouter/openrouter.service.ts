@@ -81,14 +81,7 @@ export interface ChatRequestDTO {
   abortSignal?: AbortSignal;
 }
 
-export type OpenRouterErrorCode =
-  | "configuration"
-  | "auth"
-  | "throttled"
-  | "quota"
-  | "upstream"
-  | "schema"
-  | "network";
+export type OpenRouterErrorCode = "configuration" | "auth" | "throttled" | "quota" | "upstream" | "schema" | "network";
 
 export class OpenRouterError extends Error {
   constructor(
@@ -208,12 +201,12 @@ interface OpenRouterPayload {
 
 type FetchImplementation = typeof fetch;
 
-type ErrorContext = {
+interface ErrorContext {
   operation: "generate" | "stream" | "fetch";
   attempt?: number;
   status?: number;
   payload?: Partial<OpenRouterPayload>;
-};
+}
 
 const chatMessageSchema = z.object({
   role: z.enum(["system", "user", "assistant", "tool"]),
@@ -236,7 +229,10 @@ const responseFormatSchema = z.union([
 const chatRequestSchema = z.object({
   messages: z.array(chatMessageSchema).min(1),
   model: z.string().min(1).optional(),
-  temperature: z.number().transform((value) => Number(value)).optional(),
+  temperature: z
+    .number()
+    .transform((value) => Number(value))
+    .optional(),
   topP: z.number().min(0).max(1).optional(),
   top_p: z.number().min(0).max(1).optional(),
   maxOutputTokens: z.number().int().positive().optional(),
@@ -475,14 +471,22 @@ export class OpenRouterService {
     await this.rateLimiter.consume?.(rateLimitKey);
   }
 
-  private async executeFetch(payload: OpenRouterPayload, abortSignal?: AbortSignal, rateLimitKey?: string): Promise<Response> {
+  private async executeFetch(
+    payload: OpenRouterPayload,
+    abortSignal?: AbortSignal,
+    rateLimitKey?: string
+  ): Promise<Response> {
     const attempts = Math.max(1, this.config.retry.attempts);
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= attempts; attempt++) {
       const controller = new AbortController();
-      const handleAbort = (): void => controller.abort(abortSignal?.reason ?? new DOMException("Aborted", "AbortError"));
-      const timeoutId = setTimeout(() => controller.abort(new DOMException("Timeout", "AbortError")), this.config.timeoutMs);
+      const handleAbort = (): void =>
+        controller.abort(abortSignal?.reason ?? new DOMException("Aborted", "AbortError"));
+      const timeoutId = setTimeout(
+        () => controller.abort(new DOMException("Timeout", "AbortError")),
+        this.config.timeoutMs
+      );
 
       if (abortSignal) {
         if (abortSignal.aborted) {
@@ -494,10 +498,10 @@ export class OpenRouterService {
 
       try {
         // DEBUG: Log the payload being sent
-        this.logger.debug("Sending request to OpenRouter", { 
+        this.logger.debug("Sending request to OpenRouter", {
           url: `${this.config.baseUrl}/chat/completions`,
           payload: JSON.stringify(payload, null, 2),
-          headers: this.config.headers
+          headers: this.config.headers,
         });
 
         const response = await this.httpClient(`${this.config.baseUrl}/chat/completions`, {
@@ -529,12 +533,16 @@ export class OpenRouterService {
 
         if (response.status === 400) {
           const errorBody = await safeParseBody(response);
-          this.logger.error("OpenRouter rejected payload (400)", { 
+          this.logger.error("OpenRouter rejected payload (400)", {
             status: response.status,
             errorBody,
-            sentPayload: payload
+            sentPayload: payload,
           });
-          throw new SchemaValidationError("OpenRouter rejected the payload", { status: response.status, errorBody }, errorBody);
+          throw new SchemaValidationError(
+            "OpenRouter rejected the payload",
+            { status: response.status, errorBody },
+            errorBody
+          );
         }
 
         if (response.status >= 500 && response.status < 600) {
@@ -568,10 +576,7 @@ export class OpenRouterService {
       }
 
       if (attempt < attempts) {
-        const delay = Math.min(
-          this.config.retry.backoffMs * Math.pow(2, attempt - 1),
-          this.config.retry.maxDelayMs
-        );
+        const delay = Math.min(this.config.retry.backoffMs * Math.pow(2, attempt - 1), this.config.retry.maxDelayMs);
         this.logger.warn("OpenRouter request failed, retrying", { attempt, delay });
         await delayMs(delay);
         continue;
@@ -659,7 +664,7 @@ export class OpenRouterService {
         let parsed: unknown;
         try {
           parsed = JSON.parse(payload);
-        } catch (error) {
+        } catch {
           this.logger.warn("Failed to parse OpenRouter stream chunk", { payload });
           continue;
         }
@@ -755,7 +760,7 @@ async function safeParseBody(response: Response): Promise<unknown> {
   }
 }
 
-function normalizeAssistantContent(content: string | Array<{ type: string; text?: string }>): string {
+function normalizeAssistantContent(content: string | { type: string; text?: string }[]): string {
   if (typeof content === "string") {
     return content;
   }

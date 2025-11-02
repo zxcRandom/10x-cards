@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { EditCardDialog } from './EditCardDialog';
-import type { ReviewCardVM } from './types';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { EditCardDialog } from "./EditCardDialog";
+import type { ReviewCardVM } from "./types";
 
 interface AICardItemProps {
   card: ReviewCardVM;
@@ -18,12 +18,7 @@ interface AICardItemProps {
  *
  * Shows card content with checkbox and action buttons
  */
-export function AICardItem({
-  card,
-  onEdit,
-  onDiscard,
-  onToggleSelect,
-}: AICardItemProps) {
+export function AICardItem({ card, onEdit, onDiscard, onToggleSelect }: AICardItemProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleEditSubmit = (question: string, answer: string) => {
@@ -49,9 +44,7 @@ export function AICardItem({
           <div className="flex-1 space-y-3">
             <div>
               <div className="mb-1 flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">
-                  PYTANIE
-                </span>
+                <span className="text-xs font-medium text-muted-foreground">PYTANIE</span>
                 {card.edited && (
                   <Badge variant="secondary" className="text-xs">
                     Edytowano
@@ -62,19 +55,13 @@ export function AICardItem({
             </div>
 
             <div>
-              <div className="mb-1 text-xs font-medium text-muted-foreground">
-                ODPOWIEDŹ
-              </div>
+              <div className="mb-1 text-xs font-medium text-muted-foreground">ODPOWIEDŹ</div>
               <p className="text-sm">{card.answer}</p>
             </div>
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button
-                onClick={() => setDialogOpen(true)}
-                variant="outline"
-                size="sm"
-              >
+              <Button onClick={() => setDialogOpen(true)} variant="outline" size="sm">
                 Edytuj
               </Button>
               <Button

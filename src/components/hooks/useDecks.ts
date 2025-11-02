@@ -5,14 +5,14 @@
  * Provides loading states and error handling.
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import type { DecksListDTO, DeckDTO, ErrorResponse } from '@/types';
+import { useState, useEffect, useCallback } from "react";
+import type { DecksListDTO, DeckDTO, ErrorResponse } from "@/types";
 
 interface UseDecksParams {
   limit?: number;
   offset?: number;
-  sort?: 'updatedAt' | 'createdAt' | 'name';
-  order?: 'desc' | 'asc';
+  sort?: "updatedAt" | "createdAt" | "name";
+  order?: "desc" | "asc";
   autoFetch?: boolean; // Whether to fetch automatically on mount
 }
 
@@ -25,13 +25,7 @@ interface UseDecksResult {
 }
 
 export function useDecks(params: UseDecksParams = {}): UseDecksResult {
-  const {
-    limit = 10,
-    offset = 0,
-    sort = 'updatedAt',
-    order = 'desc',
-    autoFetch = true,
-  } = params;
+  const { limit = 10, offset = 0, sort = "updatedAt", order = "desc", autoFetch = true } = params;
 
   const [data, setData] = useState<DeckDTO[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -53,23 +47,23 @@ export function useDecks(params: UseDecksParams = {}): UseDecksResult {
       const response = await fetch(`/api/v1/decks?${queryParams.toString()}`);
 
       if (!response.ok) {
-        const contentType = response.headers.get('content-type');
+        const contentType = response.headers.get("content-type");
 
-        if (contentType?.includes('application/json')) {
-          const errorData = await response.json() as ErrorResponse;
-          
+        if (contentType?.includes("application/json")) {
+          const errorData = (await response.json()) as ErrorResponse;
+
           switch (response.status) {
             case 401:
-              setError('Wymagane zalogowanie');
+              setError("Wymagane zalogowanie");
               break;
             case 500:
-              setError('Wystąpił błąd serwera. Spróbuj ponownie później.');
+              setError("Wystąpił błąd serwera. Spróbuj ponownie później.");
               break;
             default:
-              setError(errorData.error.message || 'Wystąpił błąd podczas pobierania talii');
+              setError(errorData.error.message || "Wystąpił błąd podczas pobierania talii");
           }
         } else {
-          setError('Wystąpił błąd serwera');
+          setError("Wystąpił błąd serwera");
         }
 
         setData(null);
@@ -77,15 +71,14 @@ export function useDecks(params: UseDecksParams = {}): UseDecksResult {
         return;
       }
 
-      const result = await response.json() as DecksListDTO;
+      const result = (await response.json()) as DecksListDTO;
       setData(result.items);
       setTotal(result.total);
-
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message || 'Wystąpił błąd podczas pobierania talii');
+        setError(err.message || "Wystąpił błąd podczas pobierania talii");
       } else {
-        setError('Wystąpił nieoczekiwany błąd');
+        setError("Wystąpił nieoczekiwany błąd");
       }
       setData(null);
       setTotal(0);

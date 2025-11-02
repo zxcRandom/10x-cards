@@ -31,11 +31,11 @@ export interface CardListResult {
 
 /**
  * CardRepository - Data Access Layer for Card operations
- * 
+ *
  * Responsible exclusively for database operations, with no business logic.
  * All methods return raw database records (DbCard) or null/undefined for not found cases.
  * Error handling is minimal - database errors are thrown to be handled by the service layer.
- * 
+ *
  * Following Repository Pattern principles:
  * - Single Responsibility: Only database access
  * - Separation of Concerns: No business rules
@@ -60,7 +60,7 @@ export class CardRepository {
 
   /**
    * Finds a card by ID with deck ownership verification
-   * 
+   *
    * @param cardId - UUID of the card
    * @param userId - UUID of the user (for ownership check via deck)
    * @returns Card record or null if not found or access denied
@@ -87,7 +87,7 @@ export class CardRepository {
 
   /**
    * Creates a new card in the database
-   * 
+   *
    * @param deckId - UUID of the deck
    * @param command - Card creation data
    * @param sm2Params - SM-2 algorithm parameters
@@ -126,7 +126,7 @@ export class CardRepository {
 
   /**
    * Creates multiple cards in a single batch operation
-   * 
+   *
    * @param deckId - UUID of the deck
    * @param commands - Array of card creation data
    * @param sm2Params - SM-2 parameters to apply to all cards
@@ -148,10 +148,7 @@ export class CardRepository {
       next_review_date: nextReviewDate,
     }));
 
-    const { data, error } = await this.supabase
-      .from("cards")
-      .insert(cardInserts)
-      .select();
+    const { data, error } = await this.supabase.from("cards").insert(cardInserts).select();
 
     if (error) {
       throw error;
@@ -166,16 +163,13 @@ export class CardRepository {
 
   /**
    * Updates a card's question and/or answer
-   * 
+   *
    * @param cardId - UUID of the card
    * @param updates - Fields to update (question and/or answer)
    * @returns Updated card record
    * @throws Error if database operation fails
    */
-  async update(
-    cardId: string,
-    updates: { question?: string; answer?: string }
-  ): Promise<DbCard> {
+  async update(cardId: string, updates: { question?: string; answer?: string }): Promise<DbCard> {
     const updateData: Partial<{ question: string; answer: string }> = {};
 
     if (updates.question !== undefined) {
@@ -185,12 +179,7 @@ export class CardRepository {
       updateData.answer = updates.answer.trim();
     }
 
-    const { data, error } = await this.supabase
-      .from("cards")
-      .update(updateData)
-      .eq("id", cardId)
-      .select()
-      .single();
+    const { data, error } = await this.supabase.from("cards").update(updateData).eq("id", cardId).select().single();
 
     if (error) {
       throw error;
@@ -205,23 +194,17 @@ export class CardRepository {
 
   /**
    * Lists cards in a deck with filtering, sorting, and pagination
-   * 
+   *
    * @param deckId - UUID of the deck
    * @param options - Query options (pagination, sorting, search)
    * @returns Cards and total count
    * @throws Error if database operation fails
    */
-  async list(
-    deckId: string,
-    options: CardListOptions
-  ): Promise<CardListResult> {
+  async list(deckId: string, options: CardListOptions): Promise<CardListResult> {
     const sortField = CardRepository.SORT_FIELD_MAP[options.sort];
 
     // Build query for cards
-    let query = this.supabase
-      .from("cards")
-      .select("*")
-      .eq("deck_id", deckId);
+    let query = this.supabase.from("cards").select("*").eq("deck_id", deckId);
 
     // Add search filter if provided
     if (options.searchTerm) {
@@ -232,10 +215,7 @@ export class CardRepository {
     query = query.order(sortField, { ascending: options.order === "asc" });
 
     // Add pagination
-    query = query.range(
-      options.offset,
-      options.offset + options.limit - 1
-    );
+    query = query.range(options.offset, options.offset + options.limit - 1);
 
     // Execute query
     const { data, error } = await query;
@@ -245,10 +225,7 @@ export class CardRepository {
     }
 
     // Get total count
-    let countQuery = this.supabase
-      .from("cards")
-      .select("*", { count: "exact", head: true })
-      .eq("deck_id", deckId);
+    let countQuery = this.supabase.from("cards").select("*", { count: "exact", head: true }).eq("deck_id", deckId);
 
     if (options.searchTerm) {
       countQuery = countQuery.ilike("question", `%${options.searchTerm}%`);
@@ -268,15 +245,12 @@ export class CardRepository {
 
   /**
    * Verifies if a card exists and user has access to it via deck ownership
-   * 
+   *
    * @param cardId - UUID of the card
    * @param userId - UUID of the user
    * @returns true if card exists and user owns the deck, false otherwise
    */
-  async verifyCardOwnership(
-    cardId: string,
-    userId: string
-  ): Promise<boolean> {
+  async verifyCardOwnership(cardId: string, userId: string): Promise<boolean> {
     const { data, error } = await this.supabase
       .from("cards")
       .select(
@@ -294,20 +268,13 @@ export class CardRepository {
 
   /**
    * Verifies if a deck exists and belongs to the user
-   * 
+   *
    * @param deckId - UUID of the deck
    * @param userId - UUID of the user
    * @returns Object with exists and owned flags
    */
-  async verifyDeckOwnership(
-    deckId: string,
-    userId: string
-  ): Promise<{ exists: boolean; owned: boolean }> {
-    const { data, error } = await this.supabase
-      .from("decks")
-      .select("id, user_id")
-      .eq("id", deckId)
-      .single();
+  async verifyDeckOwnership(deckId: string, userId: string): Promise<{ exists: boolean; owned: boolean }> {
+    const { data, error } = await this.supabase.from("decks").select("id, user_id").eq("id", deckId).single();
 
     if (error || !data) {
       return { exists: false, owned: false };
@@ -321,15 +288,12 @@ export class CardRepository {
 
   /**
    * Deletes a card from the database
-   * 
+   *
    * @param cardId - UUID of the card to delete
    * @throws Error if database operation fails
    */
   async delete(cardId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from("cards")
-      .delete()
-      .eq("id", cardId);
+    const { error } = await this.supabase.from("cards").delete().eq("id", cardId);
 
     if (error) {
       throw error;

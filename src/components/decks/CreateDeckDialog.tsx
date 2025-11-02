@@ -1,22 +1,16 @@
 /**
  * CreateDeckDialog Component
- * 
+ *
  * Modal for creating a new deck.
  */
 
-import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import type { DeckDTO } from '@/types';
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { DeckDTO } from "@/types";
 
 interface CreateDeckDialogProps {
   open: boolean;
@@ -24,47 +18,43 @@ interface CreateDeckDialogProps {
   onSuccess: (created: DeckDTO) => void;
 }
 
-export default function CreateDeckDialog({
-  open,
-  onOpenChange,
-  onSuccess,
-}: CreateDeckDialogProps) {
-  const [name, setName] = useState('');
+export default function CreateDeckDialog({ open, onOpenChange, onSuccess }: CreateDeckDialogProps) {
+  const [name, setName] = useState("");
   const [createdByAi, setCreatedByAi] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
-      setName('');
+      setName("");
       setCreatedByAi(false);
-      setError('');
+      setError("");
     }
   }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // Validation
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError('Nazwa talii jest wymagana');
+      setError("Nazwa talii jest wymagana");
       return;
     }
     if (trimmedName.length > 255) {
-      setError('Nazwa talii nie może być dłuższa niż 255 znaków');
+      setError("Nazwa talii nie może być dłuższa niż 255 znaków");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch('/api/v1/decks', {
-        method: 'POST',
+      const response = await fetch("/api/v1/decks", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: trimmedName,
@@ -74,28 +64,25 @@ export default function CreateDeckDialog({
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Twoja sesja wygasła. Zaloguj się ponownie.');
+          throw new Error("Twoja sesja wygasła. Zaloguj się ponownie.");
         }
         if (response.status === 400 || response.status === 422) {
           const errorData = await response.json();
-          throw new Error(
-            errorData.error?.message || 'Nieprawidłowe dane formularza'
-          );
+          throw new Error(errorData.error?.message || "Nieprawidłowe dane formularza");
         }
-        throw new Error('Wystąpił błąd podczas tworzenia talii');
+        throw new Error("Wystąpił błąd podczas tworzenia talii");
       }
 
       const created = await response.json();
-      
+
       // Reset form
-      setName('');
+      setName("");
       setCreatedByAi(false);
-      setError('');
-      
+      setError("");
+
       onSuccess(created);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Nieznany błąd';
+      const errorMessage = err instanceof Error ? err.message : "Nieznany błąd";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -120,8 +107,8 @@ export default function CreateDeckDialog({
                 disabled={loading}
                 required
                 maxLength={255}
-                aria-invalid={error ? 'true' : 'false'}
-                aria-describedby={error ? 'name-error' : undefined}
+                aria-invalid={error ? "true" : "false"}
+                aria-describedby={error ? "name-error" : undefined}
               />
               {error && (
                 <p id="name-error" className="text-sm text-destructive">
@@ -142,16 +129,11 @@ export default function CreateDeckDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Anuluj
             </Button>
             <Button type="submit" disabled={loading || !name.trim()}>
-              {loading ? 'Zapisywanie...' : 'Zapisz'}
+              {loading ? "Zapisywanie..." : "Zapisz"}
             </Button>
           </DialogFooter>
         </form>

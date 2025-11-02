@@ -1,11 +1,13 @@
 # Plan implementacji: Password Reset Flow (Forgot/Reset)
 
 ## Status
+
 ✅ **ZAIMPLEMENTOWANE** - Kompletny OTP-based password reset flow
 
 ## ✅ Weryfikacja z dokumentacją Supabase Auth
 
 Plan został zweryfikowany z oficjalną dokumentacją:
+
 - ✅ **API Endpoints**: `/auth/v1/recover` (POST), `/auth/v1/user` (PUT)
 - ✅ **Token format**: `?token_hash=xxx&type=recovery` (NIE `?code=xxx`)
 - ✅ **Email template**: Używa `{{ .ConfirmationURL }}`
@@ -13,7 +15,9 @@ Plan został zweryfikowany z oficjalną dokumentacją:
 - ✅ **Rate limiting**: Max 60 sekund między próbami (Supabase domyślnie)
 
 ## Kontekst
+
 Komponenty frontendowe dla reset hasła już istnieją:
+
 - ✅ `ForgotPasswordForm.tsx` - formularz żądania resetu
 - ✅ `ResetPasswordForm.tsx` - formularz ustawiania nowego hasła
 - ✅ `/auth/forgot-password.astro` - strona żądania resetu
@@ -23,13 +27,16 @@ Komponenty frontendowe dla reset hasła już istnieją:
 - ✅ `middleware/index.ts` - ścieżki dodane do PUBLIC_EXACT_PATHS
 
 Ale próbują wywołać endpointy, które nie istnieją:
+
 - ❌ `POST /api/v1/auth/password/request-reset` - **BRAK**
 - ❌ `POST /api/v1/auth/password/reset` - **BRAK**
 
 ## Cel
+
 Zaimplementować kompletny flow resetowania hasła zgodnie z PRD (US-014) i **dokumentacją Supabase Auth**.
 
 **Wybrana metoda**: **OTP-based recovery** (kod 6-cyfrowy)
+
 - ✅ Maksymalna prostota - wbudowany mechanizm Supabase
 - ✅ Działa identycznie lokalnie i produkcyjnie
 - ✅ Brak problemów z konfiguracją email templates
@@ -46,6 +53,7 @@ Zaimplementować kompletny flow resetowania hasła zgodnie z PRD (US-014) i **do
 ### Flow OTP-based Recovery (Kod 6-cyfrowy)
 
 **Zalety wyboru OTP**:
+
 - ✅ Jeden mechanizm dla dev i production
 - ✅ Brak konfiguracji email templates (Supabase ma domyślne)
 - ✅ Brak problemów z redirect URLs
@@ -53,15 +61,17 @@ Zaimplementować kompletny flow resetowania hasła zgodnie z PRD (US-014) i **do
 - ✅ Kody widoczne w Supabase Dashboard (dev)
 
 ### 1. Request OTP Code
+
 ```typescript
 // Wywołanie w naszym API
 await supabase.auth.signInWithOtp({
   email: email,
   options: {
-    shouldCreateUser: false // nie twórz nowego usera dla password reset
-  }
-})
+    shouldCreateUser: false, // nie twórz nowego usera dla password reset
+  },
+});
 ```
+
 - **API**: `POST /auth/v1/otp`
 - **Request**: `{ email: "user@example.com", create_user: false }`
 - **Response**: `{ message_id: "xxx" }` (pusty obiekt {} też OK)
@@ -70,25 +80,30 @@ await supabase.auth.signInWithOtp({
 - **Rate limit**: Max 1 email na 60 sekund (Supabase)
 
 ### 2. User Receives Email with OTP
+
 Email zawiera:
+
 ```
 Your code is: 123456
 
 This code will expire in 60 seconds.
 ```
+
 - Kod 6-cyfrowy (np. `123456`)
 - Ważny przez 60 sekund
 - Supabase używa domyślnego template (można dostosować)
 
 ### 3. Verify OTP Code
+
 ```typescript
 // Wywołanie w naszym API
 await supabase.auth.verifyOtp({
   email: email,
   token: otpCode, // 6-cyfrowy kod wpisany przez usera
-  type: 'email'
-})
+  type: "email",
+});
 ```
+
 - **API**: `POST /auth/v1/verify`
 - **Body**: `{ type: "email", token: "123456", email: "user@example.com" }`
 - **Response**: `{ access_token, refresh_token, user }` + sesja w cookies
@@ -96,13 +111,17 @@ await supabase.auth.verifyOtp({
 - **Kod**: Jednorazowy (po verify jest nieważny)
 
 ### 4. Update Password
+
 ```typescript
 // Po weryfikacji OTP sesja jest już ustawiona
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
 // Zaktualizuj hasło
 await supabase.auth.updateUser({ password: newPassword });
 ```
+
 - **API**: `PUT /auth/v1/user`
 - **Auth**: Wymaga aktywnej sesji (z OTP verify)
 - **Body**: `{ "password": "new-password" }`
@@ -113,6 +132,7 @@ await supabase.auth.updateUser({ password: newPassword });
 **Flow OTP-based (kod 6-cyfrowy)**:
 
 ### Krok 1: Request OTP Code
+
 1. Użytkownik wpisuje e-mail na `/auth/forgot-password`
 2. Frontend → `POST /api/v1/auth/password/request-reset`
 3. Backend → Supabase `POST /auth/v1/otp` przez `signInWithOtp()`
@@ -120,21 +140,26 @@ await supabase.auth.updateUser({ password: newPassword });
 5. **Zawsze zwracamy sukces** (neutralny komunikat dla bezpieczeństwa)
 
 ### Krok 2: Email with OTP Code
+
 E-mail zawiera:
+
 ```
 Your code is: 123456
 
 This code will expire in 60 seconds.
 ```
+
 - Kod 6-cyfrowy, ważny 60 sekund
 - Domyślny template Supabase (można dostosować)
 
 ### Krok 3: Enter OTP Code
+
 1. Użytkownik pozostaje na `/auth/forgot-password` lub `/auth/reset`
 2. Formularz pokazuje pole do wpisania 6-cyfrowego kodu
 3. Użytkownik wpisuje kod z e-maila (np. `123456`)
 
 ### Krok 4: Verify OTP and Set Password
+
 1. Użytkownik wpisuje kod OTP + nowe hasło
 2. Frontend → `POST /api/v1/auth/password/verify-and-reset`
 3. Backend → Supabase `POST /auth/v1/verify` (weryfikacja OTP)
@@ -148,12 +173,14 @@ This code will expire in 60 seconds.
 #### 1.1 Utworzyć plik `src/pages/api/v1/auth/password/request-reset.ts`
 
 **Funkcjonalność**:
+
 - Przyjmuje adres e-mail
 - Wywołuje `supabase.auth.signInWithOtp()` - wysyła kod OTP
 - **Zawsze zwraca sukces** (neutralny komunikat dla bezpieczeństwa)
 - Rate limiting (max 3 próby na 1 min per e-mail) - używa RateLimitService
 
 **Request**:
+
 ```typescript
 POST /api/v1/auth/password/request-reset
 Content-Type: application/json
@@ -164,6 +191,7 @@ Content-Type: application/json
 ```
 
 **Response** (zgodny z types.ts):
+
 ```typescript
 // Success (200 OK) - ZAWSZE zwracane
 {
@@ -182,6 +210,7 @@ Content-Type: application/json
 ```
 
 **Implementacja** (wzorowana na sign-in.ts):
+
 ```typescript
 /**
  * POST /api/v1/auth/password/request-reset
@@ -189,12 +218,12 @@ Content-Type: application/json
  * US-014: Reset Password
  */
 
-import type { APIRoute } from 'astro';
-import { passwordResetRequestSchema } from '@/lib/validation/auth.schemas';
-import { formatZodErrors } from '@/lib/utils/zod-errors';
-import { RateLimitService } from '@/lib/services/rate-limit.service';
-import { HttpStatus, ErrorCode } from '@/types';
-import type { ErrorResponse, ValidationErrorResponse } from '@/types';
+import type { APIRoute } from "astro";
+import { passwordResetRequestSchema } from "@/lib/validation/auth.schemas";
+import { formatZodErrors } from "@/lib/utils/zod-errors";
+import { RateLimitService } from "@/lib/services/rate-limit.service";
+import { HttpStatus, ErrorCode } from "@/types";
+import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
@@ -211,10 +240,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
         JSON.stringify({
           error: {
             code: ErrorCode.BAD_REQUEST,
-            message: 'Invalid JSON in request body',
+            message: "Invalid JSON in request body",
           },
         } satisfies ErrorResponse),
-        { status: HttpStatus.BAD_REQUEST, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.BAD_REQUEST, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -225,11 +254,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
         JSON.stringify({
           error: {
             code: ErrorCode.VALIDATION_ERROR,
-            message: 'Validation failed',
+            message: "Validation failed",
             errors: formatZodErrors(validationResult.error),
           },
         } satisfies ValidationErrorResponse),
-        { status: HttpStatus.BAD_REQUEST, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.BAD_REQUEST, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -238,23 +267,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // 3. Rate limiting - check BEFORE attempt
     const rateLimitCheck = await rateLimiter.checkPasswordResetRateLimit(email);
     if (!rateLimitCheck.allowed) {
-      const retryAfterSeconds = rateLimitCheck.resetInMs
-        ? Math.ceil(rateLimitCheck.resetInMs / 1000)
-        : 60;
+      const retryAfterSeconds = rateLimitCheck.resetInMs ? Math.ceil(rateLimitCheck.resetInMs / 1000) : 60;
 
       return new Response(
         JSON.stringify({
           error: {
             code: ErrorCode.TOO_MANY_REQUESTS,
-            message: 'Too many password reset attempts. Please try again later.',
+            message: "Too many password reset attempts. Please try again later.",
             details: `Retry after ${retryAfterSeconds} seconds`,
           },
         } satisfies ErrorResponse),
         {
           status: HttpStatus.TOO_MANY_REQUESTS,
           headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': retryAfterSeconds.toString(),
+            "Content-Type": "application/json",
+            "Retry-After": retryAfterSeconds.toString(),
           },
         }
       );
@@ -275,27 +302,27 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // IMPORTANT: ALWAYS return success for security (neutral messaging)
     // Don't reveal whether email exists in the system
     if (error) {
-      console.error('[Auth] OTP request error:', error);
+      console.error("[Auth] OTP request error:", error);
       // Still return success to user
     }
 
     return new Response(
       JSON.stringify({
-        status: 'ok',
-        message: 'Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)',
+        status: "ok",
+        message: "Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)",
       }),
-      { status: HttpStatus.OK, headers: { 'Content-Type': 'application/json' } }
+      { status: HttpStatus.OK, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error('[Auth] OTP request error:', err);
+    console.error("[Auth] OTP request error:", err);
 
     // Still return success for security
     return new Response(
       JSON.stringify({
-        status: 'ok',
-        message: 'Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)',
+        status: "ok",
+        message: "Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)",
       }),
-      { status: HttpStatus.OK, headers: { 'Content-Type': 'application/json' } }
+      { status: HttpStatus.OK, headers: { "Content-Type": "application/json" } }
     );
   }
 };
@@ -306,12 +333,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
 #### 2.1 Utworzyć plik `src/pages/api/v1/auth/password/verify-and-reset.ts`
 
 **Funkcjonalność**:
+
 - Przyjmuje email, OTP code (6 cyfr) i nowe hasło
 - Weryfikuje OTP przez `verifyOtp()` - ustawia sesję
 - Aktualizuje hasło przez `updateUser()`
 - Jednorazowa operacja (verify + update w jednym endpointcie)
 
 **Request**:
+
 ```typescript
 POST /api/v1/auth/password/verify-and-reset
 Content-Type: application/json
@@ -324,6 +353,7 @@ Content-Type: application/json
 ```
 
 **Response** (zgodny z types.ts):
+
 ```typescript
 // Success (200 OK)
 {
@@ -353,6 +383,7 @@ Content-Type: application/json
 ```
 
 **Implementacja**:
+
 ```typescript
 /**
  * POST /api/v1/auth/password/verify-and-reset
@@ -360,19 +391,19 @@ Content-Type: application/json
  * US-014: Reset Password
  */
 
-import type { APIRoute } from 'astro';
-import { z } from 'zod';
-import { formatZodErrors } from '@/lib/utils/zod-errors';
-import { HttpStatus, ErrorCode } from '@/types';
-import type { ErrorResponse, ValidationErrorResponse } from '@/types';
+import type { APIRoute } from "astro";
+import { z } from "zod";
+import { formatZodErrors } from "@/lib/utils/zod-errors";
+import { HttpStatus, ErrorCode } from "@/types";
+import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
 // Validation schema for OTP + password reset
 const verifyAndResetSchema = z.object({
-  email: z.string().email('Nieprawidłowy format adresu e-mail'),
-  otp: z.string().length(6, 'Kod musi mieć 6 cyfr').regex(/^\d+$/, 'Kod musi zawierać tylko cyfry'),
-  newPassword: z.string().min(8, 'Hasło musi mieć co najmniej 8 znaków'),
+  email: z.string().email("Nieprawidłowy format adresu e-mail"),
+  otp: z.string().length(6, "Kod musi mieć 6 cyfr").regex(/^\d+$/, "Kod musi zawierać tylko cyfry"),
+  newPassword: z.string().min(8, "Hasło musi mieć co najmniej 8 znaków"),
 });
 
 export const POST: APIRoute = async ({ request, locals }) => {
@@ -386,10 +417,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
         JSON.stringify({
           error: {
             code: ErrorCode.BAD_REQUEST,
-            message: 'Invalid JSON in request body',
+            message: "Invalid JSON in request body",
           },
         } satisfies ErrorResponse),
-        { status: HttpStatus.BAD_REQUEST, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.BAD_REQUEST, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -400,11 +431,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
         JSON.stringify({
           error: {
             code: ErrorCode.VALIDATION_ERROR,
-            message: 'Validation failed',
+            message: "Validation failed",
             errors: formatZodErrors(validationResult.error),
           },
         } satisfies ValidationErrorResponse),
-        { status: HttpStatus.BAD_REQUEST, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.BAD_REQUEST, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -414,19 +445,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const { error: verifyError } = await locals.supabase.auth.verifyOtp({
       email: email,
       token: otp,
-      type: 'email',
+      type: "email",
     });
 
     if (verifyError) {
-      console.error('[Auth] OTP verification error:', verifyError);
+      console.error("[Auth] OTP verification error:", verifyError);
       return new Response(
         JSON.stringify({
           error: {
             code: ErrorCode.BAD_REQUEST,
-            message: 'Nieprawidłowy lub wygasły kod weryfikacyjny',
+            message: "Nieprawidłowy lub wygasły kod weryfikacyjny",
           },
         } satisfies ErrorResponse),
-        { status: HttpStatus.BAD_REQUEST, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.BAD_REQUEST, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -436,36 +467,36 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
 
     if (updateError) {
-      console.error('[Auth] Password update error:', updateError);
+      console.error("[Auth] Password update error:", updateError);
       return new Response(
         JSON.stringify({
           error: {
             code: ErrorCode.INTERNAL_SERVER_ERROR,
-            message: 'Nie udało się zaktualizować hasła',
+            message: "Nie udało się zaktualizować hasła",
           },
         } satisfies ErrorResponse),
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.INTERNAL_SERVER_ERROR, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // 5. Success
     return new Response(
       JSON.stringify({
-        status: 'ok',
-        message: 'Hasło zostało zmienione pomyślnie',
+        status: "ok",
+        message: "Hasło zostało zmienione pomyślnie",
       }),
-      { status: HttpStatus.OK, headers: { 'Content-Type': 'application/json' } }
+      { status: HttpStatus.OK, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error('[Auth] Verify and reset error:', err);
+    console.error("[Auth] Verify and reset error:", err);
     return new Response(
       JSON.stringify({
         error: {
           code: ErrorCode.INTERNAL_SERVER_ERROR,
-          message: 'Wystąpił nieoczekiwany błąd',
+          message: "Wystąpił nieoczekiwany błąd",
         },
       } satisfies ErrorResponse),
-      { status: HttpStatus.INTERNAL_SERVER_ERROR, headers: { 'Content-Type': 'application/json' } }
+      { status: HttpStatus.INTERNAL_SERVER_ERROR, headers: { "Content-Type": "application/json" } }
     );
   }
 };
@@ -474,18 +505,20 @@ export const POST: APIRoute = async ({ request, locals }) => {
 ### 3. Validation Schemas
 
 ✅ **Częściowo istnieją** - `src/lib/validation/auth.schemas.ts`:
+
 - ✅ `passwordResetRequestSchema` - walidacja e-mail (OK)
 - ❌ Brak schema dla OTP + hasło
 
 **Trzeba dodać**:
+
 ```typescript
 // src/lib/validation/auth.schemas.ts
 
 // Schema dla verify-and-reset (OTP + nowe hasło)
 export const otpPasswordResetSchema = z.object({
-  email: z.string().email('Nieprawidłowy format adresu e-mail'),
-  otp: z.string().length(6, 'Kod musi mieć 6 cyfr').regex(/^\d+$/, 'Kod musi zawierać tylko cyfry'),
-  newPassword: z.string().min(8, 'Hasło musi mieć co najmniej 8 znaków'),
+  email: z.string().email("Nieprawidłowy format adresu e-mail"),
+  otp: z.string().length(6, "Kod musi mieć 6 cyfr").regex(/^\d+$/, "Kod musi zawierać tylko cyfry"),
+  newPassword: z.string().min(8, "Hasło musi mieć co najmniej 8 znaków"),
 });
 
 export type OtpPasswordResetInput = z.infer<typeof otpPasswordResetSchema>;
@@ -502,6 +535,7 @@ export type OtpPasswordResetInput = z.infer<typeof otpPasswordResetSchema>;
 **Lokalizacja**: `Authentication > Email Templates > Magic Link`
 
 **Domyślny template Supabase** (działa out-of-the-box):
+
 ```
 Your code is: {{ .Token }}
 
@@ -509,12 +543,14 @@ This code will expire in {{ .TokenExpiryDuration }}.
 ```
 
 **✅ ZALETY**:
+
 - Działa automatycznie bez konfiguracji
 - Kod 6-cyfrowy widoczny w e-mailu
 - Brak konieczności konfiguracji redirect URLs
 - Brak konieczności konfiguracji {{ .ConfirmationURL }}
 
 **Opcjonalnie - Polish version**:
+
 ```html
 <h2>Kod resetowania hasła</h2>
 
@@ -526,6 +562,7 @@ This code will expire in {{ .TokenExpiryDuration }}.
 ```
 
 **NIE WYMAGA konfiguracji**:
+
 - ❌ Redirect URLs - nie używamy linków
 - ❌ {{ .ConfirmationURL }} - nie używamy
 - ❌ Site URL - nie potrzebne dla OTP
@@ -535,6 +572,7 @@ This code will expire in {{ .TokenExpiryDuration }}.
 Supabase w trybie darmowym używa własnego SMTP, ale ma limity (kilka e-maili/godzinę).
 
 Dla production polecane jest skonfigurowanie własnego SMTP:
+
 - `Authentication > Settings > SMTP Settings`
 - Dodaj dane swojego dostawcy SMTP (np. SendGrid, AWS SES, Mailgun)
 - Skonfiguruj SPF/DKIM dla domeny
@@ -542,6 +580,7 @@ Dla production polecane jest skonfigurowanie własnego SMTP:
 ### 5. Rate Limiting
 
 ✅ **Już zaimplementowane** - `RateLimitService` ma gotowe metody:
+
 - `checkPasswordResetRateLimit(email)` - sprawdza limit
 - `incrementPasswordResetRateLimit(email)` - inkrementuje licznik
 - Limit: **3 próby na 1 minutę per e-mail**
@@ -551,6 +590,7 @@ Dla production polecane jest skonfigurowanie własnego SMTP:
 ### 6. Testy akceptacyjne (US-014)
 
 **Part 1: Request OTP**
+
 - [ ] Na ekranie logowania jest link "Nie pamiętasz hasła?" → `/auth/forgot-password`
 - [ ] Formularz wymaga adresu e-mail
 - [ ] Po wysłaniu: neutralny komunikat (zawsze sukces, nawet jeśli e-mail nie istnieje)
@@ -561,6 +601,7 @@ Dla production polecane jest skonfigurowanie własnego SMTP:
 - [ ] Próba żądania OTP więcej niż **3 razy w 1 min** → błąd 429
 
 **Part 2: Verify OTP and Reset Password**
+
 - [ ] Po wysłaniu formularza pokazuje się pole na kod OTP
 - [ ] Formularz wymaga: kod OTP (6 cyfr) + nowe hasło (2x)
 - [ ] Walidacja client-side: kod != 6 cyfr → błąd
@@ -640,6 +681,7 @@ Dla production polecane jest skonfigurowanie własnego SMTP:
 ## Zależności
 
 ✅ **Już dostępne**:
+
 - Supabase Auth - skonfigurowane w projekcie
 - Validation schemas - w `auth.schemas.ts`
 - RateLimitService - z metodami password reset
@@ -648,14 +690,17 @@ Dla production polecane jest skonfigurowanie własnego SMTP:
 - Supabase client - createServerClient z SSR support
 
 ⚠️ **Wymaga konfiguracji (opcjonalne)**:
+
 - Supabase Dashboard → Email Templates → Magic Link (OTP) - ma domyślny template
 - Własny SMTP dla produkcji (opcjonalne)
 
 ❌ **Do zaimplementowania**:
+
 - `/api/v1/auth/password/request-reset.ts` (OTP request)
 - `/api/v1/auth/password/verify-and-reset.ts` (OTP verify + password update)
 
 ## Estymacja
+
 - **Czas implementacji**: 1-2 godziny (kod backend + frontend)
 - **Priorytet**: WYSOKI (security + user experience)
 - **Złożoność**: BARDZO NISKA (wbudowany mechanizm Supabase OTP)
@@ -663,24 +708,28 @@ Dla production polecane jest skonfigurowanie własnego SMTP:
 ## Kluczowe zalety wyboru OTP
 
 ### ✅ Prostota implementacji:
+
 - Brak konfiguracji email templates (domyślny działa)
 - Brak konfiguracji redirect URLs
 - Brak konieczności obsługi token exchange
 - Jeden mechanizm dla dev i production
 
 ### ✅ Wbudowane mechanizmy Supabase:
+
 - `signInWithOtp()` - wysyła kod automatycznie
 - `verifyOtp()` - weryfikuje i ustawia sesję
 - Domyślny template email z kodem
 - Automatyczne zarządzanie wygasaniem (60s)
 
 ### ✅ Bezpieczeństwo:
+
 - Kod 6-cyfrowy (1 milion kombinacji)
 - Bardzo krótki czas życia (60s)
 - Jednorazowy kod
 - Rate limiting (3/min per email)
 
 ### ⚠️ Trade-off:
+
 - **UX**: Użytkownik musi wpisać kod (zamiast kliknięcia linku)
 - **Czas życia**: 60 sekund (może być za krótko dla niektórych użytkowników)
 
@@ -695,7 +744,7 @@ Plan został **maksymalnie uproszczony** zgodnie z wymaganiem "maksymalnej prost
 5. **Istniejące serwisy** - RateLimitService, validation schemas gotowe
 
 **Główna praca**: 2 endpointy API (request OTP + verify & reset).
+
 - Endpoint 1: `signInWithOtp()` - 1 linia kodu
 - Endpoint 2: `verifyOtp()` + `updateUser()` - 2 linie kodu
 - Reszta: error handling i rate limiting (wzorowane na istniejących endpointach)
-

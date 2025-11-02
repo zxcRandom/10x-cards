@@ -5,7 +5,7 @@
  * Provides CTA to encourage deck creation.
  */
 
-import { FileQuestion } from 'lucide-react';
+import { FileQuestion } from "lucide-react";
 
 interface EmptyStateProps {
   onCreateClick?: () => void;
@@ -22,10 +22,7 @@ export function EmptyState({ onCreateClick }: EmptyStateProps) {
         Zacznij od wygenerowania fiszek za pomocą AI lub utwórz talię ręcznie
       </p>
       {onCreateClick && (
-        <button
-          onClick={onCreateClick}
-          className="text-sm text-primary hover:underline font-medium"
-        >
+        <button onClick={onCreateClick} className="text-sm text-primary hover:underline font-medium">
           Wygeneruj fiszki →
         </button>
       )}

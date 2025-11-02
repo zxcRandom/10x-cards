@@ -2,10 +2,10 @@
  * POST /api/v1/auth/password/request-reset
  * Request OTP code for password reset via email.
  * US-014: Reset Password
- * 
+ *
  * Request Body:
  * - email: string (required)
- * 
+ *
  * Responses:
  * - 200 OK: OTP request processed (always success for security)
  * - 400 BAD_REQUEST: Validation error
@@ -13,12 +13,12 @@
  * - 500 INTERNAL_SERVER_ERROR: Server error
  */
 
-import type { APIRoute } from 'astro';
-import { passwordResetRequestSchema } from '@/lib/validation/auth.schemas';
-import { formatZodErrors } from '@/lib/utils/zod-errors';
-import { RateLimitService } from '@/lib/services/rate-limit.service';
-import { HttpStatus, ErrorCode } from '@/types';
-import type { ErrorResponse, ValidationErrorResponse } from '@/types';
+import type { APIRoute } from "astro";
+import { passwordResetRequestSchema } from "@/lib/validation/auth.schemas";
+import { formatZodErrors } from "@/lib/utils/zod-errors";
+import { RateLimitService } from "@/lib/services/rate-limit.service";
+import { HttpStatus, ErrorCode } from "@/types";
+import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
@@ -35,10 +35,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
         JSON.stringify({
           error: {
             code: ErrorCode.BAD_REQUEST,
-            message: 'Invalid JSON in request body',
+            message: "Invalid JSON in request body",
           },
         } satisfies ErrorResponse),
-        { status: HttpStatus.BAD_REQUEST, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.BAD_REQUEST, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -49,11 +49,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
         JSON.stringify({
           error: {
             code: ErrorCode.VALIDATION_ERROR,
-            message: 'Validation failed',
+            message: "Validation failed",
             errors: formatZodErrors(validationResult.error),
           },
         } satisfies ValidationErrorResponse),
-        { status: HttpStatus.BAD_REQUEST, headers: { 'Content-Type': 'application/json' } }
+        { status: HttpStatus.BAD_REQUEST, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -62,23 +62,21 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // 3. Rate limiting - check BEFORE attempt
     const rateLimitCheck = await rateLimiter.checkPasswordResetRateLimit(email);
     if (!rateLimitCheck.allowed) {
-      const retryAfterSeconds = rateLimitCheck.resetInMs
-        ? Math.ceil(rateLimitCheck.resetInMs / 1000)
-        : 60;
+      const retryAfterSeconds = rateLimitCheck.resetInMs ? Math.ceil(rateLimitCheck.resetInMs / 1000) : 60;
 
       return new Response(
         JSON.stringify({
           error: {
             code: ErrorCode.TOO_MANY_REQUESTS,
-            message: 'Too many password reset attempts. Please try again later.',
+            message: "Too many password reset attempts. Please try again later.",
             details: `Retry after ${retryAfterSeconds} seconds`,
           },
         } satisfies ErrorResponse),
         {
           status: HttpStatus.TOO_MANY_REQUESTS,
           headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': retryAfterSeconds.toString(),
+            "Content-Type": "application/json",
+            "Retry-After": retryAfterSeconds.toString(),
           },
         }
       );
@@ -99,27 +97,29 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // IMPORTANT: ALWAYS return success for security (neutral messaging)
     // Don't reveal whether email exists in the system
     if (error) {
-      console.error('[Auth] OTP request error:', error);
+      // eslint-disable-next-line no-console
+      console.error("[Auth] OTP request error:", error);
       // Still return success to user
     }
 
     return new Response(
       JSON.stringify({
-        status: 'ok',
-        message: 'Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)',
+        status: "ok",
+        message: "Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)",
       }),
-      { status: HttpStatus.OK, headers: { 'Content-Type': 'application/json' } }
+      { status: HttpStatus.OK, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error('[Auth] OTP request error:', err);
+    // eslint-disable-next-line no-console
+    console.error("[Auth] OTP request error:", err);
 
     // Still return success for security
     return new Response(
       JSON.stringify({
-        status: 'ok',
-        message: 'Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)',
+        status: "ok",
+        message: "Jeśli podany adres e-mail istnieje, wysłaliśmy kod weryfikacyjny (6 cyfr)",
       }),
-      { status: HttpStatus.OK, headers: { 'Content-Type': 'application/json' } }
+      { status: HttpStatus.OK, headers: { "Content-Type": "application/json" } }
     );
   }
 };

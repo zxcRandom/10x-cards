@@ -1,6 +1,6 @@
 /**
  * Auth Validation Schemas
- * 
+ *
  * Zod schemas for validating authentication-related requests.
  * Used for both client-side and server-side validation.
  */
@@ -20,10 +20,7 @@ const emailSchema = z
  * Password validation schema
  * Minimum 8 characters as per specification
  */
-const passwordSchema = z
-  .string()
-  .min(8, "Hasło musi mieć co najmniej 8 znaków")
-  .max(255, "Hasło jest za długie");
+const passwordSchema = z.string().min(8, "Hasło musi mieć co najmniej 8 znaków").max(255, "Hasło jest za długie");
 
 /**
  * Sign In Schema - POST /api/v1/auth/sign-in
@@ -36,14 +33,16 @@ export const signInSchema = z.object({
 /**
  * Sign Up Schema - POST /api/v1/auth/sign-up
  */
-export const signUpSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-  confirmPassword: passwordSchema,
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Hasła nie są identyczne",
-  path: ["confirmPassword"],
-});
+export const signUpSchema = z
+  .object({
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: passwordSchema,
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Hasła nie są identyczne",
+    path: ["confirmPassword"],
+  });
 
 /**
  * Password Reset Request Schema - POST /api/v1/auth/password/request-reset
@@ -55,45 +54,49 @@ export const passwordResetRequestSchema = z.object({
 /**
  * Password Reset Schema - POST /api/v1/auth/password/reset
  */
-export const passwordResetSchema = z.object({
-  newPassword: passwordSchema,
-  confirmNewPassword: passwordSchema,
-}).refine((data) => data.newPassword === data.confirmNewPassword, {
-  message: "Hasła nie są identyczne",
-  path: ["confirmNewPassword"],
-});
+export const passwordResetSchema = z
+  .object({
+    newPassword: passwordSchema,
+    confirmNewPassword: passwordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Hasła nie są identyczne",
+    path: ["confirmNewPassword"],
+  });
 
 /**
  * OTP Password Reset Schema - POST /api/v1/auth/password/verify-and-reset
  * Validates OTP code + new password for OTP-based password reset flow
  */
-export const otpPasswordResetSchema = z.object({
-  email: emailSchema,
-  otp: z
-    .string()
-    .length(6, "Kod musi mieć 6 cyfr")
-    .regex(/^\d+$/, "Kod musi zawierać tylko cyfry"),
-  newPassword: passwordSchema,
-  confirmNewPassword: passwordSchema,
-}).refine((data) => data.newPassword === data.confirmNewPassword, {
-  message: "Hasła nie są identyczne",
-  path: ["confirmNewPassword"],
-});
+export const otpPasswordResetSchema = z
+  .object({
+    email: emailSchema,
+    otp: z.string().length(6, "Kod musi mieć 6 cyfr").regex(/^\d+$/, "Kod musi zawierać tylko cyfry"),
+    newPassword: passwordSchema,
+    confirmNewPassword: passwordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Hasła nie są identyczne",
+    path: ["confirmNewPassword"],
+  });
 
 /**
  * Change Password Schema - POST /api/v1/auth/password/change
  */
-export const passwordChangeSchema = z.object({
-  currentPassword: passwordSchema,
-  newPassword: passwordSchema,
-  confirmNewPassword: passwordSchema,
-}).refine((data) => data.newPassword === data.confirmNewPassword, {
-  message: "Hasła nie są identyczne",
-  path: ["confirmNewPassword"],
-}).refine((data) => data.currentPassword !== data.newPassword, {
-  message: "Nowe hasło musi być inne niż obecne",
-  path: ["newPassword"],
-});
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: passwordSchema,
+    newPassword: passwordSchema,
+    confirmNewPassword: passwordSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Hasła nie są identyczne",
+    path: ["confirmNewPassword"],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "Nowe hasło musi być inne niż obecne",
+    path: ["newPassword"],
+  });
 
 /**
  * Delete Account Schema - DELETE /api/v1/auth/account/delete

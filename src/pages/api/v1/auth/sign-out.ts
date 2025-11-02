@@ -1,11 +1,11 @@
 /**
  * POST /api/v1/auth/sign-out
- * 
+ *
  * Signs out the current user and clears session cookies.
  * Uses Supabase Auth to invalidate the session.
- * 
+ *
  * Request Body: None
- * 
+ *
  * Responses:
  * - 204 NO_CONTENT: Successfully signed out
  * - 500 INTERNAL_SERVER_ERROR: Server error
@@ -18,14 +18,15 @@ import type { ErrorResponse } from "@/types";
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ locals, cookies }) => {
+export const POST: APIRoute = async ({ locals }) => {
   try {
     // Sign out from Supabase Auth
     const { error } = await locals.supabase.auth.signOut();
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Sign-out error:", error);
-      
+
       return new Response(
         JSON.stringify({
           error: {
@@ -43,12 +44,10 @@ export const POST: APIRoute = async ({ locals, cookies }) => {
     // IMPORTANT: We need to manually add Set-Cookie headers to clear cookies
     // because Astro API routes don't automatically serialize cookie deletions
     const responseHeaders = new Headers();
-    
+
     // Get cookies that were set/cleared by Supabase during signOut
-    const cookiesToSet = hasCookiesToSet(locals.supabase)
-      ? locals.supabase.__cookiesToSet!
-      : [];
-    
+    const cookiesToSet = hasCookiesToSet(locals.supabase) ? (locals.supabase.__cookiesToSet ?? []) : [];
+
     cookiesToSet.forEach(({ name, value, options }) => {
       // Serialize cookie with proper options (usually MaxAge=0 for deletion)
       let cookieString = `${name}=${value}`;
@@ -57,7 +56,7 @@ export const POST: APIRoute = async ({ locals, cookies }) => {
       if (options.httpOnly) cookieString += `; HttpOnly`;
       if (options.secure) cookieString += `; Secure`;
       if (options.sameSite) cookieString += `; SameSite=${options.sameSite}`;
-      
+
       responseHeaders.append("Set-Cookie", cookieString);
     });
 
@@ -68,6 +67,7 @@ export const POST: APIRoute = async ({ locals, cookies }) => {
     });
   } catch (err) {
     // Log error for debugging
+    // eslint-disable-next-line no-console
     console.error("Unexpected sign-out error:", err);
 
     return new Response(

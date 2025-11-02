@@ -1,14 +1,14 @@
 /**
  * DecksToolbar Component
- * 
+ *
  * Controls for search, sort, filter and create action.
  */
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import type { DeckListQuery, SortField, SortOrder } from './types';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import type { DeckListQuery, SortField, SortOrder } from "./types";
 
 interface DecksToolbarProps {
   query: DeckListQuery;
@@ -16,11 +16,7 @@ interface DecksToolbarProps {
   onCreateClick: () => void;
 }
 
-export default function DecksToolbar({
-  query,
-  onChange,
-  onCreateClick,
-}: DecksToolbarProps) {
+export default function DecksToolbar({ query, onChange, onCreateClick }: DecksToolbarProps) {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ ...query, q: e.target.value || undefined, offset: 0 });
   };
@@ -45,12 +41,7 @@ export default function DecksToolbar({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex-1 w-full sm:max-w-md">
-          <Input
-            type="search"
-            placeholder="Szukaj talii..."
-            value={query.q || ''}
-            onChange={handleSearchChange}
-          />
+          <Input type="search" placeholder="Szukaj talii..." value={query.q || ""} onChange={handleSearchChange} />
         </div>
         <Button onClick={onCreateClick}>Stwórz nową talię</Button>
       </div>
@@ -88,11 +79,7 @@ export default function DecksToolbar({
         </div>
 
         <div className="flex items-center gap-2">
-          <Checkbox
-            id="createdByAi"
-            checked={query.createdByAi === true}
-            onCheckedChange={handleCreatedByAiToggle}
-          />
+          <Checkbox id="createdByAi" checked={query.createdByAi === true} onCheckedChange={handleCreatedByAiToggle} />
           <Label htmlFor="createdByAi" className="text-sm cursor-pointer">
             Tylko talie AI
           </Label>

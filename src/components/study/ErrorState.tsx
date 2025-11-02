@@ -1,6 +1,6 @@
 /**
  * ErrorState Component
- * 
+ *
  * Displays error message with appropriate action buttons
  * Handles different error scenarios (404, network errors, etc.)
  */

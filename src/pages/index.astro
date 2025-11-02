@@ -1,4 +1,5 @@
 ---
+/* eslint-disable prettier/prettier */
 import Layout from "../layouts/Layout.astro";
 import AuthNav from "@/components/auth/AuthNav";
 import { AIFlashcardGenerator } from "@/components/dashboard/AIFlashcardGenerator";
@@ -13,7 +14,6 @@ const pageTitle = user ? "Dashboard - 10x Cards" : "10x Cards - Inteligentne fis
 
 <Layout title={pageTitle}>
   {user ? (
-    <!-- Dashboard for authenticated users -->
     <>
       <AuthNav userEmail={user.email} currentPath={Astro.url.pathname} client:load />
       <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -37,7 +37,6 @@ const pageTitle = user ? "Dashboard - 10x Cards" : "10x Cards - Inteligentne fis
       </div>
     </>
   ) : (
-    <!-- Landing page for unauthenticated users -->
     <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div class="container max-w-6xl mx-auto px-4 py-8 space-y-8">
         <!-- Header -->

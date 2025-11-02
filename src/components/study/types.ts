@@ -1,6 +1,6 @@
 /**
  * Study View Types
- * 
+ *
  * Local types for the study session view.
  * These types are view models (VM) derived from API DTOs for UI needs.
  */
@@ -23,7 +23,7 @@ export interface StudyCardVM {
  * Study Session State
  * Represents the current state of the study session workflow
  */
-export type StudyState = 'loading' | 'ready' | 'submitting' | 'done' | 'error';
+export type StudyState = "loading" | "ready" | "submitting" | "done" | "error";
 
 /**
  * Study Session Statistics

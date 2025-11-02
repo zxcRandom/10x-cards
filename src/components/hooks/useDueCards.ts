@@ -1,6 +1,6 @@
 /**
  * useDueCards Hook
- * 
+ *
  * Custom hook for fetching due cards from API
  * Handles loading state, errors, and provides refetch capability
  */
@@ -27,9 +27,7 @@ export function useDueCards(deckId: string): UseDueCardsResult {
 
     try {
       const now = new Date().toISOString();
-      const url = `/api/v1/decks/${deckId}/cards/due?before=${encodeURIComponent(
-        now
-      )}&limit=50&offset=0&order=asc`;
+      const url = `/api/v1/decks/${deckId}/cards/due?before=${encodeURIComponent(now)}&limit=50&offset=0&order=asc`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -72,6 +70,7 @@ export function useDueCards(deckId: string): UseDueCardsResult {
       setCards(cardVMs);
       setLoading(false);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Error fetching due cards:", err);
       setError({
         status: 500,

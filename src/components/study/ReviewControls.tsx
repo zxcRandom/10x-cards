@@ -1,6 +1,6 @@
 /**
  * ReviewControls Component
- * 
+ *
  * Displays 6 grade buttons (0-5) with labels for SM-2 algorithm
  * Buttons are disabled until answer is revealed
  */
@@ -22,10 +22,7 @@ const GRADE_LABELS = [
   { grade: 5 as ReviewGrade, label: "Bardzo łatwo", variant: "default" as const },
 ];
 
-export default function ReviewControls({
-  disabled,
-  onGrade,
-}: ReviewControlsProps) {
+export default function ReviewControls({ disabled, onGrade }: ReviewControlsProps) {
   return (
     <div className="border-t pt-6">
       <h3 className="font-semibold mb-4">Oceń swoją odpowiedź</h3>
@@ -36,9 +33,7 @@ export default function ReviewControls({
             onClick={() => onGrade(grade)}
             disabled={disabled}
             variant={variant}
-            className={`flex flex-col h-auto py-3 ${
-              grade === 1 ? "opacity-90" : ""
-            }`}
+            className={`flex flex-col h-auto py-3 ${grade === 1 ? "opacity-90" : ""}`}
           >
             <span className="text-lg font-bold">{grade}</span>
             <span className="text-xs">{label}</span>

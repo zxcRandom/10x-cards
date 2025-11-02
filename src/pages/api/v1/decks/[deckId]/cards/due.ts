@@ -18,24 +18,15 @@ export const prerender = false;
 const dueCardsQuerySchema = z.object({
   before: z
     .preprocess(
-      (val) =>
-        val === null || val === undefined || val === ""
-          ? new Date().toISOString()
-          : val,
+      (val) => (val === null || val === undefined || val === "" ? new Date().toISOString() : val),
       z.string().datetime({ message: "Invalid ISO-8601 date format" })
     )
     .default(new Date().toISOString()),
   limit: z
-    .preprocess(
-      (val) => (val === null || val === undefined ? "50" : val),
-      z.coerce.number().int().min(1).max(100)
-    )
+    .preprocess((val) => (val === null || val === undefined ? "50" : val), z.coerce.number().int().min(1).max(100))
     .default(50),
   offset: z
-    .preprocess(
-      (val) => (val === null || val === undefined ? "0" : val),
-      z.coerce.number().int().min(0)
-    )
+    .preprocess((val) => (val === null || val === undefined ? "0" : val), z.coerce.number().int().min(0))
     .default(0),
   sort: z.enum(["nextReviewDate"]).default("nextReviewDate"),
   order: z.enum(["asc", "desc"]).default("asc"),
@@ -45,8 +36,7 @@ const dueCardsQuerySchema = z.object({
  * Validates if a string is a valid UUID v4
  */
 function isValidUUID(uuid: string): boolean {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
 
@@ -95,6 +85,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}/cards/due] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -118,6 +109,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     const { deckId } = params;
 
     if (!deckId || !isValidUUID(deckId)) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}/cards/due] Invalid deckId format:", {
         deckId,
         userId: user.id,
@@ -145,15 +137,13 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     if (!validationResult.success) {
       const validationErrors = formatZodErrors(validationResult.error);
 
-      console.warn(
-        "[GET /api/v1/decks/{deckId}/cards/due] Query validation failed:",
-        {
-          deckId,
-          userId: user.id,
-          errors: validationErrors,
-          timestamp: new Date().toISOString(),
-        }
-      );
+      // eslint-disable-next-line no-console
+      console.warn("[GET /api/v1/decks/{deckId}/cards/due] Query validation failed:", {
+        deckId,
+        userId: user.id,
+        errors: validationErrors,
+        timestamp: new Date().toISOString(),
+      });
 
       const errorResponse: ValidationErrorResponse = {
         error: {
@@ -168,7 +158,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       });
     }
 
-    const { before, limit, offset, sort, order } = validationResult.data;
+    const { before, limit, offset, order } = validationResult.data;
 
     // =========================================================================
     // STEP 4: Verify Deck Ownership
@@ -181,15 +171,13 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       .single();
 
     if (deckError || !deck) {
-      console.warn(
-        "[GET /api/v1/decks/{deckId}/cards/due] Deck not found or access denied:",
-        {
-          deckId,
-          userId: user.id,
-          error: deckError?.message,
-          timestamp: new Date().toISOString(),
-        }
-      );
+      // eslint-disable-next-line no-console
+      console.warn("[GET /api/v1/decks/{deckId}/cards/due] Deck not found or access denied:", {
+        deckId,
+        userId: user.id,
+        error: deckError?.message,
+        timestamp: new Date().toISOString(),
+      });
 
       const errorResponse: ErrorResponse = {
         error: {
@@ -219,15 +207,13 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       .range(offset, offset + limit - 1);
 
     if (cardsError) {
-      console.error(
-        "[GET /api/v1/decks/{deckId}/cards/due] Database query failed:",
-        {
-          deckId,
-          userId: user.id,
-          error: cardsError.message,
-          timestamp: new Date().toISOString(),
-        }
-      );
+      // eslint-disable-next-line no-console
+      console.error("[GET /api/v1/decks/{deckId}/cards/due] Database query failed:", {
+        deckId,
+        userId: user.id,
+        error: cardsError.message,
+        timestamp: new Date().toISOString(),
+      });
 
       const errorResponse: ErrorResponse = {
         error: {
@@ -252,15 +238,13 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       .lte("next_review_date", before);
 
     if (countError) {
-      console.error(
-        "[GET /api/v1/decks/{deckId}/cards/due] Count query failed:",
-        {
-          deckId,
-          userId: user.id,
-          error: countError.message,
-          timestamp: new Date().toISOString(),
-        }
-      );
+      // eslint-disable-next-line no-console
+      console.error("[GET /api/v1/decks/{deckId}/cards/due] Count query failed:", {
+        deckId,
+        userId: user.id,
+        error: countError.message,
+        timestamp: new Date().toISOString(),
+      });
 
       const errorResponse: ErrorResponse = {
         error: {
@@ -301,6 +285,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // =========================================================================
     // STEP 8: Log Success and Return Response
     // =========================================================================
+    // eslint-disable-next-line no-console
     console.info("[GET /api/v1/decks/{deckId}/cards/due] Success:", {
       deckId,
       userId: user.id,
@@ -323,14 +308,12 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // =========================================================================
     // STEP 9: Handle Unexpected Errors
     // =========================================================================
-    console.error(
-      "[GET /api/v1/decks/{deckId}/cards/due] Unexpected error:",
-      {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString(),
-      }
-    );
+    // eslint-disable-next-line no-console
+    console.error("[GET /api/v1/decks/{deckId}/cards/due] Unexpected error:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
 
     const errorResponse: ErrorResponse = {
       error: {

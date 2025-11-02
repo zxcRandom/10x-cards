@@ -11,10 +11,7 @@ export const CreateReviewSchema = z.object({
     .int("Grade must be an integer")
     .min(0, "Grade must be between 0 and 5")
     .max(5, "Grade must be between 0 and 5"),
-  reviewDate: z
-    .string()
-    .datetime("Invalid ISO-8601 date format")
-    .optional(),
+  reviewDate: z.string().datetime("Invalid ISO-8601 date format").optional(),
 });
 
 /**

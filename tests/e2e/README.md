@@ -271,3 +271,4 @@ timeout: 60000,  // 60 sekund
 - [Playwright Documentation](https://playwright.dev)
 - [Page Objects Guide](./page-objects/README.md)
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
+```

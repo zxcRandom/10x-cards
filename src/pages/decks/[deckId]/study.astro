@@ -20,21 +20,21 @@ const isValidUUID = deckId && uuidRegex.test(deckId);
       <h1 class="text-3xl font-bold">Sesja nauki</h1>
     </header>
 
-    {isValidUUID ? (
-      <StudySession deckId={deckId} client:load />
-    ) : (
-      <div class="flex flex-col items-center justify-center min-h-[400px] text-center">
-        <h2 class="text-xl font-semibold mb-4">Nieprawidłowy identyfikator talii</h2>
-        <p class="text-muted-foreground mb-6">
-          Podany identyfikator talii jest nieprawidłowy.
-        </p>
-        <a
-          href="/decks"
-          class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        >
-          Powrót do talii
-        </a>
-      </div>
-    )}
+    {
+      isValidUUID ? (
+        <StudySession deckId={deckId} client:load />
+      ) : (
+        <div class="flex flex-col items-center justify-center min-h-[400px] text-center">
+          <h2 class="text-xl font-semibold mb-4">Nieprawidłowy identyfikator talii</h2>
+          <p class="text-muted-foreground mb-6">Podany identyfikator talii jest nieprawidłowy.</p>
+          <a
+            href="/decks"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          >
+            Powrót do talii
+          </a>
+        </div>
+      )
+    }
   </div>
 </Layout>

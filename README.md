@@ -53,21 +53,21 @@ A modern web application built with Astro, React, and TypeScript for creating an
    cp .env.example .env
    ```
 
-   | Variable | Required | Description |
-   | --- | --- | --- |
-   | `SUPABASE_URL` | ✅ | Project URL from Supabase dashboard |
-   | `SUPABASE_KEY` | ✅ | Service role key (server-side only) |
-   | `OPENROUTER_API_KEY` | ✅ | Server-only key obtained from OpenRouter |
-   | `OPENROUTER_DEFAULT_MODEL` | ✅ | Default model alias, e.g. `openrouter/anthropic/claude-3.5-sonnet` |
-   | `OPENROUTER_BASE_URL` | ➖ | Override for the chat completions endpoint (defaults to `https://openrouter.ai/api/v1`) |
-   | `OPENROUTER_REFERRER` | ✅ | Origin sent in `HTTP-Referer` header to satisfy OpenRouter policy |
-   | `OPENROUTER_TITLE` | ✅ | App name shown in OpenRouter logs |
-   | `AI_TIMEOUT_MS` | ➖ | Server-side timeout (ms) for OpenRouter calls, defaults to 30000 |
-   | `AI_RATE_LIMIT_PER_MINUTE` | ➖ | Soft quota enforced per user per minute |
-   | `AI_RATE_LIMIT_PER_DAY` | ➖ | Daily quota enforced per user |
-   | `AI_MAX_INPUT_LENGTH` | ➖ | Maximum characters accepted from user input |
-   | `AI_DEFAULT_MAX_CARDS` | ➖ | Default card batch size for flashcard generation |
-   | `AI_MAX_CARDS_LIMIT` | ➖ | Hard ceiling for generated cards in a single request |
+   | Variable                   | Required | Description                                                                             |
+   | -------------------------- | -------- | --------------------------------------------------------------------------------------- |
+   | `SUPABASE_URL`             | ✅       | Project URL from Supabase dashboard                                                     |
+   | `SUPABASE_KEY`             | ✅       | Service role key (server-side only)                                                     |
+   | `OPENROUTER_API_KEY`       | ✅       | Server-only key obtained from OpenRouter                                                |
+   | `OPENROUTER_DEFAULT_MODEL` | ✅       | Default model alias, e.g. `openrouter/anthropic/claude-3.5-sonnet`                      |
+   | `OPENROUTER_BASE_URL`      | ➖       | Override for the chat completions endpoint (defaults to `https://openrouter.ai/api/v1`) |
+   | `OPENROUTER_REFERRER`      | ✅       | Origin sent in `HTTP-Referer` header to satisfy OpenRouter policy                       |
+   | `OPENROUTER_TITLE`         | ✅       | App name shown in OpenRouter logs                                                       |
+   | `AI_TIMEOUT_MS`            | ➖       | Server-side timeout (ms) for OpenRouter calls, defaults to 30000                        |
+   | `AI_RATE_LIMIT_PER_MINUTE` | ➖       | Soft quota enforced per user per minute                                                 |
+   | `AI_RATE_LIMIT_PER_DAY`    | ➖       | Daily quota enforced per user                                                           |
+   | `AI_MAX_INPUT_LENGTH`      | ➖       | Maximum characters accepted from user input                                             |
+   | `AI_DEFAULT_MAX_CARDS`     | ➖       | Default card batch size for flashcard generation                                        |
+   | `AI_MAX_CARDS_LIMIT`       | ➖       | Hard ceiling for generated cards in a single request                                    |
 
 4. **Run the development server**:
 

@@ -1,6 +1,6 @@
 /**
  * LoadingState Component
- * 
+ *
  * Displays a loading spinner with message while fetching due cards
  */
 

@@ -1,6 +1,6 @@
 /**
  * SessionSummary Component
- * 
+ *
  * Displays session completion summary with statistics
  * Shows total reviewed cards, average grade, and return CTA
  */
@@ -14,10 +14,7 @@ interface SessionSummaryProps {
   stats: StudySessionStats;
 }
 
-export default function SessionSummary({
-  deckId,
-  stats,
-}: SessionSummaryProps) {
+export default function SessionSummary({ deckId, stats }: SessionSummaryProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
       <Card className="max-w-md w-full">
@@ -25,9 +22,7 @@ export default function SessionSummary({
           <CardTitle>Gratulacje!</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">
-            Ukończyłeś sesję nauki. Świetna robota!
-          </p>
+          <p className="text-muted-foreground">Ukończyłeś sesję nauki. Świetna robota!</p>
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Ocenione karty:</span>
@@ -35,9 +30,7 @@ export default function SessionSummary({
             </div>
             <div className="flex justify-between">
               <span>Średnia ocena:</span>
-              <span className="font-semibold">
-                {stats.averageGrade.toFixed(2)}
-              </span>
+              <span className="font-semibold">{stats.averageGrade.toFixed(2)}</span>
             </div>
           </div>
           <Button className="w-full mt-4" asChild>

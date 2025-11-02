@@ -1,5 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import {
   Dialog,
   DialogTrigger,
@@ -9,11 +9,10 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-  DialogOverlay,
-} from '../dialog';
+} from "../dialog";
 
-describe('Dialog', () => {
-  it('renders trigger button', () => {
+describe("Dialog", () => {
+  it("renders trigger button", () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -24,11 +23,11 @@ describe('Dialog', () => {
       </Dialog>
     );
 
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     expect(trigger).toBeInTheDocument();
   });
 
-  it('opens dialog when trigger is clicked', async () => {
+  it("opens dialog when trigger is clicked", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -39,17 +38,17 @@ describe('Dialog', () => {
       </Dialog>
     );
 
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Test Dialog')).toBeInTheDocument();
+    expect(screen.getByText("Test Dialog")).toBeInTheDocument();
   });
 
-  it('closes dialog when close button is clicked', async () => {
+  it("closes dialog when close button is clicked", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -61,27 +60,27 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
     // Close dialog
-    const closeButton = screen.getByRole('button', { name: /close/i });
+    const closeButton = screen.getByRole("button", { name: /close/i });
     fireEvent.click(closeButton);
 
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 
-  it('closes dialog when overlay is clicked', async () => {
+  it("closes dialog when overlay is clicked", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
-        <DialogContent onInteractOutside={() => {}}>
+        <DialogContent onInteractOutside={() => undefined}>
           <DialogTitle>Test Dialog</DialogTitle>
           <p>Content</p>
         </DialogContent>
@@ -89,11 +88,11 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
     // Click overlay - this test assumes overlay closes dialog by default
@@ -101,13 +100,15 @@ describe('Dialog', () => {
     // For this test, we'll skip the close assertion since it's not configured
     const overlay = document.querySelector('[data-slot="dialog-overlay"]');
     expect(overlay).toBeInTheDocument();
-    fireEvent.click(overlay!);
+    if (overlay) {
+      fireEvent.click(overlay);
+    }
 
     // Note: Dialog may not close on overlay click by default in this implementation
     // This test verifies overlay exists and is clickable
   });
 
-  it('closes dialog on Escape key press', async () => {
+  it("closes dialog on Escape key press", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -119,22 +120,22 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
     // Press Escape
-    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.keyDown(document, { key: "Escape" });
 
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
 
-  it('renders dialog content with proper structure', async () => {
+  it("renders dialog content with proper structure", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -153,21 +154,21 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Header Title')).toBeInTheDocument();
-    expect(screen.getByText('Description text')).toBeInTheDocument();
-    expect(screen.getByText('Main content')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
+    expect(screen.getByText("Header Title")).toBeInTheDocument();
+    expect(screen.getByText("Description text")).toBeInTheDocument();
+    expect(screen.getByText("Main content")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cancel/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /save/i })).toBeInTheDocument();
   });
 
-  it('hides close button when showCloseButton is false', async () => {
+  it("hides close button when showCloseButton is false", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -179,19 +180,19 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
     // Check that close button with X icon is not present
-    const closeButtons = screen.queryAllByRole('button', { name: /close/i });
+    const closeButtons = screen.queryAllByRole("button", { name: /close/i });
     expect(closeButtons).toHaveLength(0);
   });
 
-  it('applies custom className to dialog content', async () => {
+  it("applies custom className to dialog content", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -203,16 +204,16 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      const dialog = screen.getByRole('dialog');
-      expect(dialog).toHaveClass('custom-dialog');
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveClass("custom-dialog");
     });
   });
 
-  it('renders overlay with proper styling', async () => {
+  it("renders overlay with proper styling", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -224,17 +225,17 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
       const overlay = document.querySelector('[data-slot="dialog-overlay"]');
       expect(overlay).toBeInTheDocument();
-      expect(overlay).toHaveClass('fixed', 'inset-0', 'z-50', 'bg-black/50');
+      expect(overlay).toHaveClass("fixed", "inset-0", "z-50", "bg-black/50");
     });
   });
 
-  it('handles controlled open state', () => {
+  it("handles controlled open state", () => {
     const onOpenChange = vi.fn();
 
     render(
@@ -246,16 +247,16 @@ describe('Dialog', () => {
       </Dialog>
     );
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     // Close button should trigger onOpenChange
-    const closeButton = screen.getByRole('button', { name: /close/i });
+    const closeButton = screen.getByRole("button", { name: /close/i });
     fireEvent.click(closeButton);
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('renders dialog header with proper styling', async () => {
+  it("renders dialog header with proper styling", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -268,16 +269,16 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      const header = screen.getByText('Header Title').closest('[data-slot="dialog-header"]');
-      expect(header).toHaveClass('flex', 'flex-col', 'gap-2');
+      const header = screen.getByText("Header Title").closest('[data-slot="dialog-header"]');
+      expect(header).toHaveClass("flex", "flex-col", "gap-2");
     });
   });
 
-  it('renders dialog footer with proper styling', async () => {
+  it("renders dialog footer with proper styling", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -290,16 +291,16 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      const footer = screen.getByRole('button', { name: /action/i }).closest('[data-slot="dialog-footer"]');
-      expect(footer).toHaveClass('flex', 'flex-col-reverse', 'gap-2', 'sm:flex-row', 'sm:justify-end');
+      const footer = screen.getByRole("button", { name: /action/i }).closest('[data-slot="dialog-footer"]');
+      expect(footer).toHaveClass("flex", "flex-col-reverse", "gap-2", "sm:flex-row", "sm:justify-end");
     });
   });
 
-  it('renders dialog title with proper semantic role', async () => {
+  it("renders dialog title with proper semantic role", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -310,17 +311,17 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      const title = screen.getByText('Test Title');
-      expect(title.tagName).toBe('H2'); // Radix UI renders title as h2
-      expect(title).toHaveClass('text-lg', 'leading-none', 'font-semibold');
+      const title = screen.getByText("Test Title");
+      expect(title.tagName).toBe("H2"); // Radix UI renders title as h2
+      expect(title).toHaveClass("text-lg", "leading-none", "font-semibold");
     });
   });
 
-  it('renders dialog description with proper styling', async () => {
+  it("renders dialog description with proper styling", async () => {
     render(
       <Dialog>
         <DialogTrigger>Open Dialog</DialogTrigger>
@@ -331,12 +332,12 @@ describe('Dialog', () => {
     );
 
     // Open dialog
-    const trigger = screen.getByRole('button', { name: /open dialog/i });
+    const trigger = screen.getByRole("button", { name: /open dialog/i });
     fireEvent.click(trigger);
 
     await waitFor(() => {
-      const description = screen.getByText('Test description');
-      expect(description).toHaveClass('text-muted-foreground', 'text-sm');
+      const description = screen.getByText("Test description");
+      expect(description).toHaveClass("text-muted-foreground", "text-sm");
     });
   });
 });

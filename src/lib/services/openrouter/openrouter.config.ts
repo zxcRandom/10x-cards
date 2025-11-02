@@ -29,14 +29,8 @@ type EnvLike = Record<string, string | undefined>;
 const envSchema = z
   .object({
     OPENROUTER_API_KEY: z.string().min(1, "OPENROUTER_API_KEY is required"),
-    OPENROUTER_DEFAULT_MODEL: z
-      .string()
-      .min(1)
-      .default("openrouter/anthropic/claude-3.5-sonnet"),
-    OPENROUTER_BASE_URL: z
-      .string()
-      .url()
-      .default("https://openrouter.ai/api/v1"),
+    OPENROUTER_DEFAULT_MODEL: z.string().min(1).default("openrouter/anthropic/claude-3.5-sonnet"),
+    OPENROUTER_BASE_URL: z.string().url().default("https://openrouter.ai/api/v1"),
     OPENROUTER_REFERRER: z
       .string()
       .url({ message: "OPENROUTER_REFERRER must be a valid URL" })
@@ -64,10 +58,8 @@ export function createOpenRouterConfig(env: EnvLike = import.meta.env as EnvLike
     OPENROUTER_TITLE: env.OPENROUTER_TITLE ?? runtimeEnv?.OPENROUTER_TITLE,
     AI_TIMEOUT_MS: env.AI_TIMEOUT_MS ?? runtimeEnv?.AI_TIMEOUT_MS,
     OPENROUTER_MAX_RETRIES: env.OPENROUTER_MAX_RETRIES ?? runtimeEnv?.OPENROUTER_MAX_RETRIES,
-    OPENROUTER_RETRY_BASE_DELAY_MS:
-      env.OPENROUTER_RETRY_BASE_DELAY_MS ?? runtimeEnv?.OPENROUTER_RETRY_BASE_DELAY_MS,
-    OPENROUTER_RETRY_MAX_DELAY_MS:
-      env.OPENROUTER_RETRY_MAX_DELAY_MS ?? runtimeEnv?.OPENROUTER_RETRY_MAX_DELAY_MS,
+    OPENROUTER_RETRY_BASE_DELAY_MS: env.OPENROUTER_RETRY_BASE_DELAY_MS ?? runtimeEnv?.OPENROUTER_RETRY_BASE_DELAY_MS,
+    OPENROUTER_RETRY_MAX_DELAY_MS: env.OPENROUTER_RETRY_MAX_DELAY_MS ?? runtimeEnv?.OPENROUTER_RETRY_MAX_DELAY_MS,
   };
 
   const parsed = envSchema.safeParse(mergedEnv);

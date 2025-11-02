@@ -62,6 +62,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -89,6 +90,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     if (!validationResult.success) {
       const errors = formatZodErrors(validationResult.error);
 
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks] Validation failed:", {
         errors,
         queryParams,
@@ -111,13 +113,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
     }
 
     // Step 3: Fetch decks through service
-    const decks = await DeckService.listDecks(
-      user.id,
-      validationResult.data,
-      locals.supabase
-    );
+    const decks = await DeckService.listDecks(user.id, validationResult.data, locals.supabase);
 
     // Step 4: Log success (for monitoring)
+    // eslint-disable-next-line no-console
     console.info("[GET /api/v1/decks] Decks fetched successfully:", {
       userId: user.id,
       total: decks.total,
@@ -138,6 +137,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
     });
   } catch (error) {
     // Handle unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[GET /api/v1/decks] Internal server error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -205,6 +205,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[POST /api/v1/decks] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -228,6 +229,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     try {
       body = await request.json();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn("[POST /api/v1/decks] Invalid JSON in request body:", {
         error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
@@ -252,6 +254,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (!validationResult.success) {
       const errors = formatZodErrors(validationResult.error);
 
+      // eslint-disable-next-line no-console
       console.warn("[POST /api/v1/decks] Validation failed:", {
         errors,
         body,
@@ -274,13 +277,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Step 4: Create deck through service
-    const createdDeck = await DeckService.createDeck(
-      user.id,
-      validationResult.data,
-      locals.supabase
-    );
+    const createdDeck = await DeckService.createDeck(user.id, validationResult.data, locals.supabase);
 
     // Step 5: Log success (for audit)
+    // eslint-disable-next-line no-console
     console.info("[POST /api/v1/decks] Deck created successfully:", {
       userId: user.id,
       deckId: createdDeck.id,
@@ -302,6 +302,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   } catch (error) {
     // Handle unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[POST /api/v1/decks] Internal server error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

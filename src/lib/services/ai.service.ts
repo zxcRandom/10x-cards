@@ -47,16 +47,20 @@ export class AIUnavailableError extends AIServiceError {
   }
 }
 
-type Dependencies = {
+interface Dependencies {
   openRouter?: OpenRouterService;
   logger?: Logger;
   responseFormat?: ResponseFormat;
-};
+}
 
 const defaultLogger: Logger = {
+  // eslint-disable-next-line no-console
   debug: (message, meta) => console.debug(message, sanitizeMeta(meta)),
+  // eslint-disable-next-line no-console
   info: (message, meta) => console.info(message, sanitizeMeta(meta)),
+  // eslint-disable-next-line no-console
   warn: (message, meta) => console.warn(message, sanitizeMeta(meta)),
+  // eslint-disable-next-line no-console
   error: (message, meta) => console.error(message, sanitizeMeta(meta)),
 };
 
@@ -109,7 +113,7 @@ export class AIService {
   }
 
   async generateFlashcardsFromText(inputText: string, requestedMaxCards?: number): Promise<GeneratedCard[]> {
-  const start = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const start = typeof performance !== "undefined" ? performance.now() : Date.now();
     const maxCards = this.resolveMaxCards(requestedMaxCards);
     const sanitizedInput = this.sanitizeInput(inputText);
 

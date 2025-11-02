@@ -1,41 +1,39 @@
 ---
 /**
  * Reset Password Page
- * 
+ *
  * Password reset page with new password entry.
  * Accessed via email link with reset code.
  */
 
-import Layout from '@/layouts/Layout.astro';
-import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
+import Layout from "@/layouts/Layout.astro";
+import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 
 // Check if there's a valid reset code in the URL
-const code = Astro.url.searchParams.get('code');
+const code = Astro.url.searchParams.get("code");
 const hasValidCode = !!code;
 ---
 
 <Layout title="Ustaw nowe hasło - 10x Cards">
-  <div class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center px-4 py-12">
+  <div
+    class="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center px-4 py-12"
+  >
     <div class="w-full max-w-md space-y-8">
       <!-- Header -->
       <div class="text-center space-y-2">
         <a href="/" class="inline-block group">
           <h1 class="text-3xl font-bold tracking-tight group-hover:text-primary transition-colors">
-            <span class="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              10x Cards
-            </span>
+            <span class="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent"> 10x Cards </span>
           </h1>
         </a>
         <h2 class="text-2xl font-semibold">Ustaw nowe hasło</h2>
-        {hasValidCode ? (
-          <p class="text-muted-foreground">
-            Wprowadź nowe hasło dla swojego konta
-          </p>
-        ) : (
-          <p class="text-destructive">
-            Link resetowania hasła jest nieprawidłowy lub wygasł
-          </p>
-        )}
+        {
+          hasValidCode ? (
+            <p class="text-muted-foreground">Wprowadź nowe hasło dla swojego konta</p>
+          ) : (
+            <p class="text-destructive">Link resetowania hasła jest nieprawidłowy lub wygasł</p>
+          )
+        }
       </div>
 
       <!-- Reset Password Form Card -->

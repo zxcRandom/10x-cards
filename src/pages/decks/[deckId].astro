@@ -1,17 +1,17 @@
 ---
 /**
  * Deck Details Page
- * 
+ *
  * Displays details of a specific deck, including its cards.
  * Provides CRUD operations for both the deck and its cards.
- * 
+ *
  * Route: /decks/[deckId]
  */
 
-import Layout from '@/layouts/Layout.astro';
-import DeckDetailsView from '@/components/deck/DeckDetailsView';
-import AuthNav from '@/components/auth/AuthNav';
-import type { DeckDTO } from '@/types';
+import Layout from "@/layouts/Layout.astro";
+import DeckDetailsView from "@/components/deck/DeckDetailsView";
+import AuthNav from "@/components/auth/AuthNav";
+import type { DeckDTO } from "@/types";
 
 // User is already authenticated (middleware ensures this)
 const user = Astro.locals.user;
@@ -19,7 +19,7 @@ const user = Astro.locals.user;
 const { deckId } = Astro.params;
 
 if (!deckId) {
-  return Astro.redirect('/decks');
+  return Astro.redirect("/decks");
 }
 
 // SSR fetch for initial deck data
@@ -28,68 +28,64 @@ let error: string | null = null;
 
 try {
   const supabase = Astro.locals.supabase;
-  
+
   if (!supabase) {
-    throw new Error('Supabase client not available');
+    throw new Error("Supabase client not available");
   }
 
-  const response = await fetch(
-    `${Astro.url.origin}/api/v1/decks/${deckId}`,
-    {
-      headers: {
-        'Cookie': Astro.request.headers.get('Cookie') || '',
-      },
-    }
-  );
+  const response = await fetch(`${Astro.url.origin}/api/v1/decks/${deckId}`, {
+    headers: {
+      Cookie: Astro.request.headers.get("Cookie") || "",
+    },
+  });
 
   if (response.status === 404) {
-    error = 'NOT_FOUND';
+    error = "NOT_FOUND";
   } else if (response.status === 401) {
-    return Astro.redirect('/login');
+    return Astro.redirect("/login");
   } else if (!response.ok) {
-    error = 'LOAD_ERROR';
+    error = "LOAD_ERROR";
   } else {
     deck = await response.json();
   }
 } catch (e) {
-  console.error('Error loading deck:', e);
-  error = 'LOAD_ERROR';
+  // eslint-disable-next-line no-console
+  console.error("Error loading deck:", e);
+  error = "LOAD_ERROR";
 }
 ---
 
-<Layout title={deck ? deck.name : 'Szczegóły talii'}>
+<Layout title={deck ? deck.name : "Szczegóły talii"}>
   <AuthNav userEmail={user?.email} currentPath={Astro.url.pathname} client:load />
-  {error === 'NOT_FOUND' ? (
-    <div class="container mx-auto px-4 py-8">
-      <div class="max-w-2xl mx-auto text-center space-y-4">
-        <h1 class="text-3xl font-bold">Nie znaleziono talii</h1>
-        <p class="text-muted-foreground">
-          Talia mogła zostać usunięta lub nie masz do niej dostępu.
-        </p>
-        <a
-          href="/decks"
-          class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          Powrót do listy talii
-        </a>
+  {
+    error === "NOT_FOUND" ? (
+      <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto text-center space-y-4">
+          <h1 class="text-3xl font-bold">Nie znaleziono talii</h1>
+          <p class="text-muted-foreground">Talia mogła zostać usunięta lub nie masz do niej dostępu.</p>
+          <a
+            href="/decks"
+            class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Powrót do listy talii
+          </a>
+        </div>
       </div>
-    </div>
-  ) : error === 'LOAD_ERROR' ? (
-    <div class="container mx-auto px-4 py-8">
-      <div class="max-w-2xl mx-auto text-center space-y-4">
-        <h1 class="text-3xl font-bold">Wystąpił błąd</h1>
-        <p class="text-muted-foreground">
-          Nie udało się załadować talii. Spróbuj ponownie później.
-        </p>
-        <a
-          href="/decks"
-          class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          Powrót do listy talii
-        </a>
+    ) : error === "LOAD_ERROR" ? (
+      <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto text-center space-y-4">
+          <h1 class="text-3xl font-bold">Wystąpił błąd</h1>
+          <p class="text-muted-foreground">Nie udało się załadować talii. Spróbuj ponownie później.</p>
+          <a
+            href="/decks"
+            class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Powrót do listy talii
+          </a>
+        </div>
       </div>
-    </div>
-  ) : deck ? (
-    <DeckDetailsView client:load deck={deck} />
-  ) : null}
+    ) : deck ? (
+      <DeckDetailsView client:load deck={deck} />
+    ) : null
+  }
 </Layout>

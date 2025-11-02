@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import type { DeckDestinationVM } from './types';
-import type { DeckDTO } from '@/types';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { DeckDestinationVM } from "./types";
+import type { DeckDTO } from "@/types";
 
 interface ToolbarProps {
   destination: DeckDestinationVM;
@@ -21,31 +21,20 @@ interface ToolbarProps {
  * - Deck destination selector (new vs existing)
  * - Mass actions (Keep all, Uncheck all)
  */
-export function Toolbar({
-  destination,
-  onChange,
-  onKeepAll,
-  onUncheckAll,
-  decks,
-  decksLoading,
-}: ToolbarProps) {
+export function Toolbar({ destination, onChange, onKeepAll, onUncheckAll, decks, decksLoading }: ToolbarProps) {
   return (
     <Card className="mb-6 p-4">
       <div className="space-y-4">
         {/* Destination selector */}
         <div>
-          <Label className="mb-2 block text-sm font-medium">
-            Gdzie zapisać fiszki?
-          </Label>
+          <Label className="mb-2 block text-sm font-medium">Gdzie zapisać fiszki?</Label>
           <div className="flex gap-4">
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="radio"
                 name="destination"
-                checked={destination.mode === 'new'}
-                onChange={() =>
-                  onChange({ ...destination, mode: 'new' })
-                }
+                checked={destination.mode === "new"}
+                onChange={() => onChange({ ...destination, mode: "new" })}
                 className="h-4 w-4"
               />
               <span>Nowa talia</span>
@@ -54,10 +43,8 @@ export function Toolbar({
               <input
                 type="radio"
                 name="destination"
-                checked={destination.mode === 'existing'}
-                onChange={() =>
-                  onChange({ ...destination, mode: 'existing' })
-                }
+                checked={destination.mode === "existing"}
+                onChange={() => onChange({ ...destination, mode: "existing" })}
                 className="h-4 w-4"
               />
               <span>Istniejąca talia</span>
@@ -66,7 +53,7 @@ export function Toolbar({
         </div>
 
         {/* New deck name input */}
-        {destination.mode === 'new' && (
+        {destination.mode === "new" && (
           <div>
             <Label htmlFor="deck-name" className="mb-1 block text-sm">
               Nazwa talii
@@ -75,9 +62,7 @@ export function Toolbar({
               id="deck-name"
               type="text"
               value={destination.newName}
-              onChange={(e) =>
-                onChange({ ...destination, newName: e.target.value })
-              }
+              onChange={(e) => onChange({ ...destination, newName: e.target.value })}
               placeholder="Wprowadź nazwę talii"
               className="max-w-md"
             />
@@ -85,7 +70,7 @@ export function Toolbar({
         )}
 
         {/* Existing deck selector */}
-        {destination.mode === 'existing' && (
+        {destination.mode === "existing" && (
           <div>
             <Label htmlFor="existing-deck" className="mb-1 block text-sm">
               Wybierz talię
@@ -93,13 +78,11 @@ export function Toolbar({
             {decksLoading ? (
               <p className="text-sm text-muted-foreground">Ładowanie talii...</p>
             ) : decks.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Brak dostępnych talii. Utwórz nową talię.
-              </p>
+              <p className="text-sm text-muted-foreground">Brak dostępnych talii. Utwórz nową talię.</p>
             ) : (
               <select
                 id="existing-deck"
-                value={destination.existingDeckId || ''}
+                value={destination.existingDeckId || ""}
                 onChange={(e) =>
                   onChange({
                     ...destination,
