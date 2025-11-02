@@ -72,9 +72,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Get Authorization header for Bearer token auth (API routes)
   const authHeader = request.headers.get("Authorization");
 
+  // Get runtime env for Cloudflare Workers/Pages (contains Secrets)
+  const runtimeEnv = locals.runtime?.env as Record<string, unknown> | undefined;
+
   // Create a Supabase client tied to this specific request
   // This ensures proper session handling and cookie management
-  locals.supabase = createServerClient(cookies, cookieHeader, authHeader);
+  locals.supabase = createServerClient(cookies, cookieHeader, authHeader, runtimeEnv);
 
   // Check if current path is public
   const pathIsPublic = isPublicPath(url.pathname);

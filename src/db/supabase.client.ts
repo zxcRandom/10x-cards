@@ -4,24 +4,39 @@ import type { AstroCookies } from "astro";
 
 import type { Database } from "../db/database.types.ts";
 
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
+/**
+ * Get Supabase URL from environment variables
+ * In Cloudflare Workers/Pages, use runtime env; in dev, use import.meta.env
+ */
+function getSupabaseUrl(runtimeEnv?: Record<string, unknown>): string {
+  const url =
+    (runtimeEnv?.SUPABASE_URL as string) ||
+    (runtimeEnv?.PUBLIC_SUPABASE_URL as string) ||
+    import.meta.env.SUPABASE_URL ||
+    import.meta.env.PUBLIC_SUPABASE_URL;
 
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    `Missing Supabase environment variables. ` +
-      `SUPABASE_URL: ${supabaseUrl ? "✓" : "✗"}, ` +
-      `SUPABASE_KEY: ${supabaseAnonKey ? "✓" : "✗"}`
-  );
+  if (!url) {
+    throw new Error("Missing SUPABASE_URL environment variable");
+  }
+  return url;
 }
 
 /**
- * Global Supabase client (shared across requests)
- * Use this for server-side operations that don't require user context
- * For API routes with authentication, use createServerClient instead
+ * Get Supabase anon key from environment variables
+ * In Cloudflare Workers/Pages, use runtime env; in dev, use import.meta.env
  */
-export const supabaseClient = createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey);
+function getSupabaseAnonKey(runtimeEnv?: Record<string, unknown>): string {
+  const key =
+    (runtimeEnv?.SUPABASE_KEY as string) ||
+    (runtimeEnv?.PUBLIC_SUPABASE_ANON_KEY as string) ||
+    import.meta.env.SUPABASE_KEY ||
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!key) {
+    throw new Error("Missing SUPABASE_KEY environment variable");
+  }
+  return key;
+}
 
 export type SupabaseClient<T = Database> = ReturnType<typeof createSupabaseClient<T>>;
 
@@ -65,14 +80,20 @@ export function hasCookiesToSet(client: unknown): client is SupabaseClientWithCo
  * @param cookies - Astro cookies object from the request context
  * @param cookieHeader - Optional raw Cookie header string for parsing existing cookies
  * @param authHeader - Optional Authorization header with Bearer token (for API routes)
+ * @param runtimeEnv - Optional Cloudflare runtime env for accessing secrets (required in production)
  * @returns SupabaseClient instance configured for the current request along with cookies to set
  */
 export function createServerClient(
   cookies: AstroCookies,
   cookieHeader?: string | null,
-  authHeader?: string | null
+  authHeader?: string | null,
+  runtimeEnv?: Record<string, unknown>
 ): SupabaseClientWithCookies {
   const cookiesToSet: CookieOptions[] = [];
+
+  // Get environment variables from runtime env (Cloudflare) or import.meta.env (dev)
+  const supabaseUrl = getSupabaseUrl(runtimeEnv);
+  const supabaseAnonKey = getSupabaseAnonKey(runtimeEnv);
 
   const client = createSSRClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {

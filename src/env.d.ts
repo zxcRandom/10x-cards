@@ -11,6 +11,9 @@ declare global {
         id: string;
         email?: string;
       };
+      runtime?: {
+        env: Record<string, unknown>;
+      };
     }
   }
 }
