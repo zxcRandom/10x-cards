@@ -7,6 +7,15 @@ import type { Database } from "../db/database.types.ts";
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
 
+// Validate environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    `Missing Supabase environment variables. ` +
+      `SUPABASE_URL: ${supabaseUrl ? "✓" : "✗"}, ` +
+      `SUPABASE_KEY: ${supabaseAnonKey ? "✓" : "✗"}`
+  );
+}
+
 /**
  * Global Supabase client (shared across requests)
  * Use this for server-side operations that don't require user context
