@@ -20,10 +20,22 @@ pnpm-debug.log*
 # test auth state
 .auth/
 
+# test results
+test-results/
+*.last-run.json
+playwright-report/
+coverage/
+
 # macOS-specific files
 .DS_Store
 
 # jetbrains setting folder
 .idea/
 /.vs
+
+# IDE/Editor specific
+.cursor/
+.ai/
+
+# environment variables - test
 /.env.test
