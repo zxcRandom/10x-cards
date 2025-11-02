@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createAIDeckSchema } from "./from-text.schema";
 import { aiService, AIServiceError, AIParsingError } from "../../../../../lib/services/ai.service";
 import { DeckService } from "../../../../../lib/services/deck.service";
-import { CardService } from "../../../../../lib/services/card.service";
+import { CardService } from "../../../../../lib/services/card.service.legacy";
 import { AILogService } from "../../../../../lib/services/ai-log.service";
 import { RateLimitService } from "../../../../../lib/services/rate-limit.service";
 import type { 

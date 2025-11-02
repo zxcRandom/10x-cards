@@ -71,7 +71,9 @@ export class AIGeneratorPage {
    * Fill input text area
    */
   async fillInputText(text: string) {
-    await this.inputTextArea.fill(text);
+    await this.inputTextArea.waitFor({ state: 'visible' });
+    await this.inputTextArea.fill(text, { force: true });
+    await this.page.waitForTimeout(500); // Wait for React state update
   }
   
   /**

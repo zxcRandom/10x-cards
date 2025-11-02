@@ -1,24 +1,33 @@
-<testsuites id="" name="" tests="7" failures="0" skipped="0" errors="0" time="17.188086">
-<testsuite name="auth.spec.ts" timestamp="2025-11-02T14:09:11.628Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.441" errors="0">
-<testcase name="Authentication › user can login with valid credentials" classname="auth.spec.ts" time="3.441">
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="61.045541">
+<testsuite name="study-session-with-cleanup.spec.ts" timestamp="2025-11-02T15:43:33.261Z" hostname="chromium" tests="2" failures="0" skipped="0" time="59.62" errors="0">
+<testcase name="Study Session with Cleanup › @slow can complete study session with various grades" classname="study-session-with-cleanup.spec.ts" time="31.292">
+<properties>
+<property name="slow" value="">
+</property>
+</properties>
+<system-out>
+<![CDATA[Created deck for study: ef892a4b-ae26-47d9-8b8e-5f99c9e545e3
+Reviewed card 1 with grade 4
+Reviewed card 2 with grade 2
+Reviewed card 3 with grade 5
+Study session completed successfully
+Cleaned up deck: ef892a4b-ae26-47d9-8b8e-5f99c9e545e3
+]]>
+</system-out>
 </testcase>
-</testsuite>
-<testsuite name="decks.spec.ts" timestamp="2025-11-02T14:09:11.628Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.24" errors="0">
-<testcase name="Decks Management › displays decks page" classname="decks.spec.ts" time="3.24">
-</testcase>
-</testsuite>
-<testsuite name="example-authenticated.spec.ts" timestamp="2025-11-02T14:09:11.628Z" hostname="chromium" tests="2" failures="0" skipped="0" time="6.525" errors="0">
-<testcase name="Authenticated User Tests › can access decks page when authenticated" classname="example-authenticated.spec.ts" time="3.218">
-</testcase>
-<testcase name="Authenticated User Tests › can see create deck button" classname="example-authenticated.spec.ts" time="3.307">
-</testcase>
-</testsuite>
-<testsuite name="simple-test.spec.ts" timestamp="2025-11-02T14:09:11.628Z" hostname="chromium" tests="3" failures="0" skipped="0" time="2.51" errors="0">
-<testcase name="Public Pages - No Auth Required › can view login page" classname="simple-test.spec.ts" time="0.237">
-</testcase>
-<testcase name="Public Pages - No Auth Required › submit button is disabled when fields are empty" classname="simple-test.spec.ts" time="0.239">
-</testcase>
-<testcase name="Public Pages - No Auth Required › can type in email and password fields" classname="simple-test.spec.ts" time="2.034">
+<testcase name="Study Session with Cleanup › @slow can navigate between cards and complete session" classname="study-session-with-cleanup.spec.ts" time="28.328">
+<properties>
+<property name="slow" value="">
+</property>
+</properties>
+<system-out>
+<![CDATA[Created math deck: 603109b8-0d18-4a3b-9701-1fc1fe02d2f0
+Reviewed first card with grade 5
+Reviewed second card with grade 4
+Study session completed with 2 cards
+Cleaned up deck: 603109b8-0d18-4a3b-9701-1fc1fe02d2f0
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

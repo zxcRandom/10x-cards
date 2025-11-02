@@ -8,7 +8,7 @@ import type {
   ValidationErrorResponse,
   HttpStatus,
 } from "../../../../../types";
-import { CardService } from "../../../../../lib/services/card.service";
+import { CardService } from "../../../../../lib/services/card.service.legacy";
 import {
   createCardSchema,
   deckIdParamSchema,

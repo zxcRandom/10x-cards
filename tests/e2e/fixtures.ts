@@ -26,6 +26,9 @@ export const test = base.extend<TestFixtures>({
       );
     }
 
+    // Add delay to avoid rate limiting (Supabase auth throttling)
+    await page.waitForTimeout(20000); // 20 seconds between logins
+
     // Login before test
     const loginPage = new LoginPage(page);
     await loginPage.goto();
