@@ -1,31 +1,44 @@
-<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="61.045541">
-<testsuite name="study-session-with-cleanup.spec.ts" timestamp="2025-11-02T15:43:33.261Z" hostname="chromium" tests="2" failures="0" skipped="0" time="59.62" errors="0">
-<testcase name="Study Session with Cleanup › @slow can complete study session with various grades" classname="study-session-with-cleanup.spec.ts" time="31.292">
+<testsuites id="" name="" tests="3" failures="0" skipped="0" errors="0" time="87.605969">
+<testsuite name="ai-generation-with-cleanup.spec.ts" timestamp="2025-11-02T15:52:13.089Z" hostname="chromium" tests="1" failures="0" skipped="0" time="28.5" errors="0">
+<testcase name="AI Flashcard Generation with Cleanup › @slow can generate ML deck and review cards" classname="ai-generation-with-cleanup.spec.ts" time="28.5">
 <properties>
 <property name="slow" value="">
 </property>
 </properties>
 <system-out>
-<![CDATA[Created deck for study: ef892a4b-ae26-47d9-8b8e-5f99c9e545e3
+<![CDATA[Created deck with ID: 5d432318-e09c-473c-a867-0e6ce5d7edf8
+Cleaned up deck: 5d432318-e09c-473c-a867-0e6ce5d7edf8
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="study-session-with-cleanup.spec.ts" timestamp="2025-11-02T15:52:13.089Z" hostname="chromium" tests="2" failures="0" skipped="0" time="57.722" errors="0">
+<testcase name="Study Session with Cleanup › @slow can complete study session with various grades" classname="study-session-with-cleanup.spec.ts" time="31.211">
+<properties>
+<property name="slow" value="">
+</property>
+</properties>
+<system-out>
+<![CDATA[Created deck for study: 2964a699-bfdd-4ced-ad8b-e2fe4bd44dc7
 Reviewed card 1 with grade 4
 Reviewed card 2 with grade 2
 Reviewed card 3 with grade 5
 Study session completed successfully
-Cleaned up deck: ef892a4b-ae26-47d9-8b8e-5f99c9e545e3
+Cleaned up deck: 2964a699-bfdd-4ced-ad8b-e2fe4bd44dc7
 ]]>
 </system-out>
 </testcase>
-<testcase name="Study Session with Cleanup › @slow can navigate between cards and complete session" classname="study-session-with-cleanup.spec.ts" time="28.328">
+<testcase name="Study Session with Cleanup › @slow can navigate between cards and complete session" classname="study-session-with-cleanup.spec.ts" time="26.511">
 <properties>
 <property name="slow" value="">
 </property>
 </properties>
 <system-out>
-<![CDATA[Created math deck: 603109b8-0d18-4a3b-9701-1fc1fe02d2f0
+<![CDATA[Created math deck: af91a821-24bd-4334-82c0-1e23c2a439f8
 Reviewed first card with grade 5
 Reviewed second card with grade 4
 Study session completed with 2 cards
-Cleaned up deck: 603109b8-0d18-4a3b-9701-1fc1fe02d2f0
+Cleaned up deck: af91a821-24bd-4334-82c0-1e23c2a439f8
 ]]>
 </system-out>
 </testcase>

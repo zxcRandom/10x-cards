@@ -107,6 +107,84 @@
   },
   "suites": [
     {
+      "title": "ai-generation-with-cleanup.spec.ts",
+      "file": "ai-generation-with-cleanup.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AI Flashcard Generation with Cleanup",
+          "file": "ai-generation-with-cleanup.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "@slow can generate ML deck and review cards",
+              "ok": true,
+              "tags": [
+                "slow"
+              ],
+              "tests": [
+                {
+                  "timeout": 360000,
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "C:\\git\\10x-cards\\tests\\e2e\\ai-generation-with-cleanup.spec.ts",
+                        "line": 16,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 28500,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Created deck with ID: 5d432318-e09c-473c-a867-0e6ce5d7edf8\n"
+                        },
+                        {
+                          "text": "Cleaned up deck: 5d432318-e09c-473c-a867-0e6ce5d7edf8\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-02T15:52:13.805Z",
+                      "annotations": [
+                        {
+                          "type": "slow",
+                          "location": {
+                            "file": "C:\\git\\10x-cards\\tests\\e2e\\ai-generation-with-cleanup.spec.ts",
+                            "line": 16,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "32d454f727a95c853b2c-eeb57d4ee86b2125d436",
+              "file": "ai-generation-with-cleanup.spec.ts",
+              "line": 34,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "study-session-with-cleanup.spec.ts",
       "file": "study-session-with-cleanup.spec.ts",
       "column": 0,
@@ -146,11 +224,11 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 31292,
+                      "duration": 31211,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "Created deck for study: ef892a4b-ae26-47d9-8b8e-5f99c9e545e3\n"
+                          "text": "Created deck for study: 2964a699-bfdd-4ced-ad8b-e2fe4bd44dc7\n"
                         },
                         {
                           "text": "Reviewed card 1 with grade 4\n"
@@ -165,12 +243,12 @@
                           "text": "Study session completed successfully\n"
                         },
                         {
-                          "text": "Cleaned up deck: ef892a4b-ae26-47d9-8b8e-5f99c9e545e3\n"
+                          "text": "Cleaned up deck: 2964a699-bfdd-4ced-ad8b-e2fe4bd44dc7\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T15:43:34.001Z",
+                      "startTime": "2025-11-02T15:52:42.769Z",
                       "annotations": [
                         {
                           "type": "slow",
@@ -219,11 +297,11 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 28328,
+                      "duration": 26511,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "Created math deck: 603109b8-0d18-4a3b-9701-1fc1fe02d2f0\n"
+                          "text": "Created math deck: af91a821-24bd-4334-82c0-1e23c2a439f8\n"
                         },
                         {
                           "text": "Reviewed first card with grade 5\n"
@@ -235,12 +313,12 @@
                           "text": "Study session completed with 2 cards\n"
                         },
                         {
-                          "text": "Cleaned up deck: 603109b8-0d18-4a3b-9701-1fc1fe02d2f0\n"
+                          "text": "Cleaned up deck: af91a821-24bd-4334-82c0-1e23c2a439f8\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T15:44:05.510Z",
+                      "startTime": "2025-11-02T15:53:13.991Z",
                       "annotations": [
                         {
                           "type": "slow",
@@ -269,9 +347,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-02T15:43:32.992Z",
-    "duration": 61045.541,
-    "expected": 2,
+    "startTime": "2025-11-02T15:52:13.010Z",
+    "duration": 87605.969,
+    "expected": 3,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
