@@ -66,6 +66,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
 
     if (verifyError) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] OTP verification error:", verifyError);
       return new Response(
         JSON.stringify({
@@ -84,6 +85,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
 
     if (updateError) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] Password update error:", updateError);
       return new Response(
         JSON.stringify({
@@ -105,6 +107,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       { status: HttpStatus.OK, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error("[Auth] Verify and reset error:", err);
     return new Response(
       JSON.stringify({

@@ -52,6 +52,7 @@ export function useReviewSubmit(): UseReviewSubmitResult {
       setIsSubmitting(false);
       return reviewResponse;
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Error submitting review:", err);
       toast.error("Nie udało się zapisać oceny. Spróbuj ponownie.");
       setIsSubmitting(false);

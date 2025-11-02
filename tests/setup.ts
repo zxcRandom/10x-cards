@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function, @typescript-eslint/no-explicit-any */
 import "@testing-library/jest-dom";
 import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
@@ -24,13 +23,15 @@ Object.defineProperty(window, "matchMedia", {
 });
 
 // Mock IntersectionObserver
-// eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function, @typescript-eslint/no-explicit-any
+
 global.IntersectionObserver = class IntersectionObserver {
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
   constructor() {}
-  disconnect() {}
-  observe() {}
+  disconnect() {} // eslint-disable-line @typescript-eslint/no-empty-function
+  observe() {} // eslint-disable-line @typescript-eslint/no-empty-function
   takeRecords() {
     return [];
   }
-  unobserve() {}
+  unobserve() {} // eslint-disable-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;

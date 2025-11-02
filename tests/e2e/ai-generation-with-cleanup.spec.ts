@@ -26,6 +26,7 @@ test.describe("AI Flashcard Generation with Cleanup", () => {
     if (createdDeckId) {
       const response = await authenticatedPage.request.delete(`/api/v1/decks/${createdDeckId}`);
       expect(response.ok()).toBeTruthy();
+      // eslint-disable-next-line no-console
       console.log(`Cleaned up deck: ${createdDeckId}`);
       createdDeckId = null;
     }
@@ -66,6 +67,7 @@ test.describe("AI Flashcard Generation with Cleanup", () => {
     expect(match).toBeTruthy();
     createdDeckId = match?.[1] ?? null;
 
+    // eslint-disable-next-line no-console
     console.log(`Created deck with ID: ${createdDeckId}`);
 
     // Simply verify we're on the review page

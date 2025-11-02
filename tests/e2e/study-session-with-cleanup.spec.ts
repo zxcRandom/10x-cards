@@ -26,6 +26,7 @@ test.describe("Study Session with Cleanup", () => {
     if (createdDeckId) {
       const response = await authenticatedPage.request.delete(`/api/v1/decks/${createdDeckId}`);
       expect(response.ok()).toBeTruthy();
+      // eslint-disable-next-line no-console
       console.log(`Cleaned up deck: ${createdDeckId}`);
       createdDeckId = null;
     }
@@ -66,6 +67,7 @@ test.describe("Study Session with Cleanup", () => {
     const match = reviewUrl.match(/deckId=([^&]+)/);
     expect(match).toBeTruthy();
     createdDeckId = match?.[1] ?? null;
+    // eslint-disable-next-line no-console
     console.log(`Created deck for study: ${createdDeckId}`);
 
     // STEP 2: Navigate to study session
@@ -101,6 +103,7 @@ test.describe("Study Session with Cleanup", () => {
         { timeout: 5000 }
       );
 
+      // eslint-disable-next-line no-console
       console.log(`Reviewed card ${i + 1} with grade ${grade}`);
 
       // Small delay between cards
@@ -115,6 +118,7 @@ test.describe("Study Session with Cleanup", () => {
     expect(statsText).toContain("Ocenione karty:");
     expect(statsText).toContain("Średnia ocena:");
 
+    // eslint-disable-next-line no-console
     console.log("Study session completed successfully");
   });
 
@@ -143,6 +147,7 @@ test.describe("Study Session with Cleanup", () => {
     const reviewUrl = authenticatedPage.url();
     const match = reviewUrl.match(/deckId=([^&]+)/);
     createdDeckId = match?.[1] ?? null;
+    // eslint-disable-next-line no-console
     console.log(`Created math deck: ${createdDeckId}`);
 
     // STEP 2: Go to study
@@ -166,6 +171,7 @@ test.describe("Study Session with Cleanup", () => {
       (response) => response.url().includes("/review") && response.status() === 200
     );
 
+    // eslint-disable-next-line no-console
     console.log("Reviewed first card with grade 5");
 
     // STEP 4: Review second card
@@ -180,6 +186,7 @@ test.describe("Study Session with Cleanup", () => {
       (response) => response.url().includes("/review") && response.status() === 200
     );
 
+    // eslint-disable-next-line no-console
     console.log("Reviewed second card with grade 4");
 
     // STEP 5: Check completion
@@ -189,6 +196,7 @@ test.describe("Study Session with Cleanup", () => {
     expect(completionText).toContain("Ukończyłeś sesję nauki");
     expect(completionText).toContain("Ocenione karty:");
 
+    // eslint-disable-next-line no-console
     console.log("Study session completed with 2 cards");
   });
 });

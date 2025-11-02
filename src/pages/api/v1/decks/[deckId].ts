@@ -53,6 +53,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     const { deckId } = params;
 
     if (!deckId || !isValidUUID(deckId)) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}] Invalid UUID format:", {
         deckId,
         timestamp: new Date().toISOString(),
@@ -78,6 +79,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}] Authentication failed:", {
         error: authError?.message,
         deckId,
@@ -102,6 +104,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 
     // Step 4: Handle deck not found (or doesn't belong to user)
     if (!deck) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}] Deck not found:", {
         deckId,
         userId: user.id,
@@ -122,6 +125,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     }
 
     // Step 5: Log success (for audit)
+    // eslint-disable-next-line no-console
     console.info("[GET /api/v1/decks/{deckId}] Deck fetched successfully:", {
       deckId,
       userId: user.id,
@@ -141,6 +145,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     });
   } catch (error) {
     // Handle unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[GET /api/v1/decks/{deckId}] Internal server error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -207,6 +212,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     const { deckId } = params;
 
     if (!deckId || !isValidUUID(deckId)) {
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/decks/{deckId}] Invalid UUID format:", {
         deckId,
         timestamp: new Date().toISOString(),
@@ -232,6 +238,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/decks/{deckId}] Authentication failed:", {
         error: authError?.message,
         deckId,
@@ -256,6 +263,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     try {
       body = await request.json();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/decks/{deckId}] Invalid JSON in request body:", {
         error: error instanceof Error ? error.message : String(error),
         deckId,
@@ -281,6 +289,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     if (!validationResult.success) {
       const errors = formatZodErrors(validationResult.error);
 
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/decks/{deckId}] Validation failed:", {
         errors,
         body,
@@ -308,6 +317,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 
     // Step 6: Handle deck not found (or doesn't belong to user)
     if (!updatedDeck) {
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/decks/{deckId}] Deck not found:", {
         deckId,
         userId: user.id,
@@ -328,6 +338,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     }
 
     // Step 7: Log success (for audit)
+    // eslint-disable-next-line no-console
     console.info("[PATCH /api/v1/decks/{deckId}] Deck updated successfully:", {
       deckId,
       userId: user.id,
@@ -347,6 +358,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     });
   } catch (error) {
     // Handle unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[PATCH /api/v1/decks/{deckId}] Internal server error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -446,6 +458,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     }
 
     // Step 5: Log successful deletion (for audit)
+    // eslint-disable-next-line no-console
     console.info("[DELETE /api/v1/decks/{deckId}] Deck deleted successfully:", {
       deckId,
       userId: user.id,
@@ -458,6 +471,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     });
   } catch (error) {
     // Handle unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[DELETE /api/v1/decks/{deckId}] Internal server error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

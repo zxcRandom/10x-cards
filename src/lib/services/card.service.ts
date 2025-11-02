@@ -64,8 +64,10 @@ export class CardService {
    * );
    *
    * if (result.isOk()) {
+   // eslint-disable-next-line no-console
    *   console.log("Created card:", result.value);
    * } else {
+   // eslint-disable-next-line no-console
    *   console.error("Error:", result.error);
    * }
    */
@@ -79,6 +81,7 @@ export class CardService {
 
       return Result.ok(mapCardToDTO(dbCard));
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.createCard] Error:", {
         deckId,
         error: error.message,
@@ -142,9 +145,11 @@ export class CardService {
 
       const dbCards = await this.repository.createBatch(deckId, cards, sm2Params, now);
 
+      // eslint-disable-next-line no-console
       console.log(`[CardService.createCardsBatch] Created ${dbCards.length} cards for deck ${deckId}`);
       return Result.ok(dbCards.map(mapCardToDTO));
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.createCardsBatch] Error:", {
         deckId,
         userId,
@@ -185,6 +190,7 @@ export class CardService {
 
       return mapCardToDTO(dbCard);
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.getCardById] Error:", {
         cardId,
         userId,
@@ -218,6 +224,7 @@ export class CardService {
     try {
       return await this.repository.verifyDeckOwnership(deckId, userId);
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.verifyDeckOwnership] Error:", {
         deckId,
         userId,
@@ -246,8 +253,10 @@ export class CardService {
    * );
    *
    * if (result.isOk()) {
+   // eslint-disable-next-line no-console
    *   console.log("Updated card:", result.value);
    * } else {
+   // eslint-disable-next-line no-console
    *   console.error("Error:", result.error);
    * }
    */
@@ -261,6 +270,7 @@ export class CardService {
       const hasAccess = await this.repository.verifyCardOwnership(cardId, userId);
 
       if (!hasAccess) {
+        // eslint-disable-next-line no-console
         console.error("[CardService.updateCard] Card not found or access denied:", {
           cardId,
           userId,
@@ -273,6 +283,7 @@ export class CardService {
 
       return Result.ok(mapCardToDTO(dbCard));
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.updateCard] Error:", {
         cardId,
         userId,
@@ -330,6 +341,7 @@ export class CardService {
         offset: options.offset,
       });
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error("[CardService.listCards] Error:", {
         deckId,
         userId,

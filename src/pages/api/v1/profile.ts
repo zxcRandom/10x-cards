@@ -32,6 +32,7 @@ export const GET: APIRoute = async ({ locals }) => {
 
     // If authentication failed or user doesn't exist, return 401 Unauthorized
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.error("[GET /api/v1/profile] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -60,6 +61,7 @@ export const GET: APIRoute = async ({ locals }) => {
     if (!profile) {
       // Profile should exist for every user (created by trigger on signup)
       // If missing, this indicates a problem that requires investigation
+      // eslint-disable-next-line no-console
       console.error("[GET /api/v1/profile] Profile not found for user:", {
         userId: user.id,
         timestamp: new Date().toISOString(),
@@ -93,6 +95,7 @@ export const GET: APIRoute = async ({ locals }) => {
     });
   } catch (error) {
     // Step 5: Handle unexpected errors (database errors, exceptions)
+    // eslint-disable-next-line no-console
     console.error("[GET /api/v1/profile] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -149,6 +152,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.error("[PATCH /api/v1/profile] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -172,6 +176,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     try {
       body = await request.json();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/profile] Invalid JSON in request body:", {
         error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
@@ -196,6 +201,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     if (!validationResult.success) {
       const errors = formatZodErrors(validationResult.error);
 
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/profile] Validation failed:", {
         errors,
         timestamp: new Date().toISOString(),
@@ -220,6 +226,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     const updatedProfile = await ProfileService.updateProfile(user.id, validationResult.data, locals.supabase);
 
     // Step 5: Log success (optional, for audit)
+    // eslint-disable-next-line no-console
     console.info("[PATCH /api/v1/profile] Profile updated:", {
       userId: user.id,
       changes: validationResult.data,
@@ -239,6 +246,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
   } catch (error) {
     // Handle business logic errors
     if (error instanceof ConflictError) {
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/profile] Conflict error:", {
         message: error.message,
         details: error.details,
@@ -261,6 +269,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     }
 
     if (error instanceof UnprocessableError) {
+      // eslint-disable-next-line no-console
       console.warn("[PATCH /api/v1/profile] Unprocessable entity:", {
         message: error.message,
         details: error.details,
@@ -284,6 +293,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
 
     // Handle "Profile not found" error
     if (error instanceof Error && error.message === "Profile not found") {
+      // eslint-disable-next-line no-console
       console.error("[PATCH /api/v1/profile] Profile not found:", {
         timestamp: new Date().toISOString(),
       });
@@ -302,6 +312,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     }
 
     // Handle unexpected errors
+    // eslint-disable-next-line no-console
     console.error("[PATCH /api/v1/profile] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -354,6 +365,7 @@ export const DELETE: APIRoute = async ({ locals }) => {
 
     // If authentication failed or user doesn't exist, return 401 Unauthorized
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.error("[DELETE /api/v1/profile] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -379,6 +391,7 @@ export const DELETE: APIRoute = async ({ locals }) => {
     const deleteResult = await ProfileService.deleteProfile(user.id, locals.supabase);
 
     // Step 3: Log success (optional, for audit)
+    // eslint-disable-next-line no-console
     console.info("[DELETE /api/v1/profile] Profile deleted:", {
       userId: user.id,
       deletedAt: deleteResult.deletedAt,
@@ -399,6 +412,7 @@ export const DELETE: APIRoute = async ({ locals }) => {
   } catch (error) {
     // Handle profile not found (should be rare - indicates data integrity issue)
     if (error instanceof Error && error.message === "Profile not found") {
+      // eslint-disable-next-line no-console
       console.error("[DELETE /api/v1/profile] Profile not found for user:", {
         error: error.message,
         timestamp: new Date().toISOString(),
@@ -420,6 +434,7 @@ export const DELETE: APIRoute = async ({ locals }) => {
     }
 
     // Handle unexpected errors (database errors, exceptions)
+    // eslint-disable-next-line no-console
     console.error("[DELETE /api/v1/profile] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

@@ -24,6 +24,7 @@ export const POST: APIRoute = async ({ locals }) => {
     const { error } = await locals.supabase.auth.signOut();
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Sign-out error:", error);
 
       return new Response(
@@ -66,6 +67,7 @@ export const POST: APIRoute = async ({ locals }) => {
     });
   } catch (err) {
     // Log error for debugging
+    // eslint-disable-next-line no-console
     console.error("Unexpected sign-out error:", err);
 
     return new Response(

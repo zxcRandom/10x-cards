@@ -59,6 +59,7 @@ export const AILogService = {
       .single();
 
     if (error || !log) {
+      // eslint-disable-next-line no-console
       console.error("[AILogService.createLog] Failed to create AI log:", error);
       throw new Error(`Failed to create AI log: ${error?.message || "Unknown error"}`);
     }
@@ -99,6 +100,7 @@ export const AILogService = {
     const { data, error, count } = await query;
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[AILogService.listLogs] Failed to fetch AI logs:", error);
       throw new Error(`Failed to fetch AI logs: ${error.message}`);
     }

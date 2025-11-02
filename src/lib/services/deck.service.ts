@@ -49,6 +49,7 @@ export const DeckService = {
 
     // Step 3: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.createDeck] Database error:", {
         error: error.message,
         code: error.code,
@@ -62,6 +63,7 @@ export const DeckService = {
 
     // Step 4: Validate response data
     if (!data) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.createDeck] No data returned after insert:", {
         userId,
         deckName: command.name,
@@ -102,6 +104,7 @@ export const DeckService = {
 
     // Step 2: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.getDeckById] Database error:", {
         error: error.message,
         code: error.code,
@@ -164,6 +167,7 @@ export const DeckService = {
 
     // Step 3: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.updateDeck] Database error:", {
         error: error.message,
         code: error.code,
@@ -212,6 +216,7 @@ export const DeckService = {
 
     // Step 2: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.deleteDeck] Database error:", {
         error: error.message,
         code: error.code,
@@ -270,6 +275,7 @@ export const DeckService = {
 
     // Step 6: Handle database errors
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[DeckService.listDecks] Database error:", {
         error: error.message,
         code: error.code,

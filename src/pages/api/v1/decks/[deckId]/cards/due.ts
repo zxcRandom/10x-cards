@@ -85,6 +85,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}/cards/due] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -108,6 +109,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     const { deckId } = params;
 
     if (!deckId || !isValidUUID(deckId)) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}/cards/due] Invalid deckId format:", {
         deckId,
         userId: user.id,
@@ -135,6 +137,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     if (!validationResult.success) {
       const validationErrors = formatZodErrors(validationResult.error);
 
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}/cards/due] Query validation failed:", {
         deckId,
         userId: user.id,
@@ -168,6 +171,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       .single();
 
     if (deckError || !deck) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/decks/{deckId}/cards/due] Deck not found or access denied:", {
         deckId,
         userId: user.id,
@@ -203,6 +207,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       .range(offset, offset + limit - 1);
 
     if (cardsError) {
+      // eslint-disable-next-line no-console
       console.error("[GET /api/v1/decks/{deckId}/cards/due] Database query failed:", {
         deckId,
         userId: user.id,
@@ -233,6 +238,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       .lte("next_review_date", before);
 
     if (countError) {
+      // eslint-disable-next-line no-console
       console.error("[GET /api/v1/decks/{deckId}/cards/due] Count query failed:", {
         deckId,
         userId: user.id,
@@ -279,6 +285,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // =========================================================================
     // STEP 8: Log Success and Return Response
     // =========================================================================
+    // eslint-disable-next-line no-console
     console.info("[GET /api/v1/decks/{deckId}/cards/due] Success:", {
       deckId,
       userId: user.id,
@@ -301,6 +308,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
     // =========================================================================
     // STEP 9: Handle Unexpected Errors
     // =========================================================================
+    // eslint-disable-next-line no-console
     console.error("[GET /api/v1/decks/{deckId}/cards/due] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

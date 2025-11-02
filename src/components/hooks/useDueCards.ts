@@ -70,6 +70,7 @@ export function useDueCards(deckId: string): UseDueCardsResult {
       setCards(cardVMs);
       setLoading(false);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error("Error fetching due cards:", err);
       setError({
         status: 500,

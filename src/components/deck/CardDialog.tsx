@@ -149,6 +149,7 @@ export default function CardDialog({ open, mode, card, deckId, onOpenChange, onS
       const savedCard: CardDTO = await response.json();
       onSuccess(savedCard);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error saving card:", error);
       setErrors({
         _form: "Wystąpił błąd podczas zapisywania. Sprawdź połączenie z internetem.",

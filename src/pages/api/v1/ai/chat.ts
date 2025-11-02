@@ -96,15 +96,19 @@ const flashcardSchema = z.object({
 
 const logger: Logger = {
   debug(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.debug(`[openrouter] ${message}`, redact(meta));
   },
   info(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.info(`[openrouter] ${message}`, redact(meta));
   },
   warn(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.warn(`[openrouter] ${message}`, redact(meta));
   },
   error(message: string, meta?: Record<string, unknown>) {
+    // eslint-disable-next-line no-console
     console.error(`[openrouter] ${message}`, redact(meta));
   },
 };
@@ -370,6 +374,7 @@ async function handleFlashcardGeneration(
       );
     }
 
+    // eslint-disable-next-line no-console
     console.error("Failed to generate deck via OpenRouter", error);
     return jsonResponse(
       {
@@ -539,6 +544,7 @@ async function logFailure(
       errorMessage: params.error instanceof Error ? params.error.message : "Unknown error",
     });
   } catch (logError) {
+    // eslint-disable-next-line no-console
     console.error("Failed to record AI generation failure log", logError);
   }
 }

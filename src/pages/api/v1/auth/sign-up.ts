@@ -178,6 +178,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   } catch (err) {
     // Log error for debugging (don't expose to client)
+    // eslint-disable-next-line no-console
     console.error("Sign-up error:", err);
 
     return new Response(

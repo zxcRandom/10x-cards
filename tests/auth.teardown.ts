@@ -7,12 +7,14 @@
 import { test as teardown } from "@playwright/test";
 
 teardown("cleanup test environment", async ({ request }) => {
+  // eslint-disable-next-line no-console
   console.log("🧹 Cleaning up test environment...");
 
   const supabaseUrl = process.env.PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
+    // eslint-disable-next-line no-console
     console.warn("⚠️  Supabase credentials not found, skipping cleanup");
     return;
   }
@@ -30,6 +32,7 @@ teardown("cleanup test environment", async ({ request }) => {
       "Deck with Long Description",
     ];
 
+    // eslint-disable-next-line no-console
     console.log("🔍 Searching for test decks to clean up...");
 
     // Get authentication token
@@ -37,6 +40,7 @@ teardown("cleanup test environment", async ({ request }) => {
     const password = process.env.E2E_PASSWORD;
 
     if (!email || !password) {
+      // eslint-disable-next-line no-console
       console.warn("⚠️  Test credentials not found, skipping cleanup");
       return;
     }
@@ -54,6 +58,7 @@ teardown("cleanup test environment", async ({ request }) => {
     });
 
     if (!loginResponse.ok()) {
+      // eslint-disable-next-line no-console
       console.warn("⚠️  Failed to authenticate for cleanup");
       return;
     }
@@ -70,6 +75,7 @@ teardown("cleanup test environment", async ({ request }) => {
     });
 
     if (!decksResponse.ok()) {
+      // eslint-disable-next-line no-console
       console.warn("⚠️  Failed to fetch decks for cleanup");
       return;
     }
@@ -90,14 +96,17 @@ teardown("cleanup test environment", async ({ request }) => {
         });
 
         if (deleteResponse.ok()) {
+          // eslint-disable-next-line no-console
           console.log(`  ✓ Deleted test deck: ${deck.name} (${deck.id})`);
           cleanedCount++;
         }
       }
     }
 
+    // eslint-disable-next-line no-console
     console.log(`✨ Cleanup complete! Removed ${cleanedCount} test deck(s)`);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("❌ Error during cleanup:", error);
     // Don't fail the test run if cleanup fails
   }

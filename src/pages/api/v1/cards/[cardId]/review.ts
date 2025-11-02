@@ -55,6 +55,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[POST /api/v1/cards/{cardId}/review] Unauthorized:", {
         authError: authError?.message,
         timestamp: new Date().toISOString(),
@@ -80,6 +81,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     try {
       cardId = CardIdSchema.parse(params.cardId);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn("[POST /api/v1/cards/{cardId}/review] Invalid card ID:", {
         cardId: params.cardId,
         userId: user.id,
@@ -123,6 +125,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     try {
       requestBody = await request.json();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn("[POST /api/v1/cards/{cardId}/review] Invalid JSON in request body:", {
         cardId,
         userId: user.id,
@@ -147,6 +150,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     try {
       validated = CreateReviewSchema.parse(requestBody) as CreateReviewCommand;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn("[POST /api/v1/cards/{cardId}/review] Request validation failed:", {
         cardId,
         userId: user.id,
@@ -227,6 +231,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 5: Return Success Response
     // =========================================================================
+    // eslint-disable-next-line no-console
     console.info("[POST /api/v1/cards/{cardId}/review] Review created:", {
       cardId,
       userId: user.id,
@@ -243,6 +248,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 6: Handle Unexpected Errors
     // =========================================================================
+    // eslint-disable-next-line no-console
     console.error("[POST /api/v1/cards/{cardId}/review] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

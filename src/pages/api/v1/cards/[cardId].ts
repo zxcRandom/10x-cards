@@ -44,6 +44,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/cards/{cardId}] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -67,6 +68,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     const cardIdValidation = cardIdParamSchema.safeParse(params.cardId);
 
     if (!cardIdValidation.success) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/cards/{cardId}] Invalid cardId format:", {
         cardId: params.cardId,
         userId: user.id,
@@ -96,6 +98,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     const card = await cardService.getCardById(cardId, user.id);
 
     if (!card) {
+      // eslint-disable-next-line no-console
       console.warn("[GET /api/v1/cards/{cardId}] Card not found or access denied:", {
         cardId,
         userId: user.id,
@@ -117,6 +120,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     // =========================================================================
     // STEP 4: Return Success Response
     // =========================================================================
+    // eslint-disable-next-line no-console
     console.info("[GET /api/v1/cards/{cardId}] Card retrieved successfully:", {
       cardId,
       userId: user.id,
@@ -128,6 +132,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("[GET /api/v1/cards/{cardId}] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -326,6 +331,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("[PATCH /api/v1/cards/{cardId}] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -374,6 +380,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     } = await locals.supabase.auth.getUser();
 
     if (authError || !user) {
+      // eslint-disable-next-line no-console
       console.warn("[DELETE /api/v1/cards/{cardId}] Authentication failed:", {
         error: authError?.message,
         timestamp: new Date().toISOString(),
@@ -397,6 +404,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     const cardIdValidation = cardIdParamSchema.safeParse(params.cardId);
 
     if (!cardIdValidation.success) {
+      // eslint-disable-next-line no-console
       console.warn("[DELETE /api/v1/cards/{cardId}] Invalid cardId format:", {
         cardId: params.cardId,
         userId: user.id,
@@ -435,6 +443,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       .single();
 
     if (cardError || !card) {
+      // eslint-disable-next-line no-console
       console.warn("[DELETE /api/v1/cards/{cardId}] Card not found or access denied:", {
         cardId,
         userId: user.id,
@@ -462,6 +471,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     const { error: deleteError } = await locals.supabase.from("cards").delete().eq("id", cardId);
 
     if (deleteError) {
+      // eslint-disable-next-line no-console
       console.error("[DELETE /api/v1/cards/{cardId}] Delete failed:", {
         cardId,
         userId: user.id,
@@ -486,6 +496,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     // =========================================================================
     // STEP 5: Return Success Response
     // =========================================================================
+    // eslint-disable-next-line no-console
     console.info("[DELETE /api/v1/cards/{cardId}] Card deleted successfully:", {
       cardId,
       userId: user.id,
@@ -501,6 +512,7 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("[DELETE /api/v1/cards/{cardId}] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

@@ -232,6 +232,7 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("[GET /api/v1/decks/{deckId}/cards] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -459,6 +460,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("[POST /api/v1/decks/{deckId}/cards] Unexpected error:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

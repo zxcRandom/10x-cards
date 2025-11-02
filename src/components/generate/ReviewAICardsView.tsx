@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import type { ReviewCardVM, DeckDestinationVM, ReviewState } from "./types";
 import type { DeckDTO } from "@/types";
@@ -32,15 +32,7 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
   const [availableDecksLoading, setAvailableDecksLoading] = useState(false);
 
   // Initialize data on mount
-  useEffect(() => {
-    loadDeckData();
-    loadAvailableDecks();
-  }, [deckId]);
-
-  /**
-   * Load deck and cards from API
-   */
-  const loadDeckData = async () => {
+  const loadDeckData = useCallback(async () => {
     try {
       setState("loading");
 
@@ -82,16 +74,17 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
       setCards(loadedCards);
       setState("idle");
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error loading deck data:", error);
       setState("error");
       toast.error("Wystąpił błąd podczas ładowania danych");
     }
-  };
+  }, [deckId]);
 
   /**
    * Load list of available decks for "existing deck" option
    */
-  const loadAvailableDecks = async () => {
+  const loadAvailableDecks = useCallback(async () => {
     try {
       setAvailableDecksLoading(true);
 
@@ -105,12 +98,18 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
       const decks = data.items.filter((d: DeckDTO) => d.id !== deckId);
       setAvailableDecks(decks);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error loading available decks:", error);
       toast.error("Nie udało się załadować listy talii");
     } finally {
       setAvailableDecksLoading(false);
     }
-  };
+  }, [deckId]);
+
+  useEffect(() => {
+    loadDeckData();
+    loadAvailableDecks();
+  }, [loadDeckData, loadAvailableDecks]);
 
   /**
    * Toggle card selection
@@ -232,6 +231,7 @@ export default function ReviewAICardsView({ deckId }: ReviewAICardsViewProps) {
         window.location.href = `/decks/${destination.existingDeckId}`;
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Error saving cards:", error);
       setState("error");
       toast.error("Wystąpił błąd podczas zapisywania");

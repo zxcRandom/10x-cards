@@ -103,6 +103,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
 
     if (updateError) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] Password change error:", updateError);
       return new Response(
         JSON.stringify({
@@ -130,6 +131,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }
     );
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error("[Auth] Unexpected error in password change:", err);
     return new Response(
       JSON.stringify({

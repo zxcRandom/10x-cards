@@ -36,6 +36,7 @@ export default function Navigation({ currentPath, userEmail }: NavigationProps) 
       await fetch("/api/v1/auth/sign-out", { method: "POST" });
       window.location.href = "/auth/login";
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Sign out error:", error);
       // Try redirecting anyway
       window.location.href = "/auth/login";

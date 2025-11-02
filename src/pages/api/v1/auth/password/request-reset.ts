@@ -97,6 +97,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // IMPORTANT: ALWAYS return success for security (neutral messaging)
     // Don't reveal whether email exists in the system
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] OTP request error:", error);
       // Still return success to user
     }
@@ -109,6 +110,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       { status: HttpStatus.OK, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error("[Auth] OTP request error:", err);
 
     // Still return success for security

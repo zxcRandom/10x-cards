@@ -64,6 +64,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
         .eq("deck_id", validated.deckId);
 
       if (cardsError) {
+        // eslint-disable-next-line no-console
         console.error("Failed to fetch cards for deck:", cardsError);
         return new Response(
           JSON.stringify({
@@ -114,6 +115,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     const { data: reviews, error: reviewsError } = await query;
 
     if (reviewsError) {
+      // eslint-disable-next-line no-console
       console.error("Failed to fetch reviews:", reviewsError);
       return new Response(
         JSON.stringify({
@@ -150,6 +152,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     const { count, error: countError } = await countQuery;
 
     if (countError) {
+      // eslint-disable-next-line no-console
       console.error("Failed to count reviews:", countError);
       return new Response(
         JSON.stringify({
@@ -184,6 +187,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("GET /api/v1/reviews failed:", error);
 
     if (error instanceof z.ZodError) {

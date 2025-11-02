@@ -32,6 +32,7 @@ export default function AuthNav({ userEmail, currentPath = "/" }: AuthNavProps) 
       // Redirect to login page
       window.location.href = "/auth/login";
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("Logout error:", error);
       toast.error("Nie udało się wylogować. Spróbuj ponownie.");
       setIsLoggingOut(false);

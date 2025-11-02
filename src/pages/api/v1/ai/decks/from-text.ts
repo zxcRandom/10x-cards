@@ -115,6 +115,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // STEP 4: Generate cards using AI
+    // eslint-disable-next-line no-console
     console.log(`� AI generation for user ${user.id}, maxCards: ${validated.maxCards}`);
 
     const generatedCards = await aiService.generateFlashcardsFromText(validated.inputText, validated.maxCards);
@@ -157,6 +158,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       await rateLimitService.incrementAIRateLimit(user.id);
 
       const duration = Date.now() - startTime;
+      // eslint-disable-next-line no-console
       console.log(`✅ AI generation completed in ${duration}ms: ${cards.length} cards created`);
 
       // STEP 6: Return success response
@@ -179,6 +181,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         },
       });
     } catch (dbError) {
+      // eslint-disable-next-line no-console
       console.error("Database operation failed:", dbError);
 
       // Log the failed attempt
@@ -191,6 +194,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
           errorMessage: dbError instanceof Error ? dbError.message : "Unknown database error",
         });
       } catch (logError) {
+        // eslint-disable-next-line no-console
         console.error("Failed to log error:", logError);
       }
 
@@ -198,6 +202,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
   } catch (error) {
     const duration = Date.now() - startTime;
+    // eslint-disable-next-line no-console
     console.error(`❌ AI test failed after ${duration}ms:`, error);
 
     // Handle specific error types

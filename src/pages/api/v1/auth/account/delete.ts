@@ -84,6 +84,7 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     const { error: decksDeleteError } = await locals.supabase.from("decks").delete().eq("user_id", user.id);
 
     if (decksDeleteError) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] Failed to delete user decks:", decksDeleteError);
       // Continue anyway - try to delete other data
     }
@@ -92,6 +93,7 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     const { error: logsDeleteError } = await locals.supabase.from("ai_generation_logs").delete().eq("user_id", user.id);
 
     if (logsDeleteError) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] Failed to delete AI logs:", logsDeleteError);
       // Continue anyway
     }
@@ -100,6 +102,7 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     const { error: profileDeleteError } = await locals.supabase.from("profiles").delete().eq("id", user.id);
 
     if (profileDeleteError) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] Failed to delete profile:", profileDeleteError);
       // Continue anyway
     }
@@ -108,6 +111,7 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
     const { error: deleteUserError } = await locals.supabase.auth.admin.deleteUser(user.id);
 
     if (deleteUserError) {
+      // eslint-disable-next-line no-console
       console.error("[Auth] Failed to delete auth user:", deleteUserError);
       return new Response(
         JSON.stringify({
@@ -138,6 +142,7 @@ export const DELETE: APIRoute = async ({ request, locals }) => {
       }
     );
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error("[Auth] Unexpected error in account deletion:", err);
     return new Response(
       JSON.stringify({

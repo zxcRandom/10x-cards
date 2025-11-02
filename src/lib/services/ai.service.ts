@@ -54,9 +54,13 @@ interface Dependencies {
 }
 
 const defaultLogger: Logger = {
+  // eslint-disable-next-line no-console
   debug: (message, meta) => console.debug(message, sanitizeMeta(meta)),
+  // eslint-disable-next-line no-console
   info: (message, meta) => console.info(message, sanitizeMeta(meta)),
+  // eslint-disable-next-line no-console
   warn: (message, meta) => console.warn(message, sanitizeMeta(meta)),
+  // eslint-disable-next-line no-console
   error: (message, meta) => console.error(message, sanitizeMeta(meta)),
 };
 

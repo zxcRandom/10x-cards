@@ -14,6 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const authFile = path.join(__dirname, "../.auth/user.json");
 
 setup("authenticate", async ({ page }) => {
+  // eslint-disable-next-line no-console
   console.log("� Authenticating test user...");
 
   const email = process.env.E2E_USERNAME;
@@ -31,5 +32,6 @@ setup("authenticate", async ({ page }) => {
   // Save authentication state
   await page.context().storageState({ path: authFile });
 
+  // eslint-disable-next-line no-console
   console.log("✅ Authentication successful, saved to", authFile);
 });

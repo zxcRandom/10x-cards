@@ -202,6 +202,7 @@ export const ReviewService = {
         .single();
 
       if (cardError) {
+        // eslint-disable-next-line no-console
         console.error("[ReviewService.createReview] Card query error:", {
           cardId,
           userId,
@@ -212,6 +213,7 @@ export const ReviewService = {
       }
 
       if (!card) {
+        // eslint-disable-next-line no-console
         console.error("[ReviewService.createReview] Card not found:", {
           cardId,
           userId,
@@ -221,6 +223,7 @@ export const ReviewService = {
 
       // Validate card structure with runtime type checking
       if (!isCardWithDeck(card)) {
+        // eslint-disable-next-line no-console
         console.error("[ReviewService.createReview] Invalid card structure:", {
           cardId,
           userId,
@@ -231,6 +234,7 @@ export const ReviewService = {
 
       // Check ownership via JOIN - safely typed with runtime validation
       if (!card.deck || card.deck.user_id !== userId) {
+        // eslint-disable-next-line no-console
         console.warn("[ReviewService.createReview] Access denied:", {
           cardId,
           userId,
@@ -264,6 +268,7 @@ export const ReviewService = {
         .single();
 
       if (reviewError) {
+        // eslint-disable-next-line no-console
         console.error("[ReviewService.createReview] Review insert error:", {
           cardId,
           userId,
@@ -274,6 +279,7 @@ export const ReviewService = {
       }
 
       if (!review) {
+        // eslint-disable-next-line no-console
         console.error("[ReviewService.createReview] No data returned after review insert:", {
           cardId,
           userId,
@@ -295,6 +301,7 @@ export const ReviewService = {
         .single();
 
       if (updateError) {
+        // eslint-disable-next-line no-console
         console.error("[ReviewService.createReview] Card update error:", {
           cardId,
           userId,
@@ -305,6 +312,7 @@ export const ReviewService = {
       }
 
       if (!updatedCard) {
+        // eslint-disable-next-line no-console
         console.error("[ReviewService.createReview] No data returned after card update:", {
           cardId,
           userId,
@@ -327,6 +335,7 @@ export const ReviewService = {
 
       return response;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error("[ReviewService.createReview] Unexpected error:", {
         cardId,
         userId,
