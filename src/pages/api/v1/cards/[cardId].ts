@@ -99,8 +99,9 @@ export const GET: APIRoute = async ({ params, locals }) => {
     // =========================================================================
     // STEP 3: Get Card with Ownership Verification
     // =========================================================================
-    // Use CardService to get card (includes ownership verification)
-    const card = await CardService.getCardById(locals.supabase, cardId, user.id);
+    // Create CardService instance and use it to get card
+    const cardService = new CardService(locals.supabase);
+    const card = await cardService.getCardById(cardId, user.id);
 
     if (!card) {
       console.warn("[GET /api/v1/cards/{cardId}] Card not found or access denied:", {
@@ -278,16 +279,19 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 4: Update Card in Database (with ownership verification)
     // =========================================================================
-    const result = await CardService.updateCard(
-      locals.supabase,
+    const cardService = new CardService(locals.supabase);
+    const result = await cardService.updateCard(
       cardId,
       user.id,
       command
     );
 
-    if ("error" in result) {
+    // Convert Result to union type for easier handling
+    const resultValue = result.toUnion();
+
+    if ("error" in resultValue) {
       // Map service errors to HTTP responses
-      if (result.error === "CARD_NOT_FOUND") {
+      if (resultValue.error === "CARD_NOT_FOUND") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "CARD_NOT_FOUND",
@@ -300,7 +304,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
         });
       }
 
-      if (result.error === "DATABASE_ERROR") {
+      if (resultValue.error === "DATABASE_ERROR") {
         const errorResponse: ErrorResponse = {
           error: {
             code: "UNPROCESSABLE_ENTITY",
@@ -329,9 +333,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     // =========================================================================
     // STEP 5: Return Success Response
     // =========================================================================
-    const cardDTO: CardDTO = result;
-
-    return new Response(JSON.stringify(cardDTO), {
+    return new Response(JSON.stringify(resultValue), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

@@ -276,11 +276,13 @@ async function handleFlashcardGeneration(
 
     let createdCards: CardDTO[] = [];
     if (cards.length > 0) {
-      const batchResult = await CardService.createCardsBatch(supabase, deck.id, userId, cards);
-      if ("error" in batchResult) {
-        throw new AIServiceError(`Failed to create cards: ${batchResult.error}`);
+      const cardService = new CardService(supabase);
+      const batchResult = await cardService.createCardsBatch(deck.id, userId, cards);
+      const batchResultValue = batchResult.toUnion();
+      if ("error" in batchResultValue) {
+        throw new AIServiceError(`Failed to create cards: ${batchResultValue.error}`);
       }
-      createdCards = batchResult;
+      createdCards = batchResultValue;
     }
 
     const log = await AILogService.createLog(supabase, {

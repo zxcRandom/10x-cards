@@ -141,18 +141,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
       // Create cards in batch
       if (generatedCards.length > 0) {
-        const cardsResult = await CardService.createCardsBatch(
-          locals.supabase,
+        const cardService = new CardService(locals.supabase);
+        const cardsResult = await cardService.createCardsBatch(
           deckId,
           user.id,
           generatedCards
         );
 
-        if ("error" in cardsResult) {
-          throw new Error(`Failed to create cards: ${cardsResult.error}`);
+        const cardsResultValue = cardsResult.toUnion();
+        if ("error" in cardsResultValue) {
+          throw new Error(`Failed to create cards: ${cardsResultValue.error}`);
         }
 
-        cards = cardsResult;
+        cards = cardsResultValue;
       }
 
       // Create success log

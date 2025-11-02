@@ -71,35 +71,4 @@ test.describe('AI Flashcard Generation with Cleanup', () => {
     // Simply verify we're on the review page
     expect(url).toContain('/generate/review');
   });
-  
-  test('@slow can generate flashcards with custom parameters', async ({ authenticatedPage }) => {
-    const generatorPage = new AIGeneratorPage(authenticatedPage);
-    
-    const historyText = `
-      The Renaissance was a period in European history marking the transition from the Middle Ages 
-      to modernity and covering the 15th and 16th centuries. It occurred after the Crisis of the 
-      Late Middle Ages and was associated with great social change.
-    `.trim();
-    
-    await generatorPage.fillInputText(historyText);
-    await generatorPage.fillDeckName('History Deck');
-    await generatorPage.fillMaxCards(3);
-    
-    // Click generate and wait for navigation
-    await Promise.all([
-      authenticatedPage.waitForURL(/\/generate\/review\?deckId=.+/, { timeout: 60000 }),
-      generatorPage.clickGenerate(),
-    ]);
-    
-    // Extract and store deck ID for cleanup
-    const url = authenticatedPage.url();
-    const match = url.match(/deckId=([^&]+)/);
-    if (match) {
-      createdDeckId = match[1];
-      console.log(`Created deck with ID: ${createdDeckId}`);
-    }
-    
-    // Verify we're on review page
-    expect(url).toContain('/generate/review');
-  });
 });

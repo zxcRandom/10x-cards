@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 8
     },
     "preserveOutput": "always",
     "reporter": [
@@ -43,14 +43,14 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 8
         },
         "id": "setup",
         "name": "setup",
-        "testDir": "C:/git/10x-cards/tests/e2e",
+        "testDir": "C:/git/10x-cards/tests",
         "testIgnore": [],
         "testMatch": [
-          "/global\\.setup\\.ts/"
+          "/.*\\.setup\\.ts/"
         ],
         "timeout": 30000
       },
@@ -59,14 +59,14 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 8
         },
         "id": "teardown",
         "name": "teardown",
-        "testDir": "C:/git/10x-cards/tests/e2e",
+        "testDir": "C:/git/10x-cards/tests",
         "testIgnore": [],
         "testMatch": [
-          "/global\\.teardown\\.ts/"
+          "/.*\\.teardown\\.ts/"
         ],
         "timeout": 30000
       },
@@ -75,7 +75,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 8
         },
         "id": "chromium",
         "name": "chromium",
@@ -91,7 +91,7 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.56.1",
-    "workers": 1,
+    "workers": 8,
     "webServer": {
       "command": "npm run dev",
       "url": "http://localhost:3000",
@@ -107,6 +107,185 @@
   },
   "suites": [
     {
+      "title": "..\\auth.teardown.ts",
+      "file": "../auth.teardown.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "cleanup test environment",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "teardown",
+              "projectName": "teardown",
+              "results": [
+                {
+                  "workerIndex": 9,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 431,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "🧹 Cleaning up test environment...\n"
+                    },
+                    {
+                      "text": "🔍 Searching for test decks to clean up...\n"
+                    },
+                    {
+                      "text": "✨ Cleanup complete! Removed 0 test deck(s)\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-11-02T16:39:13.809Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "5228e77054e433ae56aa-251733e9d2ecc357071a",
+          "file": "../auth.teardown.ts",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "..\\auth.setup.ts",
+      "file": "../auth.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3295,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "� Authenticating test user...\n"
+                    },
+                    {
+                      "text": "✅ Authentication successful, saved to C:\\git\\10x-cards\\.auth\\user.json\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2025-11-02T16:38:47.956Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-1aef690144aaba1a394d",
+          "file": "../auth.setup.ts",
+          "line": 16,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "ai-generation-with-cleanup.spec.ts",
+      "file": "ai-generation-with-cleanup.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AI Flashcard Generation with Cleanup",
+          "file": "ai-generation-with-cleanup.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "@slow can generate ML deck and review cards",
+              "ok": true,
+              "tags": [
+                "slow"
+              ],
+              "tests": [
+                {
+                  "timeout": 360000,
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "C:\\git\\10x-cards\\tests\\e2e\\ai-generation-with-cleanup.spec.ts",
+                        "line": 16,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 19608,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Created deck with ID: d2c1acd2-f59e-4d66-8d80-839fc6b7b9bd\n"
+                        },
+                        {
+                          "text": "Cleaned up deck: d2c1acd2-f59e-4d66-8d80-839fc6b7b9bd\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-02T16:38:52.764Z",
+                      "annotations": [
+                        {
+                          "type": "slow",
+                          "location": {
+                            "file": "C:\\git\\10x-cards\\tests\\e2e\\ai-generation-with-cleanup.spec.ts",
+                            "line": 16,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "32d454f727a95c853b2c-eeb57d4ee86b2125d436",
+              "file": "ai-generation-with-cleanup.spec.ts",
+              "line": 34,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "auth.spec.ts",
       "file": "auth.spec.ts",
       "column": 0,
@@ -116,7 +295,7 @@
         {
           "title": "Authentication",
           "file": "auth.spec.ts",
-          "line": 8,
+          "line": 11,
           "column": 6,
           "specs": [
             {
@@ -132,15 +311,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 3441,
+                      "duration": 3849,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T14:09:12.370Z",
+                      "startTime": "2025-11-02T16:38:52.761Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -150,7 +329,7 @@
               ],
               "id": "d748ac400d08b85935ef-cf5731dcd025005f44ff",
               "file": "auth.spec.ts",
-              "line": 10,
+              "line": 13,
               "column": 3
             }
           ]
@@ -183,15 +362,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 3,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 3240,
+                      "duration": 1321,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T14:09:16.272Z",
+                      "startTime": "2025-11-02T16:38:52.793Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -234,15 +413,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 3218,
+                      "duration": 1075,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T14:09:19.533Z",
+                      "startTime": "2025-11-02T16:38:52.778Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -268,15 +447,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 5,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 3307,
+                      "duration": 756,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T14:09:22.765Z",
+                      "startTime": "2025-11-02T16:38:52.793Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -303,7 +482,7 @@
         {
           "title": "Public Pages - No Auth Required",
           "file": "simple-test.spec.ts",
-          "line": 11,
+          "line": 14,
           "column": 6,
           "specs": [
             {
@@ -319,15 +498,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 6,
+                      "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 237,
+                      "duration": 1108,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T14:09:26.094Z",
+                      "startTime": "2025-11-02T16:38:52.810Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -337,7 +516,7 @@
               ],
               "id": "e33182337be27a39af1d-e4b1caa469e3c1e18f09",
               "file": "simple-test.spec.ts",
-              "line": 13,
+              "line": 16,
               "column": 3
             },
             {
@@ -353,15 +532,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 7,
+                      "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 239,
+                      "duration": 1001,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T14:09:26.341Z",
+                      "startTime": "2025-11-02T16:38:52.813Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -371,7 +550,7 @@
               ],
               "id": "e33182337be27a39af1d-56b6794541f94d1b41bb",
               "file": "simple-test.spec.ts",
-              "line": 27,
+              "line": 30,
               "column": 3
             },
             {
@@ -387,15 +566,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 8,
+                      "parallelIndex": 7,
                       "status": "passed",
-                      "duration": 2034,
+                      "duration": 3285,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-11-02T14:09:26.591Z",
+                      "startTime": "2025-11-02T16:38:52.812Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -405,7 +584,167 @@
               ],
               "id": "e33182337be27a39af1d-fbede8ac3f75b416d4de",
               "file": "simple-test.spec.ts",
-              "line": 37,
+              "line": 40,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "study-session-with-cleanup.spec.ts",
+      "file": "study-session-with-cleanup.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Study Session with Cleanup",
+          "file": "study-session-with-cleanup.spec.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [
+            {
+              "title": "@slow can complete study session with various grades",
+              "ok": true,
+              "tags": [
+                "slow"
+              ],
+              "tests": [
+                {
+                  "timeout": 360000,
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "C:\\git\\10x-cards\\tests\\e2e\\study-session-with-cleanup.spec.ts",
+                        "line": 20,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 16766,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Created deck for study: dd8daa6c-0736-44e9-a912-763e60d762f7\n"
+                        },
+                        {
+                          "text": "Reviewed card 1 with grade 4\n"
+                        },
+                        {
+                          "text": "Reviewed card 2 with grade 2\n"
+                        },
+                        {
+                          "text": "Reviewed card 3 with grade 5\n"
+                        },
+                        {
+                          "text": "Study session completed successfully\n"
+                        },
+                        {
+                          "text": "Cleaned up deck: dd8daa6c-0736-44e9-a912-763e60d762f7\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-02T16:38:54.232Z",
+                      "annotations": [
+                        {
+                          "type": "slow",
+                          "location": {
+                            "file": "C:\\git\\10x-cards\\tests\\e2e\\study-session-with-cleanup.spec.ts",
+                            "line": 20,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "769d7131a655a3e1a7d1-a6648440ae3160685ab3",
+              "file": "study-session-with-cleanup.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "@slow can navigate between cards and complete session",
+              "ok": true,
+              "tags": [
+                "slow"
+              ],
+              "tests": [
+                {
+                  "timeout": 360000,
+                  "annotations": [
+                    {
+                      "type": "slow",
+                      "location": {
+                        "file": "C:\\git\\10x-cards\\tests\\e2e\\study-session-with-cleanup.spec.ts",
+                        "line": 20,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 11273,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Created math deck: a3ca36c1-1580-41df-9aad-bb408ba71111\n"
+                        },
+                        {
+                          "text": "Reviewed first card with grade 5\n"
+                        },
+                        {
+                          "text": "Reviewed second card with grade 4\n"
+                        },
+                        {
+                          "text": "Study session completed with 2 cards\n"
+                        },
+                        {
+                          "text": "Cleaned up deck: a3ca36c1-1580-41df-9aad-bb408ba71111\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-11-02T16:38:54.523Z",
+                      "annotations": [
+                        {
+                          "type": "slow",
+                          "location": {
+                            "file": "C:\\git\\10x-cards\\tests\\e2e\\study-session-with-cleanup.spec.ts",
+                            "line": 20,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "769d7131a655a3e1a7d1-88f3245c3b6b304e716f",
+              "file": "study-session-with-cleanup.spec.ts",
+              "line": 121,
               "column": 3
             }
           ]
@@ -415,9 +754,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-11-02T14:09:11.518Z",
-    "duration": 17188.086,
-    "expected": 7,
+    "startTime": "2025-11-02T16:38:47.046Z",
+    "duration": 27241.152000000002,
+    "expected": 12,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
