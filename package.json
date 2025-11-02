@@ -15,9 +15,11 @@
     "test:unit:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:fast": "playwright test tests/e2e/simple-test.spec.ts tests/e2e/auth.spec.ts tests/e2e/decks.spec.ts tests/e2e/example-authenticated.spec.ts",
+    "test:e2e:ai": "playwright test tests/e2e/ai-generation-with-cleanup.spec.ts tests/e2e/study-session-with-cleanup.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "test": "npm run test:unit && npm run test:e2e"
+    "test": "npm run test:unit && npm run test:e2e:fast"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",
@@ -54,6 +56,7 @@
     "@typescript-eslint/eslint-plugin": "8.28.0",
     "@typescript-eslint/parser": "8.28.0",
     "@vitest/ui": "^4.0.4",
+    "dotenv": "^17.2.3",
     "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-import-resolver-typescript": "4.2.5",

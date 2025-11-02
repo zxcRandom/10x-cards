@@ -94,7 +94,7 @@ export default function LoginForm({ nextUrl }: LoginFormProps) {
         toast.success('Zalogowano pomyślnie');
         
         // Get redirect URL from response Location header or use default
-        const redirectUrl = response.headers.get('Location') || nextUrl || '/decks';
+        const redirectUrl = response.headers.get('Location') || nextUrl || '/';
         
         // Delay to allow cookies to be set and toast to show
         setTimeout(() => {
