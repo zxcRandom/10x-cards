@@ -128,6 +128,11 @@ npm run lint:fix
 
 ## Troubleshooting
 
+### Deployment fails z błędem "MessageChannel is not defined"
+- To jest problem kompatybilności React 19 z Cloudflare Workers
+- **Rozwiązanie:** Dodano `compatibility_flags = ["nodejs_compat"]` w `wrangler.toml`
+- Ta flaga włącza Node.js compatibility APIs w Cloudflare Workers
+
 ### Deployment fails z błędem "Context access might be invalid"
 - To są tylko ostrzeżenia ESLint, nie błędy
 - Upewnij się, że wszystkie sekrety są skonfigurowane w GitHub
