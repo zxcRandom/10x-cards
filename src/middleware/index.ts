@@ -73,7 +73,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const authHeader = request.headers.get("Authorization");
 
   // Get runtime env for Cloudflare Workers/Pages (contains Secrets)
-  const runtimeEnv = locals.runtime?.env as Record<string, unknown> | undefined;
+  // In Cloudflare Pages, env vars are available through context.env
+  const runtimeEnv = (context as { env?: Record<string, unknown> }).env;
 
   // Create a Supabase client tied to this specific request
   // This ensures proper session handling and cookie management
