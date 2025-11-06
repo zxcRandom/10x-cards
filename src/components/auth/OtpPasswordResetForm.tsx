@@ -147,7 +147,7 @@ export default function OtpPasswordResetForm({ email }: OtpPasswordResetFormProp
               {errors.otp}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">Wpisz kod 6-cyfrowy z e-maila (ważny 60 sekund)</p>
+          <p className="text-xs text-muted-foreground">Wpisz kod 6-cyfrowy z e-maila (ważny 1 godzinę)</p>
         </div>
 
         {/* New Password Input */}
