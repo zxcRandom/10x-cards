@@ -105,6 +105,7 @@ describe("RateLimitService", () => {
 
     it("should remove expired entries from storage", async () => {
       await rateLimitService.incrementAIRateLimit(userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((rateLimitService as any).storage.size).toBe(1);
 
       // Advance time past window
@@ -114,7 +115,9 @@ describe("RateLimitService", () => {
       await rateLimitService.incrementAIRateLimit("other-user");
 
       // Storage should have only "other-user" now, "userId" should be gone
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((rateLimitService as any).storage.size).toBe(1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((rateLimitService as any).storage.has(`ai_gen:${userId}`)).toBe(false);
     });
   });
