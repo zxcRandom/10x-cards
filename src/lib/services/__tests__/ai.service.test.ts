@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
 import { OpenRouterService } from "../openrouter/openrouter.service";
 import type { ChatRequestDTO, ChatResponseDTO } from "../openrouter/openrouter.service";
+import type { OpenRouterConfig } from "../openrouter/openrouter.config";
 
 // Mock OpenRouterConfig to avoid crash on module import
 vi.mock("../openrouter/openrouter.config", () => {
@@ -29,7 +30,7 @@ import { AIService } from "../ai.service";
 
 describe("AIService", () => {
   let aiService: AIService;
-  let mockOpenRouter: any;
+  let mockOpenRouter: Mocked<OpenRouterService>;
 
   beforeEach(() => {
     // Reset mocks
@@ -37,7 +38,9 @@ describe("AIService", () => {
 
     // Create a mock instance of OpenRouterService
     // Since we mocked the class, we can instantiate it
-    mockOpenRouter = new OpenRouterService({ apiKey: "test-key" } as any);
+    mockOpenRouter = new OpenRouterService({
+      apiKey: "test-key",
+    } as unknown as OpenRouterConfig) as unknown as Mocked<OpenRouterService>;
 
     // Setup the generateChat mock to return a valid response so we don't crash on parsing
     mockOpenRouter.generateChat = vi.fn().mockResolvedValue({
