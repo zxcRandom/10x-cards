@@ -14,18 +14,9 @@ vi.mock("../openrouter/openrouter.config", () => ({
   }),
 }));
 
-import {
-  AIService,
-  AIParsingError,
-  AIRateLimitError,
-  AIUnavailableError,
-} from "../ai.service";
-import type { OpenRouterService, Logger } from "../openrouter/openrouter.service";
-import {
-  ThrottledError,
-  ServiceUnavailableError,
-  NetworkError,
-} from "../openrouter/openrouter.service";
+import { AIService, AIParsingError, AIRateLimitError, AIUnavailableError } from "../ai.service";
+import type { OpenRouterService, Logger, ChatResponseDTO } from "../openrouter/openrouter.service";
+import { ThrottledError, ServiceUnavailableError, NetworkError } from "../openrouter/openrouter.service";
 
 describe("AIService", () => {
   let aiService: AIService;
@@ -53,8 +44,9 @@ describe("AIService", () => {
 
   describe("generateFlashcardsFromText", () => {
     it("should generate flashcards successfully (Happy Path)", async () => {
-      const mockResponse = {
+      const mockResponse: Partial<ChatResponseDTO> = {
         message: {
+          role: "assistant",
           content: JSON.stringify({
             cards: [
               { question: "Q1", answer: "A1" },
@@ -64,7 +56,7 @@ describe("AIService", () => {
         },
       };
 
-      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as any);
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
 
       const cards = await aiService.generateFlashcardsFromText("some text");
 
@@ -75,15 +67,16 @@ describe("AIService", () => {
     });
 
     it("should sanitize input by removing angle brackets", async () => {
-      const mockResponse = {
+      const mockResponse: Partial<ChatResponseDTO> = {
         message: {
+          role: "assistant",
           content: JSON.stringify({
             cards: [{ question: "Q1", answer: "A1" }],
           }),
         },
       };
 
-      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as any);
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
 
       await aiService.generateFlashcardsFromText("<b>Bold</b> Text");
 
@@ -100,15 +93,16 @@ describe("AIService", () => {
     });
 
     it("should respect requested max cards", async () => {
-      const mockResponse = {
+      const mockResponse: Partial<ChatResponseDTO> = {
         message: {
+          role: "assistant",
           content: JSON.stringify({
             cards: [{ question: "Q1", answer: "A1" }],
           }),
         },
       };
 
-      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as any);
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
 
       await aiService.generateFlashcardsFromText("text", 5);
 
@@ -122,15 +116,16 @@ describe("AIService", () => {
     });
 
     it("should clamp max cards to limits", async () => {
-      const mockResponse = {
+      const mockResponse: Partial<ChatResponseDTO> = {
         message: {
+          role: "assistant",
           content: JSON.stringify({
             cards: [{ question: "Q1", answer: "A1" }],
           }),
         },
       };
 
-      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as any);
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
 
       // Too high (limit is 50)
       await aiService.generateFlashcardsFromText("text", 100);
@@ -155,16 +150,16 @@ describe("AIService", () => {
 
     it("should throw AIParsingError when AI returns invalid JSON", async () => {
       vi.mocked(mockOpenRouter.generateChat).mockResolvedValue({
-        message: { content: "Not JSON" },
-      } as any);
+        message: { role: "assistant", content: "Not JSON" },
+      } as ChatResponseDTO);
 
       await expect(aiService.generateFlashcardsFromText("text")).rejects.toThrow(AIParsingError);
     });
 
     it("should throw AIParsingError when AI returns invalid schema", async () => {
       vi.mocked(mockOpenRouter.generateChat).mockResolvedValue({
-        message: { content: JSON.stringify({ wrong: "format" }) },
-      } as any);
+        message: { role: "assistant", content: JSON.stringify({ wrong: "format" }) },
+      } as ChatResponseDTO);
 
       await expect(aiService.generateFlashcardsFromText("text")).rejects.toThrow(AIParsingError);
     });
