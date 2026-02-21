@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import { loadEnv } from "vite";
+import process from "node:process";
 
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
