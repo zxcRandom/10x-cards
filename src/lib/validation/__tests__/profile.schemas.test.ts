@@ -31,7 +31,9 @@ describe("UpdateProfileSchema", () => {
     if (!result.success) {
       // Depending on Zod error structure, the custom message might be at a specific path or root
       // The schema defines path: ["restore"], so we check specifically for that issue
-      const issue = result.error.issues.find(i => i.path.includes("restore") && i.message === "restore field can only be true (or omitted)");
+      const issue = result.error.issues.find(
+        (i) => i.path.includes("restore") && i.message === "restore field can only be true (or omitted)"
+      );
       expect(issue).toBeDefined();
     }
   });
