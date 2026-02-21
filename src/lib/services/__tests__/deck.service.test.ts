@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@/db/supabase.client";
 import type { CreateDeckCommand } from "@/types";
 
 describe("DeckService.createDeck", () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockSupabase: any;
 
   beforeEach(() => {
@@ -64,8 +65,9 @@ describe("DeckService.createDeck", () => {
       error: mockError,
     });
 
-    await expect(DeckService.createDeck(userId, command, mockSupabase as SupabaseClient))
-      .rejects.toThrow("Failed to create deck: Database error");
+    await expect(DeckService.createDeck(userId, command, mockSupabase as SupabaseClient)).rejects.toThrow(
+      "Failed to create deck: Database error"
+    );
   });
 
   it("should throw an error when no data is returned", async () => {
@@ -74,7 +76,8 @@ describe("DeckService.createDeck", () => {
       error: null,
     });
 
-    await expect(DeckService.createDeck(userId, command, mockSupabase as SupabaseClient))
-      .rejects.toThrow("Deck creation failed: no data returned from database");
+    await expect(DeckService.createDeck(userId, command, mockSupabase as SupabaseClient)).rejects.toThrow(
+      "Deck creation failed: no data returned from database"
+    );
   });
 });
