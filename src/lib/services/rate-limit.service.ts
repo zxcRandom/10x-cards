@@ -1,18 +1,18 @@
 /**
- * Simple in-memory rate limiter for MVP
- * For production, use Redis or similar distributed cache
+ * Rate Limiting Service
+ *
+ * Provides rate limiting functionality using configurable storage backends.
+ * Supports InMemory (default) and Redis (via REDIS_URL env var).
  */
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
+import { InMemoryRateLimitStorage } from "./rate-limit/in-memory.storage";
+import { RedisRateLimitStorage } from "./rate-limit/redis.storage";
+import type { RateLimitStorage } from "./rate-limit/storage";
 
 /**
  * RateLimitService - Simple rate limiting for API endpoints
  *
- * MVP Implementation: Uses in-memory Map
- * Production TODO: Replace with Redis for distributed rate limiting
+ * Uses pluggable storage (InMemory for MVP/dev, Redis for production).
  */
 export class RateLimitService {
   private readonly limits = {
@@ -23,8 +23,23 @@ export class RateLimitService {
     authPasswordReset: { requests: 3, windowMs: 60 * 1000 }, // 3 req/min
   };
 
-  // In-memory storage (MVP only)
-  private storage = new Map<string, RateLimitEntry>();
+  private storage: RateLimitStorage;
+
+  constructor() {
+    // Check for Redis URL in environment variables
+    // Prefer process.env for Node/Serverless environments
+    const redisUrl = process.env.REDIS_URL;
+
+    if (redisUrl) {
+      // eslint-disable-next-line no-console
+      console.log("Initializing RateLimitService with Redis storage");
+      this.storage = new RedisRateLimitStorage(redisUrl);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log("Initializing RateLimitService with In-Memory storage (not suitable for serverless production)");
+      this.storage = new InMemoryRateLimitStorage();
+    }
+  }
 
   /**
    * Check if user has exceeded AI generation rate limit
@@ -34,27 +49,7 @@ export class RateLimitService {
    */
   async checkAIRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
     const key = `ai_gen:${userId}`;
-    const now = Date.now();
-    const limit = this.limits.aiGeneration;
-
-    const entry = this.storage.get(key);
-
-    // No entry or expired - allow request
-    if (!entry || entry.resetAt < now) {
-      return {
-        allowed: true,
-        remaining: limit.requests - 1,
-      };
-    }
-
-    // Check if limit exceeded
-    const remaining = Math.max(0, limit.requests - entry.count);
-    const resetInMs = Math.max(0, entry.resetAt - now);
-    return {
-      allowed: entry.count < limit.requests,
-      remaining,
-      resetInMs,
-    };
+    return this.checkRateLimit(key, "aiGeneration");
   }
 
   /**
@@ -64,24 +59,7 @@ export class RateLimitService {
    */
   async incrementAIRateLimit(userId: string): Promise<void> {
     const key = `ai_gen:${userId}`;
-    const now = Date.now();
-    const limit = this.limits.aiGeneration;
-
-    const entry = this.storage.get(key);
-
-    if (!entry || entry.resetAt < now) {
-      // Create new entry
-      this.storage.set(key, {
-        count: 1,
-        resetAt: now + limit.windowMs,
-      });
-    } else {
-      // Increment existing entry
-      entry.count++;
-    }
-
-    // Cleanup old entries (simple garbage collection)
-    this.cleanup();
+    await this.incrementRateLimit(key, "aiGeneration");
   }
 
   /**
@@ -93,19 +71,6 @@ export class RateLimitService {
   async getRemainingRequests(userId: string): Promise<number> {
     const result = await this.checkAIRateLimit(userId);
     return result.remaining;
-  }
-
-  /**
-   * Simple cleanup of expired entries
-   * Production: Use scheduled job with Redis TTL
-   */
-  private cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.storage.entries()) {
-      if (entry.resetAt < now) {
-        this.storage.delete(key);
-      }
-    }
   }
 
   /**
@@ -122,13 +87,13 @@ export class RateLimitService {
     const now = Date.now();
     const limit = this.limits[limitType];
 
-    const entry = this.storage.get(key);
+    const entry = await this.storage.get(key);
 
     // No entry or expired - allow request
     if (!entry || entry.resetAt < now) {
       return {
         allowed: true,
-        remaining: limit.requests - 1,
+        remaining: limit.requests - 1, // Expecting one request to be made
       };
     }
 
@@ -149,24 +114,8 @@ export class RateLimitService {
    * @param limitType - Type of limit to apply
    */
   private async incrementRateLimit(key: string, limitType: keyof typeof this.limits): Promise<void> {
-    const now = Date.now();
     const limit = this.limits[limitType];
-
-    const entry = this.storage.get(key);
-
-    if (!entry || entry.resetAt < now) {
-      // Create new entry
-      this.storage.set(key, {
-        count: 1,
-        resetAt: now + limit.windowMs,
-      });
-    } else {
-      // Increment existing entry
-      entry.count++;
-    }
-
-    // Cleanup old entries (simple garbage collection)
-    this.cleanup();
+    await this.storage.increment(key, limit.windowMs);
   }
 
   /**
