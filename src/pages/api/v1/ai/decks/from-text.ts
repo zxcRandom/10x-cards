@@ -6,6 +6,7 @@ import { DeckService } from "../../../../../lib/services/deck.service";
 import { CardService } from "../../../../../lib/services/card.service";
 import { AILogService } from "../../../../../lib/services/ai-log.service";
 import { RateLimitService } from "../../../../../lib/services/rate-limit.service";
+import { createAdminClient } from "../../../../../db/supabase.client";
 import type {
   AIDeckResponseDTO,
   ErrorResponse,
@@ -49,7 +50,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // STEP 2: Rate limiting
-    const rateLimitService = new RateLimitService();
+    const rateLimitService = new RateLimitService(createAdminClient(locals.runtime?.env));
     const rateLimit = await rateLimitService.checkAIRateLimit(user.id);
 
     if (!rateLimit.allowed) {

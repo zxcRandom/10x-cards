@@ -1,19 +1,16 @@
 /**
- * Simple in-memory rate limiter for MVP
- * For production, use Redis or similar distributed cache
+ * RateLimitService - Rate limiting for API endpoints using Supabase
+ *
+ * Uses Supabase RPC for atomic rate limiting.
  */
+
+import type { SupabaseClient } from "../../db/supabase.client";
 
 interface RateLimitEntry {
   count: number;
   resetAt: number;
 }
 
-/**
- * RateLimitService - Simple rate limiting for API endpoints
- *
- * MVP Implementation: Uses in-memory Map
- * Production TODO: Replace with Redis for distributed rate limiting
- */
 export class RateLimitService {
   private readonly limits = {
     aiGeneration: { requests: 10, windowMs: 60 * 1000 }, // 10 req/min
@@ -23,8 +20,7 @@ export class RateLimitService {
     authPasswordReset: { requests: 3, windowMs: 60 * 1000 }, // 3 req/min
   };
 
-  // In-memory storage (MVP only)
-  private storage = new Map<string, RateLimitEntry>();
+  constructor(private readonly supabase: SupabaseClient) {}
 
   /**
    * Check if user has exceeded AI generation rate limit
@@ -34,27 +30,7 @@ export class RateLimitService {
    */
   async checkAIRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
     const key = `ai_gen:${userId}`;
-    const now = Date.now();
-    const limit = this.limits.aiGeneration;
-
-    const entry = this.storage.get(key);
-
-    // No entry or expired - allow request
-    if (!entry || entry.resetAt < now) {
-      return {
-        allowed: true,
-        remaining: limit.requests - 1,
-      };
-    }
-
-    // Check if limit exceeded
-    const remaining = Math.max(0, limit.requests - entry.count);
-    const resetInMs = Math.max(0, entry.resetAt - now);
-    return {
-      allowed: entry.count < limit.requests,
-      remaining,
-      resetInMs,
-    };
+    return this.checkRateLimit(key, "aiGeneration");
   }
 
   /**
@@ -64,24 +40,7 @@ export class RateLimitService {
    */
   async incrementAIRateLimit(userId: string): Promise<void> {
     const key = `ai_gen:${userId}`;
-    const now = Date.now();
-    const limit = this.limits.aiGeneration;
-
-    const entry = this.storage.get(key);
-
-    if (!entry || entry.resetAt < now) {
-      // Create new entry
-      this.storage.set(key, {
-        count: 1,
-        resetAt: now + limit.windowMs,
-      });
-    } else {
-      // Increment existing entry
-      entry.count++;
-    }
-
-    // Cleanup old entries (simple garbage collection)
-    this.cleanup();
+    return this.incrementRateLimit(key, "aiGeneration");
   }
 
   /**
@@ -96,20 +55,7 @@ export class RateLimitService {
   }
 
   /**
-   * Simple cleanup of expired entries
-   * Production: Use scheduled job with Redis TTL
-   */
-  private cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.storage.entries()) {
-      if (entry.resetAt < now) {
-        this.storage.delete(key);
-      }
-    }
-  }
-
-  /**
-   * Generic rate limit check
+   * Generic rate limit check using Supabase RPC
    *
    * @param key - Rate limit key
    * @param limitType - Type of limit to apply
@@ -119,54 +65,73 @@ export class RateLimitService {
     key: string,
     limitType: keyof typeof this.limits
   ): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
-    const now = Date.now();
     const limit = this.limits[limitType];
+    const now = Date.now();
 
-    const entry = this.storage.get(key);
+    // Call Supabase RPC to check limit
+    const { data, error } = await this.supabase.rpc("check_rate_limit", { p_key: key });
 
-    // No entry or expired - allow request
-    if (!entry || entry.resetAt < now) {
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.error("[RateLimitService] Check failed:", error);
+      // Fail closed for security
+      throw new Error("Rate limit check failed");
+    }
+
+    // Parse result
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const row = Array.isArray(data) && data.length > 0 ? (data[0] as any) : null;
+
+    if (!row) {
+      // No entry, allow full limit
       return {
         allowed: true,
-        remaining: limit.requests - 1,
+        remaining: limit.requests,
       };
     }
 
-    // Check if limit exceeded
-    const remaining = Math.max(0, limit.requests - entry.count);
-    const resetInMs = Math.max(0, entry.resetAt - now);
+    const count = Number(row.count);
+    const resetAt = Number(row.reset_at);
+
+    // If expired, allow full limit (minus 1 effectively, but here we just check)
+    // Actually, if expired, count should be reset on next increment.
+    // For check, we can treat it as 0 used.
+    if (resetAt < now) {
+      return {
+        allowed: true,
+        remaining: limit.requests,
+      };
+    }
+
+    const remaining = Math.max(0, limit.requests - count);
+    const resetInMs = Math.max(0, resetAt - now);
+
     return {
-      allowed: entry.count < limit.requests,
+      allowed: count < limit.requests,
       remaining,
       resetInMs,
     };
   }
 
   /**
-   * Generic rate limit increment
+   * Generic rate limit increment using Supabase RPC
    *
    * @param key - Rate limit key
    * @param limitType - Type of limit to apply
    */
   private async incrementRateLimit(key: string, limitType: keyof typeof this.limits): Promise<void> {
-    const now = Date.now();
     const limit = this.limits[limitType];
 
-    const entry = this.storage.get(key);
+    const { error } = await this.supabase.rpc("increment_rate_limit", {
+      p_key: key,
+      p_window_ms: limit.windowMs,
+    });
 
-    if (!entry || entry.resetAt < now) {
-      // Create new entry
-      this.storage.set(key, {
-        count: 1,
-        resetAt: now + limit.windowMs,
-      });
-    } else {
-      // Increment existing entry
-      entry.count++;
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.error("[RateLimitService] Increment failed:", error);
+      throw new Error("Rate limit increment failed");
     }
-
-    // Cleanup old entries (simple garbage collection)
-    this.cleanup();
   }
 
   /**
