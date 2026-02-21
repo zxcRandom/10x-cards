@@ -2,10 +2,10 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { ConsoleLogger } from "../logger.service";
 
 describe("ConsoleLogger", () => {
-  const consoleDebugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
-  const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
-  const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-  const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  const consoleDebugSpy = vi.spyOn(console, "debug").mockImplementation(() => undefined);
+  const consoleInfoSpy = vi.spyOn(console, "info").mockImplementation(() => undefined);
+  const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+  const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
   afterEach(() => {
     vi.clearAllMocks();
