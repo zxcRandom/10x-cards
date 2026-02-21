@@ -8,7 +8,8 @@ import {
   ServiceUnavailableError,
   NetworkError,
 } from "./openrouter/openrouter.service";
-import type { Logger, ResponseFormat, ChatRequestDTO, ChatMessage } from "./openrouter/openrouter.service";
+import type { ResponseFormat, ChatRequestDTO, ChatMessage } from "./openrouter/openrouter.service";
+import { ConsoleLogger, type Logger } from "./logger.service";
 
 export interface GeneratedCard {
   question: string;
@@ -53,16 +54,7 @@ interface Dependencies {
   responseFormat?: ResponseFormat;
 }
 
-const defaultLogger: Logger = {
-  // eslint-disable-next-line no-console
-  debug: (message, meta) => console.debug(message, sanitizeMeta(meta)),
-  // eslint-disable-next-line no-console
-  info: (message, meta) => console.info(message, sanitizeMeta(meta)),
-  // eslint-disable-next-line no-console
-  warn: (message, meta) => console.warn(message, sanitizeMeta(meta)),
-  // eslint-disable-next-line no-console
-  error: (message, meta) => console.error(message, sanitizeMeta(meta)),
-};
+const defaultLogger = new ConsoleLogger(sanitizeMeta);
 
 const flashcardSchema = z.object({
   question: z.string().min(1),
