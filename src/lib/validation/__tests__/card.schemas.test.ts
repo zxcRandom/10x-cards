@@ -113,9 +113,7 @@ describe("updateCardSchema", () => {
     const result = updateCardSchema.safeParse(input);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe(
-        "At least one field (question or answer) must be provided"
-      );
+      expect(result.error.issues[0].message).toBe("At least one field (question or answer) must be provided");
     }
   });
 
