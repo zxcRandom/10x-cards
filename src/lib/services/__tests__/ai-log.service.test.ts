@@ -20,8 +20,8 @@ describe("AILogService", () => {
         from: mockFrom,
         insert: mockInsert,
         select: mockSelect,
-        single: mockSingle
-      }
+        single: mockSingle,
+      },
     };
   };
 
@@ -82,9 +82,7 @@ describe("AILogService", () => {
 
       mocks.single.mockResolvedValue({ data: null, error: dbError });
 
-      await expect(AILogService.createLog(client, logData))
-        .rejects
-        .toThrow("Failed to create AI log: Database error");
+      await expect(AILogService.createLog(client, logData)).rejects.toThrow("Failed to create AI log: Database error");
 
       expect(mocks.from).toHaveBeenCalledWith("ai_generation_logs");
     });
