@@ -45,7 +45,8 @@ export const GET: APIRoute = async ({ url, locals }) => {
     const validated = reviewsQuerySchema.parse(queryParams);
 
     // STEP 3: Build database query with filters
-    let query = locals.supabase.from("reviews").select("*").eq("user_id", user.id);
+    // Optimize: Get count in the same query
+    let query = locals.supabase.from("reviews").select("*", { count: "exact" }).eq("user_id", user.id);
 
     // Cache cardIds for reuse in count query (avoid duplicate DB call)
     let cardIds: string[] | null = null;
@@ -112,7 +113,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     query = query.range(validated.offset, validated.offset + validated.limit - 1);
 
     // STEP 4: Execute Query
-    const { data: reviews, error: reviewsError } = await query;
+    const { data: reviews, count, error: reviewsError } = await query;
 
     if (reviewsError) {
       // eslint-disable-next-line no-console
@@ -123,43 +124,6 @@ export const GET: APIRoute = async ({ url, locals }) => {
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to retrieve reviews",
             details: "Database query failed",
-          },
-        } satisfies ErrorResponse),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // STEP 5: Get total count for pagination
-    let countQuery = locals.supabase.from("reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id);
-
-    // Apply same filters to count query
-    if (validated.cardId) {
-      countQuery = countQuery.eq("card_id", validated.cardId);
-    }
-    if (validated.deckId && cardIds) {
-      // Reuse cached cardIds from earlier query (avoid duplicate DB call)
-      if (cardIds.length > 0) {
-        countQuery = countQuery.in("card_id", cardIds);
-      }
-    }
-    if (validated.from) {
-      countQuery = countQuery.gte("review_date", validated.from);
-    }
-    if (validated.to) {
-      countQuery = countQuery.lte("review_date", validated.to);
-    }
-
-    const { count, error: countError } = await countQuery;
-
-    if (countError) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to count reviews:", countError);
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to retrieve reviews",
-            details: "Count query failed",
           },
         } satisfies ErrorResponse),
         { status: 500, headers: { "Content-Type": "application/json" } }
