@@ -79,9 +79,7 @@ describe("getAIErrorMessage", () => {
     );
 
     const message = await getAIErrorMessage(response);
-    expect(message).toBe(
-      "Nie udało się przetworzyć odpowiedzi AI. Spróbuj skrócić tekst lub zmniejszyć liczbę kart."
-    );
+    expect(message).toBe("Nie udało się przetworzyć odpowiedzi AI. Spróbuj skrócić tekst lub zmniejszyć liczbę kart.");
   });
 
   it("should return correct message for 429", async () => {
@@ -101,9 +99,7 @@ describe("getAIErrorMessage", () => {
     });
 
     const message = await getAIErrorMessage(response);
-    expect(message).toBe(
-      "Usługa AI jest chwilowo niedostępna. Spróbuj ponownie za kilka minut."
-    );
+    expect(message).toBe("Usługa AI jest chwilowo niedostępna. Spróbuj ponownie za kilka minut.");
   });
 
   it("should return correct message for 500", async () => {
@@ -130,9 +126,7 @@ describe("getAIErrorMessage", () => {
     );
 
     const message = await getAIErrorMessage(response);
-    expect(message).toBe(
-      "Limit zapytań do usługi AI został osiągnięty. Spróbuj ponownie później."
-    );
+    expect(message).toBe("Limit zapytań do usługi AI został osiągnięty. Spróbuj ponownie później.");
   });
 
   it("should return default generic error message", async () => {

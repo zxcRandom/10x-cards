@@ -9,10 +9,7 @@
  */
 
 import { useState, useRef, useCallback } from "react";
-import type {
-  CreateAIDeckCommand,
-  AIDeckResponseDTO,
-} from "@/types";
+import type { CreateAIDeckCommand, AIDeckResponseDTO } from "@/types";
 import { getAIErrorMessage } from "@/lib/utils/ai-error-mapper";
 import type { AIGeneratorState } from "@/components/dashboard/types";
 

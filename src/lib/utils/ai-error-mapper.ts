@@ -1,8 +1,4 @@
-import type {
-  ErrorResponse,
-  ValidationErrorResponse,
-  UnprocessableErrorResponse,
-} from "@/types";
+import type { ErrorResponse, ValidationErrorResponse, UnprocessableErrorResponse } from "@/types";
 
 /**
  * Extracts a user-friendly error message from an AI generation API response.
