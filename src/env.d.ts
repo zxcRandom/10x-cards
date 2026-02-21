@@ -38,6 +38,9 @@ interface ImportMetaEnv {
   readonly AI_MAX_INPUT_LENGTH: string;
   readonly AI_DEFAULT_MAX_CARDS: string;
   readonly AI_MAX_CARDS_LIMIT: string;
+
+  // Rate Limiting
+  readonly REDIS_URL?: string;
 }
 
 interface ImportMeta {

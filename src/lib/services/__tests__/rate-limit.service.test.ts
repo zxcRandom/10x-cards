@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { RateLimitService } from "../rate-limit.service";
 import Redis from "ioredis";
 
@@ -16,10 +16,10 @@ vi.mock("ioredis", () => {
 describe("RateLimitService", () => {
   let service: RateLimitService;
   // Access mock methods
-  const mockGet = Redis.prototype.get as any;
-  const mockIncr = Redis.prototype.incr as any;
-  const mockPttl = Redis.prototype.pttl as any;
-  const mockPexpire = Redis.prototype.pexpire as any;
+  const mockGet = Redis.prototype.get as Mock;
+  const mockIncr = Redis.prototype.incr as Mock;
+  const mockPttl = Redis.prototype.pttl as Mock;
+  const mockPexpire = Redis.prototype.pexpire as Mock;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -28,7 +28,9 @@ describe("RateLimitService", () => {
   describe("In-memory fallback (No Redis URL)", () => {
     beforeEach(() => {
       // Ensure Redis is not used
-      (RateLimitService as any).redisInstance = null;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - Private property access
+      RateLimitService.redisInstance = null;
       service = new RateLimitService(undefined);
     });
 
@@ -53,12 +55,17 @@ describe("RateLimitService", () => {
   describe("Redis implementation", () => {
     beforeEach(() => {
       // Reset static instance to force new connection
-      (RateLimitService as any).redisInstance = null;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - Private property access
+      RateLimitService.redisInstance = null;
       service = new RateLimitService("redis://localhost:6379");
     });
 
     it("should initialize Redis client", () => {
-      expect(Redis).toHaveBeenCalledWith("redis://localhost:6379");
+      expect(Redis).toHaveBeenCalledWith("redis://localhost:6379", {
+        enableOfflineQueue: false,
+        commandTimeout: 2000,
+      });
     });
 
     it("should check limit using Redis", async () => {
@@ -93,7 +100,7 @@ describe("RateLimitService", () => {
     it("should fallback to memory on Redis error", async () => {
       mockGet.mockRejectedValue(new Error("Redis down"));
 
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
       const result = await service.checkAIRateLimit("user1");
 

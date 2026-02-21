@@ -32,7 +32,10 @@ export class RateLimitService {
   constructor(redisUrl?: string) {
     if (redisUrl) {
       if (!RateLimitService.redisInstance) {
-        RateLimitService.redisInstance = new Redis(redisUrl);
+        RateLimitService.redisInstance = new Redis(redisUrl, {
+          enableOfflineQueue: false, // Fail fast if Redis is down
+          commandTimeout: 2000, // Timeout after 2 seconds
+        });
         // Handle error to prevent crash
         RateLimitService.redisInstance.on("error", (err) => {
           // eslint-disable-next-line no-console
