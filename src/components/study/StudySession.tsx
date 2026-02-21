@@ -49,7 +49,7 @@ export default function StudySession({ deckId }: StudySessionProps) {
     } else if (error) {
       setState("error");
     } else if (cards.length === 0) {
-      setState("done");
+      setState("ready");
     } else {
       setState("ready");
     }
