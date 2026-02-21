@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GET } from '../reviews';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { GET } from "../reviews";
 
-describe('GET /api/v1/reviews', () => {
-  const mockUser = { id: 'user-123', email: 'test@example.com' };
+describe("GET /api/v1/reviews", () => {
+  const mockUser = { id: "user-123", email: "test@example.com" };
 
   let mockSupabase: any;
   let mockLocals: any;
@@ -21,7 +22,7 @@ describe('GET /api/v1/reviews', () => {
       range: vi.fn().mockReturnThis(),
       // Mock the promise behavior
       then: vi.fn().mockImplementation((resolve) => {
-         return Promise.resolve({ data: [], count: 0, error: null }).then(resolve);
+        return Promise.resolve({ data: [], count: 0, error: null }).then(resolve);
       }),
     };
 
@@ -29,7 +30,8 @@ describe('GET /api/v1/reviews', () => {
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: mockUser }, error: null }),
       },
-      from: vi.fn().mockImplementation((table) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      from: vi.fn().mockImplementation((_table) => {
         return queryBuilder;
       }),
     };
@@ -39,12 +41,12 @@ describe('GET /api/v1/reviews', () => {
     };
   });
 
-  it('should use JOIN query instead of separate fetch when filtering by deckId', async () => {
-    mockUrl = new URL('http://localhost:3000/api/v1/reviews?deckId=00000000-0000-0000-0000-000000000001');
+  it("should use JOIN query instead of separate fetch when filtering by deckId", async () => {
+    mockUrl = new URL("http://localhost:3000/api/v1/reviews?deckId=00000000-0000-0000-0000-000000000001");
     const context = {
-        url: mockUrl,
-        locals: mockLocals,
-        request: new Request(mockUrl),
+      url: mockUrl,
+      locals: mockLocals,
+      request: new Request(mockUrl),
     } as any;
 
     // We verify that we DON'T query 'cards' table directly
@@ -54,28 +56,23 @@ describe('GET /api/v1/reviews', () => {
 
     // Check that we did NOT call `from('cards')`
     const calledTables = fromSpy.mock.calls.map((args: any[]) => args[0]);
-    const cardsTableCalled = calledTables.includes('cards');
+    const cardsTableCalled = calledTables.includes("cards");
 
     expect(cardsTableCalled).toBe(false);
 
     // Check that select includes the join
-    expect(queryBuilder.select).toHaveBeenCalledWith(
-      expect.stringContaining('cards!inner(deck_id)')
-    );
+    expect(queryBuilder.select).toHaveBeenCalledWith(expect.stringContaining("cards!inner(deck_id)"));
 
     // Check that we filter by the joined table column
-    expect(queryBuilder.eq).toHaveBeenCalledWith(
-        'cards.deck_id',
-        '00000000-0000-0000-0000-000000000001'
-    );
+    expect(queryBuilder.eq).toHaveBeenCalledWith("cards.deck_id", "00000000-0000-0000-0000-000000000001");
   });
 
-  it('should not use JOIN query when deckId is not provided', async () => {
-    mockUrl = new URL('http://localhost:3000/api/v1/reviews');
+  it("should not use JOIN query when deckId is not provided", async () => {
+    mockUrl = new URL("http://localhost:3000/api/v1/reviews");
     const context = {
-        url: mockUrl,
-        locals: mockLocals,
-        request: new Request(mockUrl),
+      url: mockUrl,
+      locals: mockLocals,
+      request: new Request(mockUrl),
     } as any;
 
     await GET(context);
@@ -86,7 +83,7 @@ describe('GET /api/v1/reviews', () => {
 
     // We need to check all calls to select
     const selectCalls = queryBuilder.select.mock.calls.map((args: any[]) => args[0]);
-    const hasJoin = selectCalls.some((arg: string) => arg && arg.includes('cards!inner'));
+    const hasJoin = selectCalls.some((arg: string) => arg && arg.includes("cards!inner"));
 
     expect(hasJoin).toBe(false);
   });
