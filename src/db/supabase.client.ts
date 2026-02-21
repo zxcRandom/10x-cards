@@ -45,9 +45,7 @@ function getSupabaseAnonKey(runtimeEnv?: Record<string, unknown>): string {
  * In Cloudflare Workers/Pages, use runtime env; in dev, use import.meta.env
  */
 function getSupabaseServiceRoleKey(runtimeEnv?: Record<string, unknown>): string {
-  const key =
-    (runtimeEnv?.SUPABASE_SERVICE_ROLE_KEY as string) ||
-    import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = (runtimeEnv?.SUPABASE_SERVICE_ROLE_KEY as string) || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!key) {
     throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable.");

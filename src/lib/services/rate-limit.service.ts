@@ -6,11 +6,6 @@
 
 import type { SupabaseClient } from "../../db/supabase.client";
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
 export class RateLimitService {
   private readonly limits = {
     aiGeneration: { requests: 10, windowMs: 60 * 1000 }, // 10 req/min
