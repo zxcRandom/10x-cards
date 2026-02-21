@@ -1,5 +1,6 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Mock } from "vitest";
 import StudySession from "../StudySession";
 import { useDueCards } from "@/components/hooks/useDueCards";
 import { useReviewSubmit } from "@/components/hooks/useReviewSubmit";
@@ -44,14 +45,14 @@ describe("StudySession", () => {
     vi.clearAllMocks();
 
     // Default mock implementation for useReviewSubmit
-    (useReviewSubmit as any).mockReturnValue({
+    (useReviewSubmit as Mock).mockReturnValue({
       isSubmitting: false,
       submitReview: mockSubmitReview,
     });
   });
 
   it("renders loading state initially", () => {
-    (useDueCards as any).mockReturnValue({
+    (useDueCards as Mock).mockReturnValue({
       cards: [],
       loading: true,
       error: undefined,
@@ -69,7 +70,7 @@ describe("StudySession", () => {
       message: "Test error message",
     };
 
-    (useDueCards as any).mockReturnValue({
+    (useDueCards as Mock).mockReturnValue({
       cards: [],
       loading: false,
       error: mockError,
@@ -90,7 +91,7 @@ describe("StudySession", () => {
   });
 
   it("renders empty state when no cards are due", () => {
-    (useDueCards as any).mockReturnValue({
+    (useDueCards as Mock).mockReturnValue({
       cards: [],
       loading: false,
       error: undefined,
@@ -102,7 +103,7 @@ describe("StudySession", () => {
   });
 
   it("renders active session with the first card", () => {
-    (useDueCards as any).mockReturnValue({
+    (useDueCards as Mock).mockReturnValue({
       cards: mockCards,
       loading: false,
       error: undefined,
@@ -126,7 +127,7 @@ describe("StudySession", () => {
   });
 
   it("shows answer and review controls when requested", () => {
-    (useDueCards as any).mockReturnValue({
+    (useDueCards as Mock).mockReturnValue({
       cards: mockCards,
       loading: false,
       error: undefined,
@@ -152,7 +153,7 @@ describe("StudySession", () => {
   });
 
   it("submits review and moves to next card", async () => {
-    (useDueCards as any).mockReturnValue({
+    (useDueCards as Mock).mockReturnValue({
       cards: mockCards,
       loading: false,
       error: undefined,
@@ -188,7 +189,7 @@ describe("StudySession", () => {
     // Only one card for this test
     const singleCard = [mockCards[0]];
 
-    (useDueCards as any).mockReturnValue({
+    (useDueCards as Mock).mockReturnValue({
       cards: singleCard,
       loading: false,
       error: undefined,
