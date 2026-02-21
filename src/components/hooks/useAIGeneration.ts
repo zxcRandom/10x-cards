@@ -12,10 +12,8 @@ import { useState, useRef, useCallback } from "react";
 import type {
   CreateAIDeckCommand,
   AIDeckResponseDTO,
-  ErrorResponse,
-  ValidationErrorResponse,
-  UnprocessableErrorResponse,
 } from "@/types";
+import { getAIErrorMessage } from "@/lib/utils/ai-error-mapper";
 import type { AIGeneratorState } from "@/components/dashboard/types";
 
 interface UseAIGenerationResult {
@@ -60,55 +58,8 @@ export function useAIGeneration(): UseAIGenerationResult {
       });
 
       if (!response.ok) {
-        // Handle different error status codes
-        const contentType = response.headers.get("content-type");
-
-        if (contentType?.includes("application/json")) {
-          const errorData = await response.json();
-          const errorCode = errorData?.error?.code;
-
-          switch (response.status) {
-            case 400: {
-              // Validation error
-              const validationError = errorData as ValidationErrorResponse;
-              setError(validationError.error.message || "Błąd walidacji danych");
-              break;
-            }
-            case 401:
-              setError("Wymagane zalogowanie");
-              break;
-            case 422: {
-              // AI processing error
-              const processingError = errorData as UnprocessableErrorResponse;
-              setError(
-                processingError.error.message ||
-                  "Nie udało się przetworzyć odpowiedzi AI. Spróbuj skrócić tekst lub zmniejszyć liczbę kart."
-              );
-              break;
-            }
-            case 429:
-              setError("Przekroczono limit żądań. Spróbuj ponownie później.");
-              break;
-            case 503:
-              setError("Usługa AI jest chwilowo niedostępna. Spróbuj ponownie za kilka minut.");
-              break;
-            case 500:
-            case 504:
-              setError(
-                errorCode === "TOO_MANY_REQUESTS"
-                  ? "Limit zapytań do usługi AI został osiągnięty. Spróbuj ponownie później."
-                  : "Wystąpił błąd serwera. Spróbuj ponownie później."
-              );
-              break;
-            default: {
-              const genericError = errorData as ErrorResponse;
-              setError(genericError.error.message || "Wystąpił nieoczekiwany błąd");
-            }
-          }
-        } else {
-          setError("Wystąpił błąd serwera");
-        }
-
+        const errorMessage = await getAIErrorMessage(response);
+        setError(errorMessage);
         setState("error");
         return null;
       }
