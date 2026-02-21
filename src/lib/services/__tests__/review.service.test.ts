@@ -51,7 +51,8 @@ describe("ReviewService", () => {
       // Mock card fetch
       mockSupabase.queryBuilder.single
         .mockResolvedValueOnce({ data: validCard, error: null }) // select card
-        .mockResolvedValueOnce({ // insert review
+        .mockResolvedValueOnce({
+          // insert review
           data: {
             id: "review-1",
             card_id: cardId,
@@ -61,7 +62,8 @@ describe("ReviewService", () => {
           },
           error: null,
         })
-        .mockResolvedValueOnce({ // update card
+        .mockResolvedValueOnce({
+          // update card
           data: {
             ...validCard,
             repetitions: 1,
@@ -71,28 +73,27 @@ describe("ReviewService", () => {
           error: null,
         });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(mockSupabase.client.from).toHaveBeenCalledWith("cards");
       expect(mockSupabase.queryBuilder.select).toHaveBeenCalled();
       expect(mockSupabase.queryBuilder.eq).toHaveBeenCalledWith("id", cardId);
 
       expect(mockSupabase.client.from).toHaveBeenCalledWith("reviews");
-      expect(mockSupabase.queryBuilder.insert).toHaveBeenCalledWith(expect.objectContaining({
-        card_id: cardId,
-        user_id: userId,
-        grade: 4,
-      }));
+      expect(mockSupabase.queryBuilder.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          card_id: cardId,
+          user_id: userId,
+          grade: 4,
+        })
+      );
 
       expect(mockSupabase.client.from).toHaveBeenCalledWith("cards");
-      expect(mockSupabase.queryBuilder.update).toHaveBeenCalledWith(expect.objectContaining({
-        repetitions: 1,
-      }));
+      expect(mockSupabase.queryBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repetitions: 1,
+        })
+      );
 
       expect(result).not.toHaveProperty("error");
       if (!("error" in result)) {
@@ -110,7 +111,8 @@ describe("ReviewService", () => {
       // Mock card fetch
       mockSupabase.queryBuilder.single
         .mockResolvedValueOnce({ data: validCard, error: null }) // select card
-        .mockResolvedValueOnce({ // insert review
+        .mockResolvedValueOnce({
+          // insert review
           data: {
             id: "review-2",
             card_id: cardId,
@@ -120,7 +122,8 @@ describe("ReviewService", () => {
           },
           error: null,
         })
-        .mockResolvedValueOnce({ // update card
+        .mockResolvedValueOnce({
+          // update card
           data: {
             ...validCard,
             repetitions: 0,
@@ -130,17 +133,14 @@ describe("ReviewService", () => {
           error: null,
         });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        failedCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, failedCommand);
 
-      expect(mockSupabase.queryBuilder.update).toHaveBeenCalledWith(expect.objectContaining({
-        repetitions: 0,
-        interval_days: 1,
-      }));
+      expect(mockSupabase.queryBuilder.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repetitions: 0,
+          interval_days: 1,
+        })
+      );
 
       expect(result).not.toHaveProperty("error");
     });
@@ -148,12 +148,7 @@ describe("ReviewService", () => {
     it("should return CARD_NOT_FOUND if card does not exist", async () => {
       mockSupabase.queryBuilder.single.mockResolvedValueOnce({ data: null, error: null });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "CARD_NOT_FOUND" });
     });
@@ -164,12 +159,7 @@ describe("ReviewService", () => {
         error: { message: "DB Error", code: "500" },
       });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "CARD_NOT_FOUND" });
     });
@@ -182,12 +172,7 @@ describe("ReviewService", () => {
 
       mockSupabase.queryBuilder.single.mockResolvedValueOnce({ data: invalidOwnerCard, error: null });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "FORBIDDEN" });
     });
@@ -200,12 +185,7 @@ describe("ReviewService", () => {
 
       mockSupabase.queryBuilder.single.mockResolvedValueOnce({ data: invalidStructureCard, error: null });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "DATABASE_ERROR" });
     });
@@ -213,17 +193,13 @@ describe("ReviewService", () => {
     it("should return UNPROCESSABLE_ENTITY if review insert fails", async () => {
       mockSupabase.queryBuilder.single
         .mockResolvedValueOnce({ data: validCard, error: null }) // select card
-        .mockResolvedValueOnce({ // insert review
+        .mockResolvedValueOnce({
+          // insert review
           data: null,
           error: { message: "Insert Failed", code: "500" },
         });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "UNPROCESSABLE_ENTITY" });
     });
@@ -231,17 +207,13 @@ describe("ReviewService", () => {
     it("should return DATABASE_ERROR if review insert returns no data", async () => {
       mockSupabase.queryBuilder.single
         .mockResolvedValueOnce({ data: validCard, error: null }) // select card
-        .mockResolvedValueOnce({ // insert review
+        .mockResolvedValueOnce({
+          // insert review
           data: null,
           error: null,
         });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "DATABASE_ERROR" });
     });
@@ -249,21 +221,18 @@ describe("ReviewService", () => {
     it("should return UNPROCESSABLE_ENTITY if card update fails", async () => {
       mockSupabase.queryBuilder.single
         .mockResolvedValueOnce({ data: validCard, error: null }) // select card
-        .mockResolvedValueOnce({ // insert review
+        .mockResolvedValueOnce({
+          // insert review
           data: { id: "review-1", ...validReviewCommand, card_id: cardId, user_id: userId },
           error: null,
         })
-        .mockResolvedValueOnce({ // update card
+        .mockResolvedValueOnce({
+          // update card
           data: null,
           error: { message: "Update Failed", code: "500" },
         });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "UNPROCESSABLE_ENTITY" });
     });
@@ -271,21 +240,18 @@ describe("ReviewService", () => {
     it("should return DATABASE_ERROR if card update returns no data", async () => {
       mockSupabase.queryBuilder.single
         .mockResolvedValueOnce({ data: validCard, error: null }) // select card
-        .mockResolvedValueOnce({ // insert review
+        .mockResolvedValueOnce({
+          // insert review
           data: { id: "review-1", ...validReviewCommand, card_id: cardId, user_id: userId },
           error: null,
         })
-        .mockResolvedValueOnce({ // update card
+        .mockResolvedValueOnce({
+          // update card
           data: null,
           error: null,
         });
 
-      const result = await ReviewService.createReview(
-        mockSupabase.client,
-        cardId,
-        userId,
-        validReviewCommand
-      );
+      const result = await ReviewService.createReview(mockSupabase.client, cardId, userId, validReviewCommand);
 
       expect(result).toEqual({ error: "DATABASE_ERROR" });
     });
