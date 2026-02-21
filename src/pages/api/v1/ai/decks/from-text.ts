@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // STEP 2: Rate limiting
-    const rateLimitService = new RateLimitService();
+    const rateLimitService = new RateLimitService(locals.runtime?.env?.REDIS_URL as string | undefined);
     const rateLimit = await rateLimitService.checkAIRateLimit(user.id);
 
     if (!rateLimit.allowed) {

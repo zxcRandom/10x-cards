@@ -1,3 +1,5 @@
+import Redis from "ioredis";
+
 /**
  * Simple in-memory rate limiter for MVP
  * For production, use Redis or similar distributed cache
@@ -9,12 +11,12 @@ interface RateLimitEntry {
 }
 
 /**
- * RateLimitService - Simple rate limiting for API endpoints
+ * RateLimitService - Rate limiting for API endpoints
  *
- * MVP Implementation: Uses in-memory Map
- * Production TODO: Replace with Redis for distributed rate limiting
+ * Uses Redis if configured, otherwise falls back to in-memory Map
  */
 export class RateLimitService {
+  private static redisInstance: Redis | null = null;
   private readonly limits = {
     aiGeneration: { requests: 10, windowMs: 60 * 1000 }, // 10 req/min
     aiLogs: { requests: 100, windowMs: 60 * 1000 }, // 100 req/min
@@ -23,8 +25,109 @@ export class RateLimitService {
     authPasswordReset: { requests: 3, windowMs: 60 * 1000 }, // 3 req/min
   };
 
-  // In-memory storage (MVP only)
+  // In-memory storage (fallback)
   private storage = new Map<string, RateLimitEntry>();
+  private useRedis = false;
+
+  constructor(redisUrl?: string) {
+    if (redisUrl) {
+      if (!RateLimitService.redisInstance) {
+        RateLimitService.redisInstance = new Redis(redisUrl);
+        // Handle error to prevent crash
+        RateLimitService.redisInstance.on("error", (err) => {
+          // eslint-disable-next-line no-console
+          console.error("Redis error:", err);
+        });
+      }
+      this.useRedis = true;
+    }
+  }
+
+  /**
+   * Generic rate limit check helper
+   */
+  private async checkLimit(
+    key: string,
+    maxRequests: number,
+    windowMs: number
+  ): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
+    if (this.useRedis && RateLimitService.redisInstance) {
+      try {
+        const countStr = await RateLimitService.redisInstance.get(key);
+        const count = countStr ? parseInt(countStr, 10) : 0;
+        const ttl = await RateLimitService.redisInstance.pttl(key);
+
+        // If key exists but no TTL (should not happen with correct logic), set it
+        if (count > 0 && ttl === -1) {
+          await RateLimitService.redisInstance.pexpire(key, windowMs);
+        }
+
+        const resetInMs = ttl > 0 ? ttl : 0;
+        const remaining = Math.max(0, maxRequests - count);
+
+        return {
+          allowed: count < maxRequests,
+          remaining,
+          resetInMs,
+        };
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Redis check error, falling back to memory:", error);
+        // Fallback to memory
+      }
+    }
+
+    // In-memory implementation
+    const now = Date.now();
+    const entry = this.storage.get(key);
+
+    if (!entry || entry.resetAt < now) {
+      return {
+        allowed: true,
+        remaining: maxRequests - 1,
+      };
+    }
+
+    const remaining = Math.max(0, maxRequests - entry.count);
+    const resetInMs = Math.max(0, entry.resetAt - now);
+    return {
+      allowed: entry.count < maxRequests,
+      remaining,
+      resetInMs,
+    };
+  }
+
+  /**
+   * Generic rate limit increment helper
+   */
+  private async incrementLimit(key: string, windowMs: number): Promise<void> {
+    if (this.useRedis && RateLimitService.redisInstance) {
+      try {
+        const count = await RateLimitService.redisInstance.incr(key);
+        if (count === 1) {
+          await RateLimitService.redisInstance.pexpire(key, windowMs);
+        }
+        return;
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Redis increment error, falling back to memory:", error);
+      }
+    }
+
+    // In-memory implementation
+    const now = Date.now();
+    const entry = this.storage.get(key);
+
+    if (!entry || entry.resetAt < now) {
+      this.storage.set(key, {
+        count: 1,
+        resetAt: now + windowMs,
+      });
+    } else {
+      entry.count++;
+    }
+    this.cleanup();
+  }
 
   /**
    * Check if user has exceeded AI generation rate limit
@@ -34,27 +137,8 @@ export class RateLimitService {
    */
   async checkAIRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
     const key = `ai_gen:${userId}`;
-    const now = Date.now();
     const limit = this.limits.aiGeneration;
-
-    const entry = this.storage.get(key);
-
-    // No entry or expired - allow request
-    if (!entry || entry.resetAt < now) {
-      return {
-        allowed: true,
-        remaining: limit.requests - 1,
-      };
-    }
-
-    // Check if limit exceeded
-    const remaining = Math.max(0, limit.requests - entry.count);
-    const resetInMs = Math.max(0, entry.resetAt - now);
-    return {
-      allowed: entry.count < limit.requests,
-      remaining,
-      resetInMs,
-    };
+    return this.checkLimit(key, limit.requests, limit.windowMs);
   }
 
   /**
@@ -64,24 +148,8 @@ export class RateLimitService {
    */
   async incrementAIRateLimit(userId: string): Promise<void> {
     const key = `ai_gen:${userId}`;
-    const now = Date.now();
     const limit = this.limits.aiGeneration;
-
-    const entry = this.storage.get(key);
-
-    if (!entry || entry.resetAt < now) {
-      // Create new entry
-      this.storage.set(key, {
-        count: 1,
-        resetAt: now + limit.windowMs,
-      });
-    } else {
-      // Increment existing entry
-      entry.count++;
-    }
-
-    // Cleanup old entries (simple garbage collection)
-    this.cleanup();
+    await this.incrementLimit(key, limit.windowMs);
   }
 
   /**
@@ -100,6 +168,8 @@ export class RateLimitService {
    * Production: Use scheduled job with Redis TTL
    */
   private cleanup(): void {
+    if (this.useRedis) return;
+
     const now = Date.now();
     for (const [key, entry] of this.storage.entries()) {
       if (entry.resetAt < now) {
@@ -119,27 +189,8 @@ export class RateLimitService {
     key: string,
     limitType: keyof typeof this.limits
   ): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
-    const now = Date.now();
     const limit = this.limits[limitType];
-
-    const entry = this.storage.get(key);
-
-    // No entry or expired - allow request
-    if (!entry || entry.resetAt < now) {
-      return {
-        allowed: true,
-        remaining: limit.requests - 1,
-      };
-    }
-
-    // Check if limit exceeded
-    const remaining = Math.max(0, limit.requests - entry.count);
-    const resetInMs = Math.max(0, entry.resetAt - now);
-    return {
-      allowed: entry.count < limit.requests,
-      remaining,
-      resetInMs,
-    };
+    return this.checkLimit(key, limit.requests, limit.windowMs);
   }
 
   /**
@@ -149,24 +200,8 @@ export class RateLimitService {
    * @param limitType - Type of limit to apply
    */
   private async incrementRateLimit(key: string, limitType: keyof typeof this.limits): Promise<void> {
-    const now = Date.now();
     const limit = this.limits[limitType];
-
-    const entry = this.storage.get(key);
-
-    if (!entry || entry.resetAt < now) {
-      // Create new entry
-      this.storage.set(key, {
-        count: 1,
-        resetAt: now + limit.windowMs,
-      });
-    } else {
-      // Increment existing entry
-      entry.count++;
-    }
-
-    // Cleanup old entries (simple garbage collection)
-    this.cleanup();
+    await this.incrementLimit(key, limit.windowMs);
   }
 
   /**

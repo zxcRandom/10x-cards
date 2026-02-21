@@ -22,9 +22,8 @@ import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
-const rateLimiter = new RateLimitService();
-
 export const POST: APIRoute = async ({ request, locals }) => {
+  const rateLimiter = new RateLimitService(locals.runtime?.env?.REDIS_URL as string | undefined);
   try {
     // 1. Parse request body
     let body: unknown;
