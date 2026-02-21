@@ -115,9 +115,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // STEP 4: Generate cards using AI
-    // eslint-disable-next-line no-console
-    console.log(`� AI generation for user ${user.id}, maxCards: ${validated.maxCards}`);
-
     const generatedCards = await aiService.generateFlashcardsFromText(validated.inputText, validated.maxCards);
 
     // STEP 5: Create deck and cards in database
@@ -158,8 +155,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
       await rateLimitService.incrementAIRateLimit(user.id);
 
       const duration = Date.now() - startTime;
-      // eslint-disable-next-line no-console
-      console.log(`✅ AI generation completed in ${duration}ms: ${cards.length} cards created`);
 
       // STEP 6: Return success response
       const response: AIDeckResponseDTO = {
