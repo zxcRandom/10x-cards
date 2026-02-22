@@ -60,6 +60,31 @@ export const GET: APIRoute = async ({ url, locals }) => {
 
     // deckId filter via JOIN
     if (validated.deckId) {
+      // SECURITY CHECK: Ensure deck belongs to user before fetching reviews
+      // This adds defense-in-depth on top of RLS
+      const { data: deck, error: deckError } = await locals.supabase
+        .from("decks")
+        .select("id")
+        .eq("id", validated.deckId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (deckError || !deck) {
+        // Deck not found or doesn't belong to user
+        // Return empty result instead of error to avoid leaking existence
+        const emptyResponse: ReviewsListDTO = {
+          items: [],
+          total: 0,
+          limit: validated.limit,
+          offset: validated.offset,
+        };
+        return new Response(JSON.stringify(emptyResponse), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Add filter for the joined table
       query = query.eq("cards.deck_id", validated.deckId);
     }
 
