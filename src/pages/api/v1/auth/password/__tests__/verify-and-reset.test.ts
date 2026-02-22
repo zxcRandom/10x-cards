@@ -1,6 +1,35 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../verify-and-reset";
+import { RateLimitService } from "@/lib/services/rate-limit.service";
+
+// Mock Supabase client
+vi.mock("@/db/supabase.client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/db/supabase.client")>();
+  return {
+    ...actual,
+    createAdminClient: vi.fn().mockReturnValue({}),
+  };
+});
+
+// Shared mocks for persistence across instances
+const mockCheck = vi.fn()
+  .mockResolvedValueOnce({ allowed: true, remaining: 2 })
+  .mockResolvedValueOnce({ allowed: true, remaining: 1 })
+  .mockResolvedValueOnce({ allowed: true, remaining: 0 })
+  .mockResolvedValue({ allowed: false, remaining: 0, resetInMs: 60000 });
+
+const mockIncrement = vi.fn().mockResolvedValue(undefined);
+
+// Mock RateLimitService
+vi.mock("@/lib/services/rate-limit.service", () => {
+  return {
+    RateLimitService: class {
+      checkPasswordResetRateLimit = mockCheck;
+      incrementPasswordResetRateLimit = mockIncrement;
+    }
+  };
+});
 
 // Mock Supabase locals
 const mockVerifyOtp = vi.fn();
