@@ -5,8 +5,6 @@
  * These types extend or complement the API DTOs from @/types.
  */
 
-import type { DeckDTO } from "@/types";
-
 /**
  * Review card view model
  * Extends CardDTO with UI-specific state for the review process
@@ -60,59 +58,6 @@ export interface EditCardFormErrors {
 }
 
 /**
- * Save plan - describes what will happen on save
- * Used for validation and preview before executing save
- */
-export interface SavePlan {
-  mode: DeckDestinationMode;
-  targetDeckId: string | null; // Deck where cards will be saved
-  targetDeckName: string; // Name of target deck
-  cardsToSave: ReviewCardVM[]; // Cards that will be saved
-  cardsToUpdate: ReviewCardVM[]; // Cards that need PATCH (edited)
-  cardsToDelete: ReviewCardVM[]; // Cards to delete (not selected)
-  cardsToCreate: ReviewCardVM[]; // Cards to create in existing deck
-  deckNameChanged: boolean; // Whether source deck name will be updated
-  willDeleteSourceDeck: boolean; // Whether source deck will be deleted (if emptied)
-}
-
-/**
  * Review state for the entire view
  */
 export type ReviewState = "idle" | "loading" | "saving" | "error";
-
-/**
- * Complete component state for ReviewAICardsView
- */
-export interface ReviewComponentState {
-  // Data
-  sourceDeckId: string; // Original deck created by AI
-  sourceDeckName: string; // Original deck name
-  cards: ReviewCardVM[]; // All cards being reviewed
-
-  // Destination
-  destination: DeckDestinationVM;
-
-  // Available decks for selection
-  availableDecks: DeckDTO[];
-  availableDecksLoading: boolean;
-
-  // UI state
-  state: ReviewState;
-  errorMessage?: string;
-
-  // Dirty tracking
-  hasUnsavedChanges: boolean;
-}
-
-/**
- * Initial data for review view
- * Can come from navigation state or API fetch
- */
-export interface ReviewInitialData {
-  deck: DeckDTO;
-  cards: {
-    id: string;
-    question: string;
-    answer: string;
-  }[];
-}

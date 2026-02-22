@@ -222,11 +222,6 @@ export interface UpdateDeckCommand {
   name?: string;
 }
 
-/**
- * Deck Deleted DTO - DELETE /api/v1/decks/{deckId}
- */
-export type DeckDeletedDTO = DeletedDTO;
-
 // =============================================================================
 // Card DTOs and Commands
 // =============================================================================
@@ -278,11 +273,6 @@ export interface UpdateCardCommand {
   question?: string;
   answer?: string;
 }
-
-/**
- * Card Deleted DTO - DELETE /api/v1/cards/{cardId}
- */
-export type CardDeletedDTO = DeletedDTO;
 
 // =============================================================================
 // Review DTOs and Commands
@@ -403,64 +393,6 @@ export interface HealthDTO {
 }
 
 // =============================================================================
-// Auth DTOs and Commands
-// =============================================================================
-
-/**
- * Sign In Command - POST /api/v1/auth/sign-in
- */
-export interface SignInCommand {
-  email: string;
-  password: string;
-}
-
-/**
- * Sign Up Command - POST /api/v1/auth/sign-up
- */
-export interface SignUpCommand {
-  email: string;
-  password: string;
-}
-
-/**
- * Password Reset Request Command - POST /api/v1/auth/password/request-reset
- */
-export interface PasswordResetRequestCommand {
-  email: string;
-}
-
-/**
- * Password Reset Command - POST /api/v1/auth/password/reset
- */
-export interface PasswordResetCommand {
-  newPassword: string;
-}
-
-/**
- * Change Password Command - POST /api/v1/auth/password/change
- */
-export interface ChangePasswordCommand {
-  currentPassword: string;
-  newPassword: string;
-  confirmNewPassword: string;
-}
-
-/**
- * Delete Account Command - DELETE /api/v1/auth/account/delete
- */
-export interface DeleteAccountCommand {
-  confirm: string;
-}
-
-/**
- * Auth Success Response - POST /api/v1/auth/sign-in, sign-up
- */
-export interface AuthSuccessDTO {
-  status: "ok";
-  redirect?: string; // Optional redirect URL after successful auth
-}
-
-// =============================================================================
 // Utility Types for Entity Transformations
 // =============================================================================
 
@@ -473,17 +405,3 @@ export type DbDeck = Tables<"decks">;
 export type DbCard = Tables<"cards">;
 export type DbReview = Tables<"reviews">;
 export type DbAILog = Tables<"ai_generation_logs">;
-
-// =============================================================================
-// Internal Service Types (not exposed in API)
-// =============================================================================
-
-/**
- * Internal type for profile update operations (snake_case for DB)
- * Used in ProfileService.updateProfile() to prepare data for database update
- */
-export interface UpdateProfileData {
-  privacy_consent?: boolean;
-  deleted_at?: string | null;
-  updated_at?: string; // Automatically set by trigger, but included for completeness
-}

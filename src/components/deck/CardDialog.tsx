@@ -271,4 +271,3 @@ export default function CardDialog({ open, mode, card, deckId, onOpenChange, onS
     </Dialog>
   );
 }
-
