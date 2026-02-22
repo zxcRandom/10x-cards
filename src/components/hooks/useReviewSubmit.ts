@@ -8,6 +8,7 @@
 import { useState, useCallback } from "react";
 import type { ReviewGrade, ReviewResponseDTO } from "@/types";
 import { toast } from "sonner";
+import { REVIEW_MESSAGES } from "@/lib/constants/messages";
 
 interface UseReviewSubmitResult {
   isSubmitting: boolean;
@@ -38,11 +39,11 @@ export function useReviewSubmit(): UseReviewSubmitResult {
         }));
 
         if (response.status === 429) {
-          toast.error("Przekroczono limit ocen. Spróbuj ponownie później.");
+          toast.error(REVIEW_MESSAGES.RATE_LIMIT_EXCEEDED);
         } else if (response.status === 503) {
-          toast.error("Serwis recenzji jest chwilowo niedostępny. Odczekaj i spróbuj ponownie.");
+          toast.error(REVIEW_MESSAGES.SERVICE_UNAVAILABLE);
         } else {
-          toast.error(errorData.error?.message || "Nie udało się zapisać oceny");
+          toast.error(errorData.error?.message || REVIEW_MESSAGES.SAVE_ERROR);
         }
         setIsSubmitting(false);
         return null;
@@ -54,7 +55,7 @@ export function useReviewSubmit(): UseReviewSubmitResult {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("Error submitting review:", err);
-      toast.error("Nie udało się zapisać oceny. Spróbuj ponownie.");
+      toast.error(REVIEW_MESSAGES.GENERIC_ERROR);
       setIsSubmitting(false);
       return null;
     }

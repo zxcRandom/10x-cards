@@ -5,18 +5,22 @@ Ten dokument opisuje konfigurację deployment pipeline dla projektu 10x-cards na
 ## Workflows
 
 ### 1. Pull Request Validation (`pr-validation.yml`)
+
 Uruchamia się automatycznie przy każdym Pull Request do `main`.
 
 **Wykonywane kroki:**
+
 - ✅ Linting kodu (ESLint)
 - ✅ Testy jednostkowe (Vitest)
 - ✅ Weryfikacja budowania projektu
 - ⚠️ Testy E2E (opcjonalne, wyłączone domyślnie)
 
 ### 2. Production Deployment (`master.yml`)
+
 Uruchamia się automatycznie przy każdym push do `main`.
 
 **Wykonywane kroki:**
+
 - ✅ Linting kodu (ESLint)
 - ✅ Testy jednostkowe (Vitest)
 - ✅ Build projektu
@@ -27,6 +31,7 @@ Uruchamia się automatycznie przy każdym push do `main`.
 Aby uruchomić deployment na Cloudflare Pages, należy skonfigurować następujące sekrety w ustawieniach repozytorium GitHub:
 
 ### Cloudflare
+
 ```
 CLOUDFLARE_API_TOKEN          - Token API z Cloudflare Dashboard
 CLOUDFLARE_ACCOUNT_ID         - ID konta Cloudflare
@@ -34,6 +39,7 @@ CLOUDFLARE_PROJECT_NAME       - Nazwa projektu w Cloudflare Pages (np. "10x-card
 ```
 
 ### Supabase
+
 ```
 PUBLIC_SUPABASE_URL          - Publiczny URL instancji Supabase
 PUBLIC_SUPABASE_ANON_KEY     - Publiczny klucz anon Supabase
@@ -42,6 +48,7 @@ SUPABASE_KEY                 - Service role key Supabase
 ```
 
 ### OpenRouter (AI)
+
 ```
 OPENROUTER_API_KEY           - Klucz API OpenRouter
 OPENROUTER_DEFAULT_MODEL     - Domyślny model AI (np. "openai/gpt-4o-mini")
@@ -51,6 +58,7 @@ OPENROUTER_TITLE             - Tytuł aplikacji dla OpenRouter
 ```
 
 ### AI Configuration
+
 ```
 AI_TIMEOUT_MS                - Timeout dla requestów AI (ms)
 AI_RATE_LIMIT_PER_MINUTE     - Limit requestów na minutę
@@ -135,20 +143,20 @@ npm run lint:fix
 **REQUIRED MANUAL CONFIGURATION**:
 
 1. **Configure in Cloudflare Dashboard** (See [CLOUDFLARE_SETUP.md](./CLOUDFLARE_SETUP.md) for detailed guide):
-   
+
    a. Go to https://dash.cloudflare.com/
-   
+
    b. Navigate to: Workers & Pages → 10x-cards → Settings → Functions → Runtime
-   
+
    c. **Configure BOTH Preview AND Production environments**:
-      - Click **Edit** for each environment
-      - Set **Compatibility date**: `2025-11-02` (or current date)
-      - Set **Compatibility flags**: `nodejs_compat`
-      - **Save** each environment
-   
+   - Click **Edit** for each environment
+   - Set **Compatibility date**: `2025-11-02` (or current date)
+   - Set **Compatibility flags**: `nodejs_compat`
+   - **Save** each environment
+
    d. **Critical**: Make sure compatibility_date is **>= 2024-09-23**
-      - Earlier dates do NOT support MessageChannel
-      - If you see `Nov 2, 2024` in Preview - update to `Nov 2, 2025`
+   - Earlier dates do NOT support MessageChannel
+   - If you see `Nov 2, 2024` in Preview - update to `Nov 2, 2025`
 
 2. **Why wrangler.toml alone is not enough**:
    - The `compatibility_flags = ["nodejs_compat"]` in `wrangler.toml` works for local development
@@ -166,14 +174,17 @@ npm run lint:fix
 **Common mistake**: Having `nodejs_compat` flag set but outdated `compatibility_date` (e.g., `Nov 2, 2024` instead of `Nov 2, 2025`). The date MUST be recent enough to include full MessageChannel implementation.
 
 ### Deployment fails z błędem "Context access might be invalid"
+
 - To są tylko ostrzeżenia ESLint, nie błędy
 - Upewnij się, że wszystkie sekrety są skonfigurowane w GitHub
 
 ### Build fails z błędem ENV variables
+
 - Sprawdź czy wszystkie wymagane zmienne środowiskowe są ustawione
 - Dla buildów Astro wymagane są zmienne z prefiksem `PUBLIC_`
 
 ### Cloudflare deployment fails
+
 - Sprawdź czy `CLOUDFLARE_API_TOKEN` ma odpowiednie uprawnienia
 - Zweryfikuj czy `CLOUDFLARE_PROJECT_NAME` zgadza się z nazwą w Cloudflare Pages
 - Upewnij się, że projekt w Cloudflare Pages już istnieje
@@ -181,6 +192,7 @@ npm run lint:fix
 ## Wsparcie
 
 W przypadku problemów:
+
 1. Sprawdź logi w Actions na GitHub
 2. Zweryfikuj konfigurację sekretów
 3. Sprawdź dokumentację Cloudflare Pages

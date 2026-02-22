@@ -1,16 +1,21 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { RateLimitService } from "../rate-limit.service";
+import type { SupabaseClient } from "../../../db/supabase.client";
 
 describe("RateLimitService", () => {
-  let rateLimitService: RateLimitService;
+  let service: RateLimitService;
+  let mockSupabase: any;
   const userId = "test-user-id";
-  // Use a fixed timestamp for consistent testing
   const now = 1000000000000;
 
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(now);
-    rateLimitService = new RateLimitService();
+    mockSupabase = {
+      rpc: vi.fn(),
+    };
+    service = new RateLimitService(mockSupabase as SupabaseClient);
   });
 
   afterEach(() => {
@@ -18,119 +23,109 @@ describe("RateLimitService", () => {
   });
 
   describe("checkAIRateLimit", () => {
-    it("should allow request when no entry exists", async () => {
-      const result = await rateLimitService.checkAIRateLimit(userId);
+    it("should allow request when no entry exists (RPC returns null data)", async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const result = await service.checkAIRateLimit(userId);
+
+      expect(mockSupabase.rpc).toHaveBeenCalledWith("check_rate_limit", {
+        p_key: `ai_gen:${userId}`,
+      });
       expect(result.allowed).toBe(true);
-      // Note: Current implementation returns limit - 1 (9) when no entry exists
-      expect(result.remaining).toBe(9);
+      expect(result.remaining).toBe(10);
+    });
+
+    it("should allow request when no entry exists (RPC returns empty array)", async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const result = await service.checkAIRateLimit(userId);
+      expect(result.allowed).toBe(true);
+      expect(result.remaining).toBe(10);
     });
 
     it("should allow request when entry exists and is within limit", async () => {
-      // Create an entry with count 1
-      await rateLimitService.incrementAIRateLimit(userId);
+      mockSupabase.rpc.mockResolvedValue({
+        data: [{ count: 5, reset_at: now + 10000 }],
+        error: null,
+      });
 
-      const result = await rateLimitService.checkAIRateLimit(userId);
+      const result = await service.checkAIRateLimit(userId);
+
       expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(9);
+      expect(result.remaining).toBe(5);
+      expect(result.resetInMs).toBe(10000);
     });
 
     it("should block request when limit is exceeded", async () => {
-      // Consume all 10 requests
-      for (let i = 0; i < 10; i++) {
-        await rateLimitService.incrementAIRateLimit(userId);
-      }
+      mockSupabase.rpc.mockResolvedValue({
+        data: [{ count: 10, reset_at: now + 10000 }],
+        error: null,
+      });
 
-      const result = await rateLimitService.checkAIRateLimit(userId);
+      const result = await service.checkAIRateLimit(userId);
+
       expect(result.allowed).toBe(false);
       expect(result.remaining).toBe(0);
-
-      // Should return approximate time until reset
-      // We need to check if resetInMs is close to windowMs
-      // Since we just incremented, resetAt is now + windowMs
-      expect(result.resetInMs).toBe(60 * 1000);
+      expect(result.resetInMs).toBe(10000);
     });
 
-    it("should allow request after window expires", async () => {
-      // Consume all requests
-      for (let i = 0; i < 10; i++) {
-        await rateLimitService.incrementAIRateLimit(userId);
-      }
+    it("should allow request after window expires (reset_at < now)", async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: [{ count: 10, reset_at: now - 1000 }],
+        error: null,
+      });
 
-      // Verify blocked
-      let result = await rateLimitService.checkAIRateLimit(userId);
-      expect(result.allowed).toBe(false);
+      const result = await service.checkAIRateLimit(userId);
 
-      // Advance time by 60 seconds + 1ms to ensure expiry
-      vi.setSystemTime(now + 60 * 1000 + 1);
-
-      // Should be allowed now (treated as new window)
-      result = await rateLimitService.checkAIRateLimit(userId);
       expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(9);
+      expect(result.remaining).toBe(10);
+    });
+
+    it("should allow request when Supabase client is null (dev/test mode)", async () => {
+      const devService = new RateLimitService(null);
+      const result = await devService.checkAIRateLimit(userId);
+      expect(result.allowed).toBe(true);
+      expect(result.remaining).toBe(10);
     });
   });
 
   describe("incrementAIRateLimit", () => {
-    it("should create new entry if none exists", async () => {
-      await rateLimitService.incrementAIRateLimit(userId);
-      // We can verify by checking rate limit status
-      const result = await rateLimitService.checkAIRateLimit(userId);
-      expect(result.remaining).toBe(9);
+    it("should call increment RPC with correct parameters", async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      await service.incrementAIRateLimit(userId);
+
+      expect(mockSupabase.rpc).toHaveBeenCalledWith("increment_rate_limit", {
+        p_key: `ai_gen:${userId}`,
+        p_window_ms: 60000,
+      });
     });
 
-    it("should increment count if entry exists", async () => {
-      await rateLimitService.incrementAIRateLimit(userId); // count 1
-      await rateLimitService.incrementAIRateLimit(userId); // count 2
-
-      const result = await rateLimitService.checkAIRateLimit(userId);
-      // Limit 10, count 2 -> remaining 8
-      expect(result.remaining).toBe(8);
-    });
-
-    it("should cleanup expired entries when incrementing", async () => {
-      await rateLimitService.incrementAIRateLimit(userId);
-
-      // Advance time past window
-      const future = now + 60 * 1000 + 1;
-      vi.setSystemTime(future);
-
-      // Incrementing for ANY user should trigger cleanup
-      // But specifically, incrementing for this user should treat it as a new window
-      await rateLimitService.incrementAIRateLimit(userId);
-
-      // If it was treated as new window, count should be 1
-      const result = await rateLimitService.checkAIRateLimit(userId);
-      expect(result.remaining).toBe(9);
-    });
-
-    it("should remove expired entries from storage", async () => {
-      await rateLimitService.incrementAIRateLimit(userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((rateLimitService as any).storage.size).toBe(1);
-
-      // Advance time past window
-      vi.setSystemTime(now + 60 * 1000 + 1);
-
-      // Trigger cleanup by incrementing for another user
-      await rateLimitService.incrementAIRateLimit("other-user");
-
-      // Storage should have only "other-user" now, "userId" should be gone
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((rateLimitService as any).storage.size).toBe(1);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((rateLimitService as any).storage.has(`ai_gen:${userId}`)).toBe(false);
+    it("should skip increment when Supabase client is null", async () => {
+      const devService = new RateLimitService(null);
+      await devService.incrementAIRateLimit(userId);
+      // No crash, success
     });
   });
 
   describe("getRemainingRequests", () => {
     it("should return correct remaining requests", async () => {
-      expect(await rateLimitService.getRemainingRequests(userId)).toBe(9);
+      mockSupabase.rpc.mockResolvedValue({
+        data: [{ count: 7, reset_at: now + 10000 }],
+        error: null,
+      });
 
-      await rateLimitService.incrementAIRateLimit(userId);
-      expect(await rateLimitService.getRemainingRequests(userId)).toBe(9);
-
-      await rateLimitService.incrementAIRateLimit(userId);
-      expect(await rateLimitService.getRemainingRequests(userId)).toBe(8);
+      const remaining = await service.getRemainingRequests(userId);
+      expect(remaining).toBe(3);
     });
   });
 
@@ -138,39 +133,80 @@ describe("RateLimitService", () => {
     const authId = "test@example.com";
 
     describe("authSignIn", () => {
-      it("should enforce limit of 5 requests per minute", async () => {
-        for (let i = 0; i < 5; i++) {
-          await rateLimitService.incrementAuthSignInRateLimit(authId);
-        }
+      it("should enforce limit of 5 requests", async () => {
+        mockSupabase.rpc.mockResolvedValue({
+          data: [{ count: 5, reset_at: now + 10000 }],
+          error: null,
+        });
 
-        const result = await rateLimitService.checkAuthSignInRateLimit(authId);
+        const result = await service.checkAuthSignInRateLimit(authId);
         expect(result.allowed).toBe(false);
         expect(result.remaining).toBe(0);
+
+        await service.incrementAuthSignInRateLimit(authId);
+        expect(mockSupabase.rpc).toHaveBeenCalledWith("increment_rate_limit", {
+          p_key: `auth_signin:${authId}`,
+          p_window_ms: 60000,
+        });
       });
     });
 
     describe("authSignUp", () => {
-      it("should enforce limit of 3 requests per minute", async () => {
-        for (let i = 0; i < 3; i++) {
-          await rateLimitService.incrementAuthSignUpRateLimit(authId);
-        }
+      it("should enforce limit of 3 requests", async () => {
+        mockSupabase.rpc.mockResolvedValue({
+          data: [{ count: 3, reset_at: now + 10000 }],
+          error: null,
+        });
 
-        const result = await rateLimitService.checkAuthSignUpRateLimit(authId);
+        const result = await service.checkAuthSignUpRateLimit(authId);
         expect(result.allowed).toBe(false);
         expect(result.remaining).toBe(0);
+
+        await service.incrementAuthSignUpRateLimit(authId);
+        expect(mockSupabase.rpc).toHaveBeenCalledWith("increment_rate_limit", {
+          p_key: `auth_signup:${authId}`,
+          p_window_ms: 60000,
+        });
       });
     });
 
     describe("authPasswordReset", () => {
-      it("should enforce limit of 3 requests per minute", async () => {
-        for (let i = 0; i < 3; i++) {
-          await rateLimitService.incrementPasswordResetRateLimit(authId);
-        }
+      it("should enforce limit of 3 requests", async () => {
+        mockSupabase.rpc.mockResolvedValue({
+          data: [{ count: 3, reset_at: now + 10000 }],
+          error: null,
+        });
 
-        const result = await rateLimitService.checkPasswordResetRateLimit(authId);
+        const result = await service.checkPasswordResetRateLimit(authId);
         expect(result.allowed).toBe(false);
         expect(result.remaining).toBe(0);
+
+        await service.incrementPasswordResetRateLimit(authId);
+        expect(mockSupabase.rpc).toHaveBeenCalledWith("increment_rate_limit", {
+          p_key: `auth_password_reset:${authId}`,
+          p_window_ms: 60000,
+        });
       });
+    });
+  });
+
+  describe("Error handling", () => {
+    it("should throw error when check RPC fails", async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: "RPC Error" },
+      });
+
+      await expect(service.checkAIRateLimit(userId)).rejects.toThrow("Rate limit check failed");
+    });
+
+    it("should throw error when increment RPC fails", async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: "RPC Error" },
+      });
+
+      await expect(service.incrementAIRateLimit(userId)).rejects.toThrow("Rate limit increment failed");
     });
   });
 });
