@@ -56,38 +56,6 @@ function getSupabaseServiceRoleKey(runtimeEnv?: Record<string, unknown>): string
 export type SupabaseClient<T = Database> = ReturnType<typeof createSupabaseClient<T>>;
 
 /**
- * Type for cookie options used in Supabase SSR
- */
-export interface CookieOptions {
-  name: string;
-  value: string;
-  options: {
-    path?: string;
-    maxAge?: number;
-    httpOnly?: boolean;
-    secure?: boolean;
-    sameSite?: boolean | "strict" | "lax" | "none";
-  };
-}
-
-/**
- * Extended Supabase client with cookie tracking
- * Used to capture cookies set during auth operations
- */
-export interface SupabaseClientWithCookies extends SupabaseClient<Database> {
-  __cookiesToSet?: CookieOptions[];
-}
-
-/**
- * Type guard to check if Supabase client has __cookiesToSet property
- */
-export function hasCookiesToSet(client: unknown): client is SupabaseClientWithCookies {
-  return (
-    typeof client === "object" && client !== null && Array.isArray((client as SupabaseClientWithCookies).__cookiesToSet)
-  );
-}
-
-/**
  * Creates a Supabase client for server-side rendering with cookie and Bearer token support
  * This client is tied to the current request and handles user sessions properly
  * Uses @supabase/ssr for proper SSR cookie handling and supports Authorization header for API routes
@@ -96,21 +64,19 @@ export function hasCookiesToSet(client: unknown): client is SupabaseClientWithCo
  * @param cookieHeader - Optional raw Cookie header string for parsing existing cookies
  * @param authHeader - Optional Authorization header with Bearer token (for API routes)
  * @param runtimeEnv - Optional Cloudflare runtime env for accessing secrets (required in production)
- * @returns SupabaseClient instance configured for the current request along with cookies to set
+ * @returns SupabaseClient instance configured for the current request
  */
 export function createServerClient(
   cookies: AstroCookies,
   cookieHeader?: string | null,
   authHeader?: string | null,
   runtimeEnv?: Record<string, unknown>
-): SupabaseClientWithCookies {
-  const cookiesToSet: CookieOptions[] = [];
-
+): SupabaseClient<Database> {
   // Get environment variables from runtime env (Cloudflare) or import.meta.env (dev)
   const supabaseUrl = getSupabaseUrl(runtimeEnv);
   const supabaseAnonKey = getSupabaseAnonKey(runtimeEnv);
 
-  const client = createSSRClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createSSRClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         // Parse all cookies from the Cookie header if provided
@@ -121,12 +87,9 @@ export function createServerClient(
         }
         return [];
       },
-      setAll(cookiesToSetBatch) {
-        // Store cookies for later retrieval and set them in Astro
-        cookiesToSetBatch.forEach(({ name, value, options }) => {
-          // Store cookies for later retrieval
-          cookiesToSet.push({ name, value, options });
-          // Also set in Astro cookies
+      setAll(cookiesToSet) {
+        // Set cookies in Astro
+        cookiesToSet.forEach(({ name, value, options }) => {
           cookies.set(name, value, {
             ...options,
             path: options.path ?? "/",
@@ -137,12 +100,7 @@ export function createServerClient(
     global: {
       headers: authHeader ? { Authorization: authHeader } : {},
     },
-  }) as SupabaseClientWithCookies;
-
-  // Attach the cookies array to the client for retrieval in endpoints
-  client.__cookiesToSet = cookiesToSet;
-
-  return client;
+  });
 }
 
 /**

@@ -21,7 +21,7 @@ import type { APIRoute } from "astro";
 import { signUpSchema } from "@/lib/validation/auth.schemas";
 import { formatZodErrors } from "@/lib/utils/zod-errors";
 import { RateLimitService } from "@/lib/services/rate-limit.service";
-import { hasCookiesToSet, createAdminClient } from "@/db/supabase.client";
+import { createAdminClient } from "@/db/supabase.client";
 import { HttpStatus, ErrorCode } from "@/types";
 import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
@@ -150,31 +150,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // IMPORTANT: We need to manually add Set-Cookie headers from Supabase to the Response
-    // because Astro API routes don't automatically serialize cookies
-    const responseHeaders = new Headers();
-
-    // Get cookies that were set by Supabase during signUp
-    const cookiesToSet = hasCookiesToSet(locals.supabase) ? (locals.supabase.__cookiesToSet ?? []) : [];
-
-    cookiesToSet.forEach(({ name, value, options }) => {
-      // Serialize cookie with proper options
-      let cookieString = `${name}=${value}`;
-      if (options.path) cookieString += `; Path=${options.path}`;
-      if (options.maxAge) cookieString += `; Max-Age=${options.maxAge}`;
-      if (options.httpOnly) cookieString += `; HttpOnly`;
-      if (options.secure) cookieString += `; Secure`;
-      if (options.sameSite) cookieString += `; SameSite=${options.sameSite}`;
-
-      responseHeaders.append("Set-Cookie", cookieString);
-    });
-
     // Success - redirect to dashboard
-    responseHeaders.set("Location", "/");
-
     return new Response(null, {
       status: 303, // See Other - redirect after POST
-      headers: responseHeaders,
+      headers: {
+        Location: "/",
+      },
     });
   } catch (err) {
     // Log error for debugging (don't expose to client)
