@@ -103,10 +103,6 @@ export function createServerClient(
  * Creates a Supabase admin client with service role key
  * Used for backend operations that bypass RLS (e.g. rate limiting)
  */
-/**
- * Creates a Supabase admin client with service role key
- * Used for backend operations that bypass RLS (e.g. rate limiting)
- */
 export function createAdminClient(runtimeEnv?: Record<string, unknown>): SupabaseClient<Database> | null {
   try {
     const supabaseUrl = getSupabaseUrl(runtimeEnv);

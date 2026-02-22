@@ -512,7 +512,7 @@ export class OpenRouterService {
         this.logger.debug("Sending request to OpenRouter", {
           url: `${this.config.baseUrl}/chat/completions`,
           apiKeyHint,
-          headers: this.config.headers,
+          headers: (({ Authorization, ...rest }) => rest)(this.config.headers as Record<string, string>),
         });
 
         const response = await this.httpClient(`${this.config.baseUrl}/chat/completions`, {
