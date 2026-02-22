@@ -9,9 +9,11 @@ Aby aplikacja działała z React 19 SSR, **MUSISZ** skonfigurować compatibility
 ### Metoda 1: Runtime Settings (ZALECANA)
 
 #### 1. Przejdź do Cloudflare Dashboard
+
 https://dash.cloudflare.com/
 
 #### 2. Otwórz swój projekt Pages
+
 Workers & Pages → 10x-cards → Settings
 
 #### 3. Functions → Runtime
@@ -19,18 +21,21 @@ Workers & Pages → 10x-cards → Settings
 Skonfiguruj dla **OBUDWU** środowisk: **Preview** i **Production**
 
 **Preview Environment:**
-- Kliknij **Edit** obok "Preview" 
+
+- Kliknij **Edit** obok "Preview"
 - **Compatibility date**: `2025-11-02` (lub nowsza)
 - **Compatibility flags**: `nodejs_compat`
 - **Save**
 
 **Production Environment:**
+
 - Kliknij **Edit** obok "Production"
 - **Compatibility date**: `2025-11-02` (lub nowsza)
 - **Compatibility flags**: `nodejs_compat`
 - **Save**
 
 #### 4. Redeploy
+
 ```bash
 git commit --allow-empty -m "chore: trigger redeploy after compatibility date update"
 git push origin feature/github-actions-cicd
@@ -41,6 +46,7 @@ git push origin feature/github-actions-cicd
 W sekcji **Settings → Environment variables** dodaj dla **OBUDWU** środowisk:
 
 **Preview i Production:**
+
 ```
 COMPATIBILITY_FLAGS=nodejs_compat  (Type: Plaintext)
 ```
@@ -58,6 +64,7 @@ Cloudflare Workers domyślnie nie mają dostępu do Node.js APIs.
 `nodejs_compat` flag włącza Node.js compatibility layer, **ALE WYMAGA `compatibility_date >= 2024-09-23`**.
 
 ### Wymagania według dokumentacji Cloudflare:
+
 - **Minimalna data**: `2024-09-23` (pierwsza wersja z pełnym wsparciem MessageChannel)
 - **Zalecana data**: `2025-11-02` lub nowsza (najbardziej aktualna)
 - **nodejs_compat flag**: MUSI być aktywny
@@ -81,8 +88,9 @@ Success: Assets published!
 ```
 
 Zamiast:
+
 ```
-❌ Error: Failed to publish your Function. 
+❌ Error: Failed to publish your Function.
 Got error: Uncaught ReferenceError: MessageChannel is not defined
 at chunks/_@astro-renderers_JFt8ruBS.mjs:6827:16
 ```
@@ -94,13 +102,15 @@ at chunks/_@astro-renderers_JFt8ruBS.mjs:6827:16
 **Problem**: `nodejs_compat` jest ustawiony w Dashboard, ale deployment nadal pokazuje błąd `MessageChannel is not defined`
 
 **Rozwiązanie**: Sprawdź `compatibility_date` w Runtime Settings:
+
 1. Dashboard → Workers & Pages → 10x-cards → Settings → Functions → Runtime
 2. **Preview** environment - upewnij się że data to **2025** (NIE 2024!)
 3. **Production** environment - upewnij się że data to **2025** (NIE 2024!)
 4. Jeśli widzisz `Nov 2, 2024` - zmień na `Nov 2, 2025` lub nowszą datę
 5. Save i retriggernąć deployment
 
-**Wyjaśnienie**: 
+**Wyjaśnienie**:
+
 - `nodejs_compat` dostępny od `2024-09-23`
 - Daty wcześniejsze niż `2024-09-23` NIE mają pełnego wsparcia MessageChannel
 - `Nov 2, 2024` to OK technicznie (po 23 Sep), ale może mieć bugs
