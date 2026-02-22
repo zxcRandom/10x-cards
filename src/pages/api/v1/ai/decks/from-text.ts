@@ -6,6 +6,7 @@ import { DeckService } from "../../../../../lib/services/deck.service";
 import { CardService } from "../../../../../lib/services/card.service";
 import { AILogService } from "../../../../../lib/services/ai-log.service";
 import { RateLimitService } from "../../../../../lib/services/rate-limit.service";
+import { createAdminClient } from "../../../../../db/supabase.client";
 import type {
   AIDeckResponseDTO,
   ErrorResponse,
@@ -49,7 +50,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // STEP 2: Rate limiting
-    const rateLimitService = new RateLimitService();
+    const rateLimitService = new RateLimitService(createAdminClient(locals.runtime?.env));
     const rateLimit = await rateLimitService.checkAIRateLimit(user.id);
 
     if (!rateLimit.allowed) {
@@ -115,9 +116,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // STEP 4: Generate cards using AI
-    // eslint-disable-next-line no-console
-    console.log(`� AI generation for user ${user.id}, maxCards: ${validated.maxCards}`);
-
     const generatedCards = await aiService.generateFlashcardsFromText(validated.inputText, validated.maxCards);
 
     // STEP 5: Create deck and cards in database
@@ -158,8 +156,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
       await rateLimitService.incrementAIRateLimit(user.id);
 
       const duration = Date.now() - startTime;
-      // eslint-disable-next-line no-console
-      console.log(`✅ AI generation completed in ${duration}ms: ${cards.length} cards created`);
 
       // STEP 6: Return success response
       const response: AIDeckResponseDTO = {
