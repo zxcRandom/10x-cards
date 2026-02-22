@@ -1,15 +1,18 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import { loadEnv } from "vite";
+import process from "node:process";
 
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import cloudflare from "@astrojs/cloudflare";
 
+const env = loadEnv(process.env.NODE_ENV || "production", process.cwd(), "");
+
 // https://astro.build/config
 export default defineConfig({
-  // TODO: Update this URL when deploying to production
-  site: "https://10x-cards.pages.dev",
+  site: env.SITE_URL || "https://10x-cards.pages.dev",
   output: "server",
   integrations: [react(), sitemap()],
   server: {
