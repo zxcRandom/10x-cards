@@ -20,9 +20,16 @@ describe("GET /api/v1/reviews", () => {
       lte: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       range: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: { id: "deck-1" }, error: null }),
       // Mock the promise behavior
       then: vi.fn().mockImplementation((resolve) => {
-        return Promise.resolve({ data: [], count: 0, error: null }).then(resolve);
+        // Return count: 10 if select was called with count option
+        const lastSelectCall = queryBuilder.select.mock.calls[queryBuilder.select.mock.calls.length - 1];
+        const result: any = { data: [], error: null };
+        if (lastSelectCall && lastSelectCall[1] && lastSelectCall[1].count === "exact") {
+          result.count = 10;
+        }
+        return Promise.resolve(result).then(resolve);
       }),
     };
 
@@ -41,50 +48,74 @@ describe("GET /api/v1/reviews", () => {
     };
   });
 
-  it("should use JOIN query instead of separate fetch when filtering by deckId", async () => {
-    mockUrl = new URL("http://localhost:3000/api/v1/reviews?deckId=00000000-0000-0000-0000-000000000001");
-    const context = {
-      url: mockUrl,
-      locals: mockLocals,
-      request: new Request(mockUrl),
-    } as any;
+  describe("performance", () => {
+    it("should verify the number of database queries", async () => {
+      mockUrl = new URL("http://localhost:3000/api/v1/reviews?limit=10&offset=0");
+      const context = {
+        url: mockUrl,
+        locals: mockLocals,
+        request: new Request(mockUrl),
+      } as any;
 
-    // We verify that we DON'T query 'cards' table directly
-    const fromSpy = mockSupabase.from;
+      const response = await GET(context);
+      const body = await response.json();
 
-    await GET(context);
+      expect(response.status).toBe(200);
+      expect(body.total).toBe(10);
 
-    // Check that we did NOT call `from('cards')`
-    const calledTables = fromSpy.mock.calls.map((args: any[]) => args[0]);
-    const cardsTableCalled = calledTables.includes("cards");
-
-    expect(cardsTableCalled).toBe(false);
-
-    // Check that select includes the join
-    expect(queryBuilder.select).toHaveBeenCalledWith(expect.stringContaining("cards!inner(deck_id)"));
-
-    // Check that we filter by the joined table column
-    expect(queryBuilder.eq).toHaveBeenCalledWith("cards.deck_id", "00000000-0000-0000-0000-000000000001");
+      // Analyze calls to 'from'
+      // We expect 1 call to 'from' for reviews in the optimized implementation.
+      const reviewsCalls = mockSupabase.from.mock.calls.filter((args: any) => args[0] === "reviews");
+      expect(reviewsCalls.length).toBe(1);
+    });
   });
 
-  it("should not use JOIN query when deckId is not provided", async () => {
-    mockUrl = new URL("http://localhost:3000/api/v1/reviews");
-    const context = {
-      url: mockUrl,
-      locals: mockLocals,
-      request: new Request(mockUrl),
-    } as any;
+  describe("logic", () => {
+    it("should use JOIN query instead of separate fetch when filtering by deckId", async () => {
+      mockUrl = new URL("http://localhost:3000/api/v1/reviews?deckId=00000000-0000-0000-0000-000000000001");
+      const context = {
+        url: mockUrl,
+        locals: mockLocals,
+        request: new Request(mockUrl),
+      } as any;
 
-    await GET(context);
+      // Reset the from spy to count calls for this test specifically
+      const fromSpy = mockSupabase.from;
 
-    // Check that select does NOT include the join
-    // We expect select("*") or select("*", ...) but NOT "cards!inner"
-    // Note: The implementation might use select("*") initially.
+      await GET(context);
 
-    // We need to check all calls to select
-    const selectCalls = queryBuilder.select.mock.calls.map((args: any[]) => args[0]);
-    const hasJoin = selectCalls.some((arg: string) => arg && arg.includes("cards!inner"));
+      // Check that we did NOT call `from('cards')` for data (we used inner join)
+      // Note: we might call `from('decks')` for security check
+      const calledTables = fromSpy.mock.calls.map((args: any[]) => args[0]);
+      const cardsTableCalled = calledTables.includes("cards");
 
-    expect(hasJoin).toBe(false);
+      expect(cardsTableCalled).toBe(false);
+
+      // Check that select includes the join
+      expect(queryBuilder.select).toHaveBeenCalledWith(
+        expect.stringContaining("cards!inner(deck_id)"),
+        expect.objectContaining({ count: "exact" })
+      );
+
+      // Check that we filter by the joined table column
+      expect(queryBuilder.eq).toHaveBeenCalledWith("cards.deck_id", "00000000-0000-0000-0000-000000000001");
+    });
+
+    it("should not use JOIN query when deckId is not provided", async () => {
+      mockUrl = new URL("http://localhost:3000/api/v1/reviews");
+      const context = {
+        url: mockUrl,
+        locals: mockLocals,
+        request: new Request(mockUrl),
+      } as any;
+
+      await GET(context);
+
+      // We need to check all calls to select
+      const selectCalls = queryBuilder.select.mock.calls.map((args: any[]) => args[0]);
+      const hasJoin = selectCalls.some((arg: string) => arg && arg.includes("cards!inner"));
+
+      expect(hasJoin).toBe(false);
+    });
   });
 });
