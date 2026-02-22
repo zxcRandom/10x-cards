@@ -154,9 +154,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
   };
 
   // Provide environment explicitly since import.meta.env might not auto-update or sync with locals
+  // Priority: 1. Locally defined .env files via Vite (import.meta.env) 2. Cloudflare/Node OS envs (locals.runtime.env)
   const envVars = {
-    ...(import.meta.env as Record<string, string>),
     ...(locals.runtime?.env as Record<string, string>),
+    ...(import.meta.env as Record<string, string>),
   };
   
   const openRouterService = new OpenRouterService(createOpenRouterConfig(envVars), undefined, logger, rateLimiterHooks);
