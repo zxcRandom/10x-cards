@@ -20,7 +20,7 @@
 ### Trzecie wdrożenie (21:13 UTC) - nadal błąd
 
 ```
-Error: Failed to publish your Function. Got error: 
+Error: Failed to publish your Function. Got error:
 Uncaught ReferenceError: MessageChannel is not defined
   at chunks/_@astro-renderers_JFt8ruBS.mjs:6827:16
 ```
@@ -42,6 +42,7 @@ Uncaught ReferenceError: MessageChannel is not defined
 **Instrukcje szczegółowe**: Zobacz [CLOUDFLARE_SETUP.md](./CLOUDFLARE_SETUP.md)
 
 **Kroki**:
+
 1. Otwórz https://dash.cloudflare.com/
 2. Przejdź do: **Workers & Pages** → **10x-cards** → **Settings** → **Functions**
 3. W sekcji **Compatibility flags**:
@@ -51,6 +52,7 @@ Uncaught ReferenceError: MessageChannel is not defined
 4. Zapisz zmiany
 
 **Alternatywna metoda** (jeśli sekcja Compatibility flags nie istnieje):
+
 1. Przejdź do: **Settings** → **Environment variables**
 2. Dodaj zmienną:
    - Name: `COMPATIBILITY_FLAGS`
@@ -62,17 +64,20 @@ Uncaught ReferenceError: MessageChannel is not defined
 Musisz ręcznie dodać 18 sekretów w: **Repository Settings** → **Secrets and variables** → **Actions**
 
 #### Cloudflare (3 sekrety):
+
 - `CLOUDFLARE_API_TOKEN` - token API z uprawnieniami do Pages
 - `CLOUDFLARE_ACCOUNT_ID` - ID konta Cloudflare
 - `CLOUDFLARE_PROJECT_NAME` - `10x-cards`
 
 #### Supabase (4 sekrety):
+
 - `PUBLIC_SUPABASE_URL` - URL twojego projektu Supabase
 - `PUBLIC_SUPABASE_ANON_KEY` - klucz publiczny (anon)
 - `SUPABASE_URL` - URL twojego projektu Supabase (może być taki sam jak PUBLIC)
 - `SUPABASE_KEY` - klucz serwisowy (service_role key)
 
 #### OpenRouter (5 sekretów):
+
 - `OPENROUTER_API_KEY` - twój klucz API OpenRouter
 - `OPENROUTER_DEFAULT_MODEL` - np. `openai/gpt-4o-mini`
 - `OPENROUTER_BASE_URL` - `https://openrouter.ai/api/v1`
@@ -80,6 +85,7 @@ Musisz ręcznie dodać 18 sekretów w: **Repository Settings** → **Secrets and
 - `OPENROUTER_TITLE` - np. `10x Cards`
 
 #### AI Configuration (6 sekretów):
+
 - `AI_TIMEOUT_MS` - `30000`
 - `AI_RATE_LIMIT_PER_MINUTE` - `10`
 - `AI_RATE_LIMIT_PER_DAY` - `250`
@@ -94,12 +100,14 @@ Musisz ręcznie dodać 18 sekretów w: **Repository Settings** → **Secrets and
 Po skonfigurowaniu Dashboard i Secrets:
 
 **Opcja A - Automatyczne wdrożenie**:
+
 ```bash
 git commit --allow-empty -m "test: trigger deployment after Dashboard config"
 git push origin feature/github-actions-cicd
 ```
 
 **Opcja B - Ręczne wdrożenie z Dashboard**:
+
 1. Otwórz Cloudflare Dashboard
 2. Workers & Pages → 10x-cards
 3. Kliknij **Create deployment** → Redeploy latest
@@ -107,6 +115,7 @@ git push origin feature/github-actions-cicd
 ### 4. Weryfikacja sukcesu
 
 Deployment zakończony sukcesem powinien pokazać:
+
 ```
 ✨ Upload complete! Success: Assets published!
 ```
@@ -116,6 +125,7 @@ Deployment zakończony sukcesem powinien pokazać:
 ### 5. Merge Pull Request
 
 Po pomyślnym wdrożeniu:
+
 ```bash
 # Przełącz się na main
 git checkout main

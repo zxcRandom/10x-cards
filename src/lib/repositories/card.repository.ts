@@ -218,7 +218,7 @@ export class CardRepository {
     query = query.range(options.offset, options.offset + options.limit - 1);
 
     // Execute query
-    const { data, error, count } = await query;
+    const { data, count, error } = await query;
 
     if (error) {
       throw error;

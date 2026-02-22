@@ -4,6 +4,7 @@ import { RateLimitService } from "../../../../lib/services/rate-limit.service";
 import { DeckService } from "../../../../lib/services/deck.service";
 import { CardService } from "../../../../lib/services/card.service";
 import { AILogService } from "../../../../lib/services/ai-log.service";
+import { createAdminClient } from "../../../../db/supabase.client";
 import { createOpenRouterConfig } from "../../../../lib/services/openrouter/openrouter.config";
 import {
   OpenRouterService,
@@ -37,8 +38,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../../../db/database.types";
 
 export const prerender = false;
-
-const rateLimitService = new RateLimitService();
 
 const messageSchema = z.object({
   role: z.enum(["system", "user", "assistant", "tool"]),
@@ -113,25 +112,6 @@ const logger: Logger = {
   },
 };
 
-const rateLimiterHooks: RateLimiterHooks = {
-  async check(key: string) {
-    const result = await rateLimitService.checkAIRateLimit(key);
-    return {
-      allowed: result.allowed,
-      retryAfterMs: result.allowed ? undefined : (result.resetInMs ?? 60_000),
-    };
-  },
-  async consume(key: string) {
-    await rateLimitService.incrementAIRateLimit(key);
-  },
-  async recordUsage(key: string, usage) {
-    logger.debug("Recorded token usage", { key, usage });
-  },
-};
-
-const openRouterService = new OpenRouterService(createOpenRouterConfig(), undefined, logger, rateLimiterHooks);
-const aiService = new AIService({ openRouter: openRouterService, logger });
-
 export const POST: APIRoute = async ({ request, locals }) => {
   const {
     data: { user },
@@ -150,6 +130,34 @@ export const POST: APIRoute = async ({ request, locals }) => {
     );
   }
 
+  // Instantiate services per request
+  const rateLimitService = new RateLimitService(createAdminClient(locals.runtime?.env));
+
+  const rateLimiterHooks: RateLimiterHooks = {
+    async check(key: string) {
+      const result = await rateLimitService.checkAIRateLimit(key);
+      return {
+        allowed: result.allowed,
+        retryAfterMs: result.allowed ? undefined : (result.resetInMs ?? 60_000),
+      };
+    },
+    async consume(key: string) {
+      await rateLimitService.incrementAIRateLimit(key);
+    },
+    async recordUsage(key: string, usage) {
+      logger.debug("Recorded token usage", { key, usage });
+    },
+  };
+
+  // Provide environment explicitly since import.meta.env might not auto-update or sync with locals
+  const envVars = {
+    ...(import.meta.env as Record<string, string>),
+    ...(locals.runtime?.env as Record<string, string>),
+  };
+  
+  const openRouterService = new OpenRouterService(createOpenRouterConfig(envVars), undefined, logger, rateLimiterHooks);
+  const aiService = new AIService({ openRouter: openRouterService, logger });
+
   let body: unknown;
   try {
     body = await request.json();
@@ -166,13 +174,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   if (isChatPayload(body)) {
-    return handleChatCompletion(body, user.id);
+    return handleChatCompletion(body, user.id, openRouterService);
   }
 
-  return handleFlashcardGeneration(body, user.id, locals.supabase);
+  return handleFlashcardGeneration(body, user.id, locals.supabase, rateLimitService, aiService);
 };
 
-async function handleChatCompletion(payload: unknown, userId: string): Promise<Response> {
+async function handleChatCompletion(
+  payload: unknown,
+  userId: string,
+  openRouterService: OpenRouterService
+): Promise<Response> {
   const parsed = chatSchema.safeParse(payload);
   if (!parsed.success) {
     return validationError(parsed.error.issues);
@@ -234,7 +246,9 @@ async function handleChatCompletion(payload: unknown, userId: string): Promise<R
 async function handleFlashcardGeneration(
   payload: unknown,
   userId: string,
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient<Database>,
+  rateLimitService: RateLimitService,
+  aiService: AIService
 ): Promise<Response> {
   const parsed = flashcardSchema.safeParse(payload);
   if (!parsed.success) {

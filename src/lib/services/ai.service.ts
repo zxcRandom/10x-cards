@@ -8,7 +8,8 @@ import {
   ServiceUnavailableError,
   NetworkError,
 } from "./openrouter/openrouter.service";
-import type { Logger, ResponseFormat, ChatRequestDTO, ChatMessage } from "./openrouter/openrouter.service";
+import type { ResponseFormat, ChatRequestDTO, ChatMessage } from "./openrouter/openrouter.service";
+import { ConsoleLogger, type Logger } from "./logger.service";
 
 export interface GeneratedCard {
   question: string;
@@ -53,16 +54,7 @@ interface Dependencies {
   responseFormat?: ResponseFormat;
 }
 
-const defaultLogger: Logger = {
-  // eslint-disable-next-line no-console
-  debug: (message, meta) => console.debug(message, sanitizeMeta(meta)),
-  // eslint-disable-next-line no-console
-  info: (message, meta) => console.info(message, sanitizeMeta(meta)),
-  // eslint-disable-next-line no-console
-  warn: (message, meta) => console.warn(message, sanitizeMeta(meta)),
-  // eslint-disable-next-line no-console
-  error: (message, meta) => console.error(message, sanitizeMeta(meta)),
-};
+const defaultLogger = new ConsoleLogger(sanitizeMeta);
 
 const flashcardSchema = z.object({
   question: z.string().min(1),
@@ -115,7 +107,7 @@ export class AIService {
   async generateFlashcardsFromText(inputText: string, requestedMaxCards?: number): Promise<GeneratedCard[]> {
     const start = typeof performance !== "undefined" ? performance.now() : Date.now();
     const maxCards = this.resolveMaxCards(requestedMaxCards);
-    const sanitizedInput = this.sanitizeInput(inputText);
+    const sanitizedInput = this.limitInputLength(inputText);
 
     const request = this.buildChatRequest(sanitizedInput, maxCards);
 
@@ -141,8 +133,8 @@ export class AIService {
     return Math.max(1, Math.min(candidate, this.maxCardsLimit));
   }
 
-  private sanitizeInput(text: string): string {
-    return text.replace(/[<>]/g, "").slice(0, this.maxInputLength);
+  private limitInputLength(text: string): string {
+    return text.slice(0, this.maxInputLength);
   }
 
   private buildChatRequest(input: string, maxCards: number): ChatRequestDTO {
