@@ -15,7 +15,7 @@ export class RateLimitService {
     authPasswordReset: { requests: 3, windowMs: 60 * 1000 }, // 3 req/min
   };
 
-  constructor(private readonly supabase: SupabaseClient) {}
+  constructor(private readonly supabase: SupabaseClient | null) {}
 
   /**
    * Check if user has exceeded AI generation rate limit
@@ -62,6 +62,14 @@ export class RateLimitService {
   ): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
     const limit = this.limits[limitType];
     const now = Date.now();
+
+    // If supabase client is null (e.g. in dev without service role key), allow all requests
+    if (!this.supabase) {
+      return {
+        allowed: true,
+        remaining: limit.requests,
+      };
+    }
 
     // Call Supabase RPC to check limit
     const { data, error } = await this.supabase.rpc("check_rate_limit", { p_key: key });
@@ -116,6 +124,11 @@ export class RateLimitService {
    */
   private async incrementRateLimit(key: string, limitType: keyof typeof this.limits): Promise<void> {
     const limit = this.limits[limitType];
+
+    // If supabase client is null, skip increment
+    if (!this.supabase) {
+      return;
+    }
 
     const { error } = await this.supabase.rpc("increment_rate_limit", {
       p_key: key,

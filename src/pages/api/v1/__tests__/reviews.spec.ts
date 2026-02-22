@@ -114,6 +114,7 @@ describe("GET /api/v1/reviews", () => {
     }
 
     expect(mockSupabase.from).toHaveBeenCalledWith("decks");
-    expect(mockSupabase.from).toHaveBeenCalledWith("cards");
+    expect(mockSupabase.from).toHaveBeenCalledWith("reviews");
+    expect(mockSupabase.from).not.toHaveBeenCalledWith("cards");
   });
 });

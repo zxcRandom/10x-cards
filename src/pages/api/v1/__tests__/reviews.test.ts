@@ -20,6 +20,7 @@ describe("GET /api/v1/reviews", () => {
       lte: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       range: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
       // Mock the promise behavior
       then: vi.fn().mockImplementation((resolve) => {
         return Promise.resolve({ data: [], count: 0, error: null }).then(resolve);

@@ -309,7 +309,11 @@ export class OpenRouterService {
     defaults?: Partial<ChatDefaults>
   ) {
     if (!config?.apiKey) {
-      throw new ConfigurationError("Missing OpenRouter API key");
+      if (import.meta.env.DEV || import.meta.env.MODE === "test") {
+        this.logger.warn("OpenRouter API key is missing. Mock responses will be used.");
+      } else {
+        throw new ConfigurationError("Missing OpenRouter API key");
+      }
     }
 
     if (!this.httpClient) {
@@ -345,6 +349,11 @@ export class OpenRouterService {
     await this.enforceRateLimit(rateLimitKey);
 
     try {
+      if (!this.config.apiKey && (import.meta.env.DEV || import.meta.env.MODE === "test")) {
+        this.logger.info("Using mock OpenRouter response (missing API key)");
+        return this.getMockResponse(payload);
+      }
+
       const response = await this.executeFetch(payload, abortSignal, rateLimitKey);
       const parsed = await this.parseResponse(response);
 
@@ -354,6 +363,7 @@ export class OpenRouterService {
 
       return parsed;
     } catch (error) {
+      this.logger.error("OpenRouter request failed", { error });
       throw this.mapError(error, { operation: "generate", payload });
     }
   }
@@ -498,9 +508,10 @@ export class OpenRouterService {
 
       try {
         // DEBUG: Log the payload being sent
+        const apiKeyHint = this.config.apiKey ? `${this.config.apiKey.substring(0, 15)}...` : "missing";
         this.logger.debug("Sending request to OpenRouter", {
           url: `${this.config.baseUrl}/chat/completions`,
-          payload: JSON.stringify(payload, null, 2),
+          apiKeyHint,
           headers: this.config.headers,
         });
 
@@ -520,7 +531,9 @@ export class OpenRouterService {
         }
 
         if (response.status === 401 || response.status === 403) {
-          throw new AuthenticationError("OpenRouter authentication failed", await safeParseBody(response));
+          const errorBody = await safeParseBody(response);
+          this.logger.error("OpenRouter authentication failed", { status: response.status, body: errorBody });
+          throw new AuthenticationError("OpenRouter authentication failed", errorBody);
         }
 
         if (response.status === 429) {
@@ -730,6 +743,48 @@ export class OpenRouterService {
     }
 
     return new ServiceUnavailableError("Unexpected OpenRouter error", { error, context });
+  }
+
+  private getMockResponse(payload: OpenRouterPayload): ChatResponseDTO {
+    const isFlashcardRequest =
+      payload.messages.some((m) => m.content.includes("flashcard")) ||
+      payload.response_format?.type === "json_object" ||
+      payload.response_format?.type === "json_schema";
+
+    let content = "This is a mock response from OpenRouter.";
+
+    if (isFlashcardRequest) {
+      content = JSON.stringify({
+        cards: [
+          {
+            question: "Co to jest 10x Cards?",
+            answer: "Aplikacja do nauki z wykorzystaniem AI.",
+            hint: "AI",
+          },
+          {
+            question: "Jak działa generowanie fiszek?",
+            answer: "AI analizuje tekst i tworzy pytania oraz odpowiedzi.",
+            hint: "Analiza",
+          },
+        ],
+      });
+    }
+
+    return {
+      id: `mock-${Date.now()}`,
+      model: payload.model,
+      created: Math.floor(Date.now() / 1000),
+      message: {
+        role: "assistant",
+        content,
+      },
+      usage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        totalTokens: 30,
+      },
+      raw: { mock: true },
+    };
   }
 }
 
