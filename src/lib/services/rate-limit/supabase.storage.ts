@@ -42,7 +42,7 @@ export class SupabaseRateLimitStorage implements RateLimitStorage {
     // so we fetch it. This is slightly less efficient but maintains compatibility.
     const entry = await this.get(key);
     if (!entry) {
-        throw new Error("Failed to retrieve rate limit entry after increment");
+      throw new Error("Failed to retrieve rate limit entry after increment");
     }
     return entry;
   }

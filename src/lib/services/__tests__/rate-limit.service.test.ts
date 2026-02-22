@@ -156,7 +156,7 @@ describe("RateLimitService", () => {
       const result = await devService.checkAIRateLimit(userId);
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(10);
-      
+
       await devService.incrementAIRateLimit(userId);
       const result2 = await devService.checkAIRateLimit(userId);
       expect(result2.remaining).toBe(9);
@@ -167,8 +167,8 @@ describe("RateLimitService", () => {
     it("should call increment on storage", async () => {
       mockSupabase.rpc.mockResolvedValueOnce({ error: null }); // increment
       mockSupabase.rpc.mockResolvedValueOnce({
-          data: [{ count: 1, reset_at: now + 60000 }],
-          error: null,
+        data: [{ count: 1, reset_at: now + 60000 }],
+        error: null,
       }); // get
 
       await service.incrementAIRateLimit(userId);
