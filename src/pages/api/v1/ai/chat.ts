@@ -149,7 +149,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
     },
   };
 
-  const openRouterService = new OpenRouterService(createOpenRouterConfig(), undefined, logger, rateLimiterHooks);
+  // Provide environment explicitly since import.meta.env might not auto-update or sync with locals
+  const envVars = {
+    ...(import.meta.env as Record<string, string>),
+    ...(locals.runtime?.env as Record<string, string>),
+  };
+  
+  const openRouterService = new OpenRouterService(createOpenRouterConfig(envVars), undefined, logger, rateLimiterHooks);
   const aiService = new AIService({ openRouter: openRouterService, logger });
 
   let body: unknown;

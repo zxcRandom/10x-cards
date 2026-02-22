@@ -20,7 +20,9 @@ describe("GET /api/v1/reviews", () => {
       lte: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       range: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: "deck-1" }, error: null }),
+      single: vi.fn().mockImplementation(function (this: any) {
+        return Promise.resolve({ data: { id: "deck-1" }, error: null });
+      }),
       // Mock the promise behavior
       then: vi.fn().mockImplementation((resolve) => {
         // Return count: 10 if select was called with count option

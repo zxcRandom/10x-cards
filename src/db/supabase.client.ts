@@ -44,12 +44,8 @@ function getSupabaseAnonKey(runtimeEnv?: Record<string, unknown>): string {
  * Get Supabase service role key from environment variables
  * In Cloudflare Workers/Pages, use runtime env; in dev, use import.meta.env
  */
-function getSupabaseServiceRoleKey(runtimeEnv?: Record<string, unknown>): string {
+function getSupabaseServiceRoleKey(runtimeEnv?: Record<string, unknown>): string | undefined {
   const key = (runtimeEnv?.SUPABASE_SERVICE_ROLE_KEY as string) || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!key) {
-    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable.");
-  }
   return key;
 }
 
@@ -107,15 +103,36 @@ export function createServerClient(
  * Creates a Supabase admin client with service role key
  * Used for backend operations that bypass RLS (e.g. rate limiting)
  */
-export function createAdminClient(runtimeEnv?: Record<string, unknown>): SupabaseClient<Database> {
-  const supabaseUrl = getSupabaseUrl(runtimeEnv);
-  const serviceRoleKey = getSupabaseServiceRoleKey(runtimeEnv);
+export function createAdminClient(runtimeEnv?: Record<string, unknown>): SupabaseClient<Database> | null {
+  try {
+    const supabaseUrl = getSupabaseUrl(runtimeEnv);
+    const serviceRoleKey = getSupabaseServiceRoleKey(runtimeEnv);
 
-  return createSupabaseClient<Database>(supabaseUrl, serviceRoleKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  });
+    if (!serviceRoleKey) {
+      // In development, we can allow missing service role key for some features
+      if (import.meta.env.DEV || import.meta.env.MODE === "test") {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "SUPABASE_SERVICE_ROLE_KEY is missing. Administrative features (like rate limiting) will be disabled."
+        );
+        return null;
+      }
+      throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable.");
+    }
+
+    return createSupabaseClient<Database>(supabaseUrl, serviceRoleKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    });
+  } catch (error) {
+    if (import.meta.env.DEV || import.meta.env.MODE === "test") {
+      // eslint-disable-next-line no-console
+      console.warn("Failed to create admin client:", error);
+      return null;
+    }
+    throw error;
+  }
 }
