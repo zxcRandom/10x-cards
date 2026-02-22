@@ -7,7 +7,7 @@ export interface RetryConfig {
 }
 
 export interface OpenRouterConfig {
-  apiKey: string;
+  apiKey: string | undefined;
   baseUrl: string;
   referrer: string;
   title: string;
@@ -28,7 +28,7 @@ type EnvLike = Record<string, string | undefined>;
 
 const envSchema = z
   .object({
-    OPENROUTER_API_KEY: z.string().min(1, "OPENROUTER_API_KEY is required"),
+    OPENROUTER_API_KEY: z.string().optional(),
     OPENROUTER_DEFAULT_MODEL: z.string().min(1).default("openrouter/anthropic/claude-3.5-sonnet"),
     OPENROUTER_BASE_URL: z.string().url().default("https://openrouter.ai/api/v1"),
     OPENROUTER_REFERRER: z

@@ -8,8 +8,9 @@ Status: **ZDIAGNOZOWANE - CZEKA NA DZIAŁANIE**
 Po 3 nieudanych deploymentach i analizie dokumentacji Cloudflare, **root cause został zidentyfikowany**:
 
 ### Problem
+
 ```
-Error: Failed to publish your Function. 
+Error: Failed to publish your Function.
 Got error: Uncaught ReferenceError: MessageChannel is not defined
 at chunks/_@astro-renderers_JFt8ruBS.mjs:6827:16
 ```
@@ -18,10 +19,10 @@ at chunks/_@astro-renderers_JFt8ruBS.mjs:6827:16
 
 **Preview environment ma outdated `compatibility_date`:**
 
-| Environment | Compatibility Date | Compatibility Flags | Status |
-|-------------|-------------------|---------------------|---------|
-| **Production** | Nov 2, **2025** | `nodejs_compat` | ✅ OK |
-| **Preview** | Nov 2, **2024** | `nodejs_compat` | ❌ ZA STARA |
+| Environment    | Compatibility Date | Compatibility Flags | Status      |
+| -------------- | ------------------ | ------------------- | ----------- |
+| **Production** | Nov 2, **2025**    | `nodejs_compat`     | ✅ OK       |
+| **Preview**    | Nov 2, **2024**    | `nodejs_compat`     | ❌ ZA STARA |
 
 **Kluczowy fakt**: Pull Request deploymenty używają **Preview environment**, NIE Production!
 
@@ -32,6 +33,7 @@ at chunks/_@astro-renderers_JFt8ruBS.mjs:6827:16
 > To enable built-in Node.js APIs and add polyfills, add the `nodejs_compat` compatibility flag to your wrangler configuration file, **and ensure that your Worker's compatibility date is 2024-09-23 or later**.
 
 **Wymagania**:
+
 - ✅ `nodejs_compat` flag aktywny (JEST)
 - ❌ `compatibility_date >= 2024-09-23` w Preview (Nov 2, 2024 to OK technicznie, ale może mieć bugs)
 - ✅ Zalecane: `compatibility_date = 2025-11-02` (najnowsza)
@@ -70,6 +72,7 @@ git push origin feature/github-actions-cicd
 ```
 
 **LUB** ręczny redeploy z Dashboard:
+
 ```
 Cloudflare Dashboard → 10x-cards → Deployments → [Latest] → Redeploy
 ```
@@ -79,6 +82,7 @@ Cloudflare Dashboard → 10x-cards → Deployments → [Latest] → Redeploy
 W deployment logs powinieneś zobaczyć:
 
 **Oczekiwany sukces:**
+
 ```
 ✨ Compiled Worker successfully
 ✨ Success! Uploaded 0 files (39 already uploaded)
@@ -87,8 +91,9 @@ Success: Assets published!
 ```
 
 **BEZ** błędu:
+
 ```
-❌ Error: Failed to publish your Function. 
+❌ Error: Failed to publish your Function.
 Got error: Uncaught ReferenceError: MessageChannel is not defined
 ```
 
@@ -99,6 +104,7 @@ Got error: Uncaught ReferenceError: MessageChannel is not defined
 **A**: Cloudflare Pages automatic GitHub deployments **czytają** `wrangler.toml` ale **NIE APLIKUJĄ** compatibility settings. Dashboard configuration ma pierwszeństwo.
 
 Z deployment logs:
+
 ```
 Found wrangler.toml file. Reading build configuration...
 pages_build_output_dir: dist
@@ -114,6 +120,7 @@ Ale `compatibility_flags` i `compatibility_date` z tego pliku **NIE są stosowan
 ### Q: Czy Nov 2, 2024 to nie wystarczy skoro jest po Sep 23, 2024?
 
 **A**: Technicznie tak, ale:
+
 1. Może zawierać bugs w wczesnej implementacji MessageChannel
 2. Cloudflare zaleca "current date" dla nowych projektów
 3. Nov 2, 2025 zapewnia najbardziej stabilną wersję APIs
@@ -122,6 +129,7 @@ Ale `compatibility_flags` i `compatibility_date` z tego pliku **NIE są stosowan
 ### Q: Co jeśli deployment nadal failuje po zmianie daty?
 
 **A**: Sprawdź:
+
 1. Czy Save został kliknięty w Dashboard
 2. Czy edytowałeś **Preview** environment (nie Production)
 3. Czy `nodejs_compat` flag jest nadal aktywny
@@ -149,6 +157,7 @@ Ale `compatibility_flags` i `compatibility_date` z tego pliku **NIE są stosowan
 Po pomyślnym deploymencie:
 
 1. **Zmerguj PR #16**:
+
    ```bash
    git checkout main
    git merge feature/github-actions-cicd

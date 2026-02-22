@@ -18,12 +18,19 @@
 import type { APIRoute } from "astro";
 import { otpPasswordResetSchema } from "@/lib/validation/auth.schemas";
 import { formatZodErrors } from "@/lib/utils/zod-errors";
+import { RateLimitService } from "@/lib/services/rate-limit.service";
+import { createAdminClient } from "@/db/supabase.client";
 import { HttpStatus, ErrorCode } from "@/types";
 import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
+  const runtimeEnv = locals.runtime?.env as Record<string, unknown> | undefined;
+  const rateLimiter = new RateLimitService(
+    createAdminClient(runtimeEnv),
+    (runtimeEnv?.REDIS_URL as string) || import.meta.env.REDIS_URL
+  );
   try {
     // 1. Parse request body
     let body: unknown;
@@ -58,7 +65,33 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const { email, otp, newPassword } = validationResult.data;
 
-    // 3. Verify OTP code (this sets up session automatically)
+    // 3. Rate limiting - check BEFORE attempt
+    const rateLimitCheck = await rateLimiter.checkPasswordResetRateLimit(email);
+    if (!rateLimitCheck.allowed) {
+      const retryAfterSeconds = rateLimitCheck.resetInMs ? Math.ceil(rateLimitCheck.resetInMs / 1000) : 60;
+
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: ErrorCode.TOO_MANY_REQUESTS,
+            message: "Too many password reset attempts. Please try again later.",
+            details: `Retry after ${retryAfterSeconds} seconds`,
+          },
+        } satisfies ErrorResponse),
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": retryAfterSeconds.toString(),
+          },
+        }
+      );
+    }
+
+    // 4. Increment rate limit IMMEDIATELY (to mitigate race condition)
+    await rateLimiter.incrementPasswordResetRateLimit(email);
+
+    // 5. Verify OTP code (this sets up session automatically)
     const { error: verifyError } = await locals.supabase.auth.verifyOtp({
       email: email,
       token: otp,
@@ -79,7 +112,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // 4. Update password (session is now active from verifyOtp)
+    // 6. Update password (session is now active from verifyOtp)
     const { error: updateError } = await locals.supabase.auth.updateUser({
       password: newPassword,
     });
@@ -98,7 +131,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // 5. Success
+    // 7. Success
     return new Response(
       JSON.stringify({
         status: "ok",

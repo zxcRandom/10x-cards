@@ -48,8 +48,6 @@ export default function StudySession({ deckId }: StudySessionProps) {
       setState("loading");
     } else if (error) {
       setState("error");
-    } else if (cards.length === 0) {
-      setState("done");
     } else {
       setState("ready");
     }

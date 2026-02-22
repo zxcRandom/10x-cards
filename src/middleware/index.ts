@@ -76,6 +76,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // In Cloudflare Pages, env vars are available through context.env
   const runtimeEnv = (context as { env?: Record<string, unknown> }).env;
 
+  // Store runtime env in locals for use in API routes (e.g. for API keys)
+  locals.runtime = {
+    env: runtimeEnv || {},
+  };
+
   // Create a Supabase client tied to this specific request
   // This ensures proper session handling and cookie management
   locals.supabase = createServerClient(cookies, cookieHeader, authHeader, runtimeEnv);

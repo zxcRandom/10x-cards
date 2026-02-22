@@ -2,18 +2,15 @@
  * Rate Limiting Service
  *
  * Provides rate limiting functionality using configurable storage backends.
- * Supports InMemory (default) and Redis (via REDIS_URL env var).
+ * Supports Supabase RPC (default), InMemory, and Redis.
  */
 
+import type { SupabaseClient } from "../../db/supabase.client";
 import { InMemoryRateLimitStorage } from "./rate-limit/in-memory.storage";
 import { RedisRateLimitStorage } from "./rate-limit/redis.storage";
+import { SupabaseRateLimitStorage } from "./rate-limit/supabase.storage";
 import type { RateLimitStorage } from "./rate-limit/storage";
 
-/**
- * RateLimitService - Simple rate limiting for API endpoints
- *
- * Uses pluggable storage (InMemory for MVP/dev, Redis for production).
- */
 export class RateLimitService {
   private readonly limits = {
     aiGeneration: { requests: 10, windowMs: 60 * 1000 }, // 10 req/min
@@ -25,18 +22,13 @@ export class RateLimitService {
 
   private storage: RateLimitStorage;
 
-  constructor() {
-    // Check for Redis URL in environment variables
-    // Prefer process.env for Node/Serverless environments
-    const redisUrl = process.env.REDIS_URL;
-
+  constructor(supabase: SupabaseClient | null, redisUrl?: string) {
     if (redisUrl) {
-      // eslint-disable-next-line no-console
-      console.log("Initializing RateLimitService with Redis storage");
       this.storage = new RedisRateLimitStorage(redisUrl);
+    } else if (supabase) {
+      this.storage = new SupabaseRateLimitStorage(supabase);
     } else {
-      // eslint-disable-next-line no-console
-      console.log("Initializing RateLimitService with In-Memory storage (not suitable for serverless production)");
+      // Fallback for dev/test when no redis and no supabase service role key
       this.storage = new InMemoryRateLimitStorage();
     }
   }
@@ -84,22 +76,21 @@ export class RateLimitService {
     key: string,
     limitType: keyof typeof this.limits
   ): Promise<{ allowed: boolean; remaining: number; resetInMs?: number }> {
-    const now = Date.now();
     const limit = this.limits[limitType];
+    const now = Date.now();
 
     const entry = await this.storage.get(key);
 
-    // No entry or expired - allow request
     if (!entry || entry.resetAt < now) {
       return {
         allowed: true,
-        remaining: limit.requests - 1, // Expecting one request to be made
+        remaining: limit.requests,
       };
     }
 
-    // Check if limit exceeded
     const remaining = Math.max(0, limit.requests - entry.count);
     const resetInMs = Math.max(0, entry.resetAt - now);
+
     return {
       allowed: entry.count < limit.requests,
       remaining,
