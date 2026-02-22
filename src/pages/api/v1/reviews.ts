@@ -45,45 +45,33 @@ export const GET: APIRoute = async ({ url, locals }) => {
     const validated = reviewsQuerySchema.parse(queryParams);
 
     // STEP 3: Build database query with filters
-    let query = locals.supabase.from("reviews").select("*").eq("user_id", user.id);
+    let selectQuery = "*";
+    if (validated.deckId) {
+      // Use !inner join to filter reviews by cards belonging to the specified deck
+      selectQuery = "*, cards!inner(deck_id)";
+    }
 
-    // Cache cardIds for reuse in count query (avoid duplicate DB call)
-    let cardIds: string[] | null = null;
+    let query = locals.supabase.from("reviews").select(selectQuery).eq("user_id", user.id);
 
     // Apply optional filters
     if (validated.cardId) {
       query = query.eq("card_id", validated.cardId);
     }
 
-    // deckId filter requires JOIN through cards table
+    // deckId filter via JOIN
     if (validated.deckId) {
-      // Need to get card IDs for this deck first
-      const { data: cardsInDeck, error: cardsError } = await locals.supabase
-        .from("cards")
+      // SECURITY CHECK: Ensure deck belongs to user before fetching reviews
+      // This adds defense-in-depth on top of RLS
+      const { data: deck, error: deckError } = await locals.supabase
+        .from("decks")
         .select("id")
-        .eq("deck_id", validated.deckId);
+        .eq("id", validated.deckId)
+        .eq("user_id", user.id)
+        .single();
 
-      if (cardsError) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to fetch cards for deck:", cardsError);
-        return new Response(
-          JSON.stringify({
-            error: {
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Failed to retrieve reviews",
-              details: "Failed to fetch deck cards",
-            },
-          } satisfies ErrorResponse),
-          { status: 500, headers: { "Content-Type": "application/json" } }
-        );
-      }
-
-      // Filter reviews by card IDs in this deck (store for reuse)
-      cardIds = (cardsInDeck || []).map((card) => card.id);
-      if (cardIds.length > 0) {
-        query = query.in("card_id", cardIds);
-      } else {
-        // No cards in deck, return empty result
+      if (deckError || !deck) {
+        // Deck not found or doesn't belong to user
+        // Return empty result instead of error to avoid leaking existence
         const emptyResponse: ReviewsListDTO = {
           items: [],
           total: 0,
@@ -95,6 +83,9 @@ export const GET: APIRoute = async ({ url, locals }) => {
           headers: { "Content-Type": "application/json" },
         });
       }
+
+      // Add filter for the joined table
+      query = query.eq("cards.deck_id", validated.deckId);
     }
 
     // Date range filters
@@ -130,17 +121,22 @@ export const GET: APIRoute = async ({ url, locals }) => {
     }
 
     // STEP 5: Get total count for pagination
-    let countQuery = locals.supabase.from("reviews").select("*", { count: "exact", head: true }).eq("user_id", user.id);
+    let countSelect = "*";
+    if (validated.deckId) {
+      countSelect = "*, cards!inner(deck_id)";
+    }
+
+    let countQuery = locals.supabase
+      .from("reviews")
+      .select(countSelect, { count: "exact", head: true })
+      .eq("user_id", user.id);
 
     // Apply same filters to count query
     if (validated.cardId) {
       countQuery = countQuery.eq("card_id", validated.cardId);
     }
-    if (validated.deckId && cardIds) {
-      // Reuse cached cardIds from earlier query (avoid duplicate DB call)
-      if (cardIds.length > 0) {
-        countQuery = countQuery.in("card_id", cardIds);
-      }
+    if (validated.deckId) {
+      countQuery = countQuery.eq("cards.deck_id", validated.deckId);
     }
     if (validated.from) {
       countQuery = countQuery.gte("review_date", validated.from);
