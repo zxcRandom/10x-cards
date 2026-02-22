@@ -126,13 +126,6 @@ export class ThrottledError extends OpenRouterError {
   }
 }
 
-export class QuotaExceededError extends OpenRouterError {
-  constructor(message: string, cause?: unknown) {
-    super(message, "quota", { cause });
-    this.name = "QuotaExceededError";
-  }
-}
-
 export class ServiceUnavailableError extends OpenRouterError {
   constructor(message: string, cause?: unknown) {
     super(message, "upstream", { cause });
@@ -506,7 +499,10 @@ export class OpenRouterService {
         this.logger.debug("Sending request to OpenRouter", {
           url: `${this.config.baseUrl}/chat/completions`,
           apiKeyHint,
-          headers: (({ Authorization, ...rest }) => rest)(this.config.headers as Record<string, string>),
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          headers: (({ Authorization: _Authorization, ...rest }) => rest)(
+            this.config.headers as Record<string, string>
+          ),
         });
 
         const response = await this.httpClient(`${this.config.baseUrl}/chat/completions`, {

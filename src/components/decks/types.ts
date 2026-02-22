@@ -47,29 +47,6 @@ export interface SortState {
 }
 
 /**
- * Create deck form data
- */
-export interface CreateDeckForm {
-  name: string;
-  createdByAi?: boolean;
-}
-
-/**
- * Update deck form data
- */
-export interface UpdateDeckForm {
-  name: string;
-}
-
-/**
- * Delete deck confirmation form
- */
-export interface DeleteDeckForm {
-  confirmName?: string;
-  understood: boolean;
-}
-
-/**
  * View model for deck card (same as DTO for now)
  */
 export type DeckCardViewModel = DeckDTO;
