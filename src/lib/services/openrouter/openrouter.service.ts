@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Logger } from "../logger.service";
+export type { Logger };
 import type { OpenRouterConfig } from "./openrouter.config";
 
 export type ChatRole = "system" | "user" | "assistant" | "tool";

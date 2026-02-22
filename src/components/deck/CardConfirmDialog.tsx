@@ -77,3 +77,4 @@ export default function CardConfirmDialog({ open, card, onOpenChange, onConfirm 
     </Dialog>
   );
 }
+
