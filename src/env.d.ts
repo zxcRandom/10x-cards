@@ -24,6 +24,9 @@ interface ImportMetaEnv {
   readonly SUPABASE_ANON_KEY: string;
   readonly SUPABASE_SERVICE_ROLE_KEY: string;
 
+  // Rate Limiting
+  readonly REDIS_URL?: string;
+
   // OpenRouter Configuration
   readonly OPENROUTER_API_KEY: string;
   readonly OPENROUTER_DEFAULT_MODEL?: string;

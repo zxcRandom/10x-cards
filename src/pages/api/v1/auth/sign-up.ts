@@ -28,7 +28,11 @@ import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const rateLimiter = new RateLimitService(createAdminClient(locals.runtime?.env));
+  const runtimeEnv = locals.runtime?.env as Record<string, unknown> | undefined;
+  const rateLimiter = new RateLimitService(
+    createAdminClient(runtimeEnv),
+    (runtimeEnv?.REDIS_URL as string) || import.meta.env.REDIS_URL
+  );
 
   try {
     // Parse request body

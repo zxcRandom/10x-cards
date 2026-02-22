@@ -1,10 +1,15 @@
 /**
- * RateLimitService - Rate limiting for API endpoints using Supabase
+ * Rate Limiting Service
  *
- * Uses Supabase RPC for atomic rate limiting.
+ * Provides rate limiting functionality using configurable storage backends.
+ * Supports Supabase RPC (default), InMemory, and Redis.
  */
 
 import type { SupabaseClient } from "../../db/supabase.client";
+import { InMemoryRateLimitStorage } from "./rate-limit/in-memory.storage";
+import { RedisRateLimitStorage } from "./rate-limit/redis.storage";
+import { SupabaseRateLimitStorage } from "./rate-limit/supabase.storage";
+import type { RateLimitStorage } from "./rate-limit/storage";
 
 export class RateLimitService {
   private readonly limits = {
@@ -15,7 +20,18 @@ export class RateLimitService {
     authPasswordReset: { requests: 3, windowMs: 60 * 1000 }, // 3 req/min
   };
 
-  constructor(private readonly supabase: SupabaseClient | null) {}
+  private storage: RateLimitStorage;
+
+  constructor(supabase: SupabaseClient | null, redisUrl?: string) {
+    if (redisUrl) {
+      this.storage = new RedisRateLimitStorage(redisUrl);
+    } else if (supabase) {
+      this.storage = new SupabaseRateLimitStorage(supabase);
+    } else {
+      // Fallback for dev/test when no redis and no supabase service role key
+      this.storage = new InMemoryRateLimitStorage();
+    }
+  }
 
   /**
    * Check if user has exceeded AI generation rate limit
@@ -35,7 +51,7 @@ export class RateLimitService {
    */
   async incrementAIRateLimit(userId: string): Promise<void> {
     const key = `ai_gen:${userId}`;
-    return this.incrementRateLimit(key, "aiGeneration");
+    await this.incrementRateLimit(key, "aiGeneration");
   }
 
   /**
@@ -50,7 +66,7 @@ export class RateLimitService {
   }
 
   /**
-   * Generic rate limit check using Supabase RPC
+   * Generic rate limit check
    *
    * @param key - Rate limit key
    * @param limitType - Type of limit to apply
@@ -63,83 +79,34 @@ export class RateLimitService {
     const limit = this.limits[limitType];
     const now = Date.now();
 
-    // If supabase client is null (e.g. in dev without service role key), allow all requests
-    if (!this.supabase) {
+    const entry = await this.storage.get(key);
+
+    if (!entry || entry.resetAt < now) {
       return {
         allowed: true,
         remaining: limit.requests,
       };
     }
 
-    // Call Supabase RPC to check limit
-    const { data, error } = await this.supabase.rpc("check_rate_limit", { p_key: key });
-
-    if (error) {
-      // eslint-disable-next-line no-console
-      console.error("[RateLimitService] Check failed:", error);
-      // Fail closed for security
-      throw new Error("Rate limit check failed");
-    }
-
-    // Parse result
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const row = Array.isArray(data) && data.length > 0 ? (data[0] as any) : null;
-
-    if (!row) {
-      // No entry, allow full limit
-      return {
-        allowed: true,
-        remaining: limit.requests,
-      };
-    }
-
-    const count = Number(row.count);
-    const resetAt = Number(row.reset_at);
-
-    // If expired, allow full limit (minus 1 effectively, but here we just check)
-    // Actually, if expired, count should be reset on next increment.
-    // For check, we can treat it as 0 used.
-    if (resetAt < now) {
-      return {
-        allowed: true,
-        remaining: limit.requests,
-      };
-    }
-
-    const remaining = Math.max(0, limit.requests - count);
-    const resetInMs = Math.max(0, resetAt - now);
+    const remaining = Math.max(0, limit.requests - entry.count);
+    const resetInMs = Math.max(0, entry.resetAt - now);
 
     return {
-      allowed: count < limit.requests,
+      allowed: entry.count < limit.requests,
       remaining,
       resetInMs,
     };
   }
 
   /**
-   * Generic rate limit increment using Supabase RPC
+   * Generic rate limit increment
    *
    * @param key - Rate limit key
    * @param limitType - Type of limit to apply
    */
   private async incrementRateLimit(key: string, limitType: keyof typeof this.limits): Promise<void> {
     const limit = this.limits[limitType];
-
-    // If supabase client is null, skip increment
-    if (!this.supabase) {
-      return;
-    }
-
-    const { error } = await this.supabase.rpc("increment_rate_limit", {
-      p_key: key,
-      p_window_ms: limit.windowMs,
-    });
-
-    if (error) {
-      // eslint-disable-next-line no-console
-      console.error("[RateLimitService] Increment failed:", error);
-      throw new Error("Rate limit increment failed");
-    }
+    await this.storage.increment(key, limit.windowMs);
   }
 
   /**

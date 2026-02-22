@@ -131,7 +131,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   // Instantiate services per request
-  const rateLimitService = new RateLimitService(createAdminClient(locals.runtime?.env));
+  const runtimeEnv = locals.runtime?.env as Record<string, unknown> | undefined;
+  const rateLimitService = new RateLimitService(
+    createAdminClient(runtimeEnv),
+    (runtimeEnv?.REDIS_URL as string) || import.meta.env.REDIS_URL
+  );
 
   const rateLimiterHooks: RateLimiterHooks = {
     async check(key: string) {
