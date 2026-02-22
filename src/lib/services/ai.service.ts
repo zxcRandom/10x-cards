@@ -115,7 +115,7 @@ export class AIService {
   async generateFlashcardsFromText(inputText: string, requestedMaxCards?: number): Promise<GeneratedCard[]> {
     const start = typeof performance !== "undefined" ? performance.now() : Date.now();
     const maxCards = this.resolveMaxCards(requestedMaxCards);
-    const sanitizedInput = this.sanitizeInput(inputText);
+    const sanitizedInput = this.limitInputLength(inputText);
 
     const request = this.buildChatRequest(sanitizedInput, maxCards);
 
@@ -141,8 +141,8 @@ export class AIService {
     return Math.max(1, Math.min(candidate, this.maxCardsLimit));
   }
 
-  private sanitizeInput(text: string): string {
-    return text.replace(/[<>]/g, "").slice(0, this.maxInputLength);
+  private limitInputLength(text: string): string {
+    return text.slice(0, this.maxInputLength);
   }
 
   private buildChatRequest(input: string, maxCards: number): ChatRequestDTO {
