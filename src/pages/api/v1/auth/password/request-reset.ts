@@ -17,14 +17,15 @@ import type { APIRoute } from "astro";
 import { passwordResetRequestSchema } from "@/lib/validation/auth.schemas";
 import { formatZodErrors } from "@/lib/utils/zod-errors";
 import { RateLimitService } from "@/lib/services/rate-limit.service";
+import { createAdminClient } from "@/db/supabase.client";
 import { HttpStatus, ErrorCode } from "@/types";
 import type { ErrorResponse, ValidationErrorResponse } from "@/types";
 
 export const prerender = false;
 
-const rateLimiter = new RateLimitService();
-
 export const POST: APIRoute = async ({ request, locals }) => {
+  const rateLimiter = new RateLimitService(createAdminClient(locals.runtime?.env));
+
   try {
     // 1. Parse request body
     let body: unknown;

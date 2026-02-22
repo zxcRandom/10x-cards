@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Logger } from "../logger.service";
 import type { OpenRouterConfig } from "./openrouter.config";
 
 export type ChatRole = "system" | "user" | "assistant" | "tool";
@@ -158,13 +159,6 @@ export class ConfigurationError extends OpenRouterError {
     super(message, "configuration", { cause });
     this.name = "ConfigurationError";
   }
-}
-
-export interface Logger {
-  debug(message: string, meta?: Record<string, unknown>): void;
-  info(message: string, meta?: Record<string, unknown>): void;
-  warn(message: string, meta?: Record<string, unknown>): void;
-  error(message: string, meta?: Record<string, unknown>): void;
 }
 
 export interface RateLimiterHooks {

@@ -204,7 +204,7 @@ export class CardRepository {
     const sortField = CardRepository.SORT_FIELD_MAP[options.sort];
 
     // Build query for cards
-    let query = this.supabase.from("cards").select("*").eq("deck_id", deckId);
+    let query = this.supabase.from("cards").select("*", { count: "exact" }).eq("deck_id", deckId);
 
     // Add search filter if provided
     if (options.searchTerm) {
@@ -218,23 +218,10 @@ export class CardRepository {
     query = query.range(options.offset, options.offset + options.limit - 1);
 
     // Execute query
-    const { data, error } = await query;
+    const { data, count, error } = await query;
 
     if (error) {
       throw error;
-    }
-
-    // Get total count
-    let countQuery = this.supabase.from("cards").select("*", { count: "exact", head: true }).eq("deck_id", deckId);
-
-    if (options.searchTerm) {
-      countQuery = countQuery.ilike("question", `%${options.searchTerm}%`);
-    }
-
-    const { count, error: countError } = await countQuery;
-
-    if (countError) {
-      throw countError;
     }
 
     return {
