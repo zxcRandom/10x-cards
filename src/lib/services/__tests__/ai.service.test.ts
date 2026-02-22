@@ -15,7 +15,7 @@ vi.mock("../openrouter/openrouter.config", () => ({
 }));
 
 import { AIService, AIParsingError, AIRateLimitError, AIUnavailableError } from "../ai.service";
-import type { OpenRouterService, Logger, ChatResponseDTO } from "../openrouter/openrouter.service";
+import type { OpenRouterService, Logger, ChatResponseDTO, ChatRequestDTO } from "../openrouter/openrouter.service";
 import { ThrottledError, ServiceUnavailableError, NetworkError } from "../openrouter/openrouter.service";
 
 describe("AIService", () => {
@@ -66,7 +66,7 @@ describe("AIService", () => {
       expect(mockOpenRouter.generateChat).toHaveBeenCalledTimes(1);
     });
 
-    it("should sanitize input by removing angle brackets", async () => {
+    it("should preserve mathematical symbols and angle brackets in input", async () => {
       const mockResponse: Partial<ChatResponseDTO> = {
         message: {
           role: "assistant",
@@ -78,14 +78,15 @@ describe("AIService", () => {
 
       vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
 
-      await aiService.generateFlashcardsFromText("<b>Bold</b> Text");
+      const input = "Calculate x < y and a > b with <html> tags";
+      await aiService.generateFlashcardsFromText(input);
 
       expect(mockOpenRouter.generateChat).toHaveBeenCalledWith(
         expect.objectContaining({
           messages: expect.arrayContaining([
             expect.objectContaining({
               role: "user",
-              content: expect.stringContaining("bBold/b Text"),
+              content: expect.stringContaining("Calculate x < y and a > b with <html> tags"),
             }),
           ]),
         })
