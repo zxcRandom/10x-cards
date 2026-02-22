@@ -40,6 +40,19 @@ function getSupabaseAnonKey(runtimeEnv?: Record<string, unknown>): string {
   return key;
 }
 
+/**
+ * Get Supabase service role key from environment variables
+ * In Cloudflare Workers/Pages, use runtime env; in dev, use import.meta.env
+ */
+function getSupabaseServiceRoleKey(runtimeEnv?: Record<string, unknown>): string {
+  const key = (runtimeEnv?.SUPABASE_SERVICE_ROLE_KEY as string) || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!key) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable.");
+  }
+  return key;
+}
+
 export type SupabaseClient<T = Database> = ReturnType<typeof createSupabaseClient<T>>;
 
 /**
@@ -86,6 +99,23 @@ export function createServerClient(
     },
     global: {
       headers: authHeader ? { Authorization: authHeader } : {},
+    },
+  });
+}
+
+/**
+ * Creates a Supabase admin client with service role key
+ * Used for backend operations that bypass RLS (e.g. rate limiting)
+ */
+export function createAdminClient(runtimeEnv?: Record<string, unknown>): SupabaseClient<Database> {
+  const supabaseUrl = getSupabaseUrl(runtimeEnv);
+  const serviceRoleKey = getSupabaseServiceRoleKey(runtimeEnv);
+
+  return createSupabaseClient<Database>(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   });
 }
