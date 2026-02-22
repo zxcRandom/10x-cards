@@ -1,88 +1,186 @@
-import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
-import { OpenRouterService } from "../openrouter/openrouter.service";
-import type { ChatRequestDTO, ChatResponseDTO } from "../openrouter/openrouter.service";
-import type { OpenRouterConfig } from "../openrouter/openrouter.config";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock OpenRouterConfig to avoid crash on module import
-vi.mock("../openrouter/openrouter.config", () => {
-  return {
-    createOpenRouterConfig: vi.fn().mockReturnValue({
-      apiKey: "test-key",
-      baseUrl: "test-url",
-      retry: { attempts: 1, backoffMs: 0, maxDelayMs: 0 },
-      headers: {},
-    }),
-  };
-});
+// Mock configuration BEFORE importing the service to prevent top-level execution errors
+vi.mock("../openrouter/openrouter.config", () => ({
+  createOpenRouterConfig: vi.fn().mockReturnValue({
+    apiKey: "test-key",
+    baseUrl: "https://test.url",
+    referrer: "test-referrer",
+    title: "test-title",
+    defaultModel: "test-model",
+    timeoutMs: 1000,
+    retry: { attempts: 1, backoffMs: 100, maxDelayMs: 1000 },
+    headers: {},
+  }),
+}));
 
-// Mock OpenRouterService
-vi.mock("../openrouter/openrouter.service", () => {
-  return {
-    OpenRouterService: class {
-      generateChat = vi.fn();
-    },
-    OpenRouterError: class extends Error {},
-  };
-});
-
-// Import AIService AFTER mocking
-import { AIService } from "../ai.service";
+import { AIService, AIParsingError, AIRateLimitError, AIUnavailableError } from "../ai.service";
+import type { OpenRouterService, Logger, ChatResponseDTO, ChatRequestDTO } from "../openrouter/openrouter.service";
+import { ThrottledError, ServiceUnavailableError, NetworkError } from "../openrouter/openrouter.service";
 
 describe("AIService", () => {
   let aiService: AIService;
-  let mockOpenRouter: Mocked<OpenRouterService>;
+  let mockOpenRouter: OpenRouterService;
+  let mockLogger: Logger;
 
   beforeEach(() => {
-    // Reset mocks
-    vi.clearAllMocks();
+    mockOpenRouter = {
+      generateChat: vi.fn(),
+      defaults: {},
+    } as unknown as OpenRouterService;
 
-    // Create a mock instance of OpenRouterService
-    // Since we mocked the class, we can instantiate it
-    mockOpenRouter = new OpenRouterService({
-      apiKey: "test-key",
-    } as unknown as OpenRouterConfig) as unknown as Mocked<OpenRouterService>;
+    mockLogger = {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+    };
 
-    // Setup the generateChat mock to return a valid response so we don't crash on parsing
-    mockOpenRouter.generateChat = vi.fn().mockResolvedValue({
-      id: "test-id",
-      model: "test-model",
-      created: 1234567890,
-      message: {
-        role: "assistant",
-        content: JSON.stringify({
-          cards: [
-            {
-              question: "Test Question",
-              answer: "Test Answer",
-            },
-          ],
-        }),
-      },
-    } as ChatResponseDTO);
-
-    // Initialize AIService with the mock
     aiService = new AIService({
       openRouter: mockOpenRouter,
-      logger: {
-        debug: vi.fn(),
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-      },
+      logger: mockLogger,
     });
   });
 
-  it("should preserve mathematical symbols in input", async () => {
-    const input = "Calculate x < y and a > b";
+  describe("generateFlashcardsFromText", () => {
+    it("should generate flashcards successfully (Happy Path)", async () => {
+      const mockResponse: Partial<ChatResponseDTO> = {
+        message: {
+          role: "assistant",
+          content: JSON.stringify({
+            cards: [
+              { question: "Q1", answer: "A1" },
+              { question: "Q2", answer: "A2", hint: "H2" },
+            ],
+          }),
+        },
+      };
 
-    await aiService.generateFlashcardsFromText(input);
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
 
-    const callArgs = mockOpenRouter.generateChat.mock.calls[0][0] as ChatRequestDTO;
-    const userMessage = callArgs.messages.find((m) => m.role === "user");
+      const cards = await aiService.generateFlashcardsFromText("some text");
 
-    // New behavior: < and > should be preserved
-    expect(userMessage?.content).toContain("Calculate x < y and a > b");
-    expect(userMessage?.content).toContain("x < y");
-    expect(userMessage?.content).toContain("a > b");
+      expect(cards).toHaveLength(2);
+      expect(cards[0]).toEqual({ question: "Q1", answer: "A1" });
+      expect(cards[1]).toEqual({ question: "Q2", answer: "A2", hint: "H2" });
+      expect(mockOpenRouter.generateChat).toHaveBeenCalledTimes(1);
+    });
+
+    it("should preserve mathematical symbols and angle brackets in input", async () => {
+      const mockResponse: Partial<ChatResponseDTO> = {
+        message: {
+          role: "assistant",
+          content: JSON.stringify({
+            cards: [{ question: "Q1", answer: "A1" }],
+          }),
+        },
+      };
+
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
+
+      const input = "Calculate x < y and a > b with <html> tags";
+      await aiService.generateFlashcardsFromText(input);
+
+      expect(mockOpenRouter.generateChat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          messages: expect.arrayContaining([
+            expect.objectContaining({
+              role: "user",
+              content: expect.stringContaining("Calculate x < y and a > b with <html> tags"),
+            }),
+          ]),
+        })
+      );
+    });
+
+    it("should respect requested max cards", async () => {
+      const mockResponse: Partial<ChatResponseDTO> = {
+        message: {
+          role: "assistant",
+          content: JSON.stringify({
+            cards: [{ question: "Q1", answer: "A1" }],
+          }),
+        },
+      };
+
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
+
+      await aiService.generateFlashcardsFromText("text", 5);
+
+      expect(mockOpenRouter.generateChat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            maxCards: 5,
+          }),
+        })
+      );
+    });
+
+    it("should clamp max cards to limits", async () => {
+      const mockResponse: Partial<ChatResponseDTO> = {
+        message: {
+          role: "assistant",
+          content: JSON.stringify({
+            cards: [{ question: "Q1", answer: "A1" }],
+          }),
+        },
+      };
+
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue(mockResponse as ChatResponseDTO);
+
+      // Too high (limit is 50)
+      await aiService.generateFlashcardsFromText("text", 100);
+      expect(mockOpenRouter.generateChat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            maxCards: 50,
+          }),
+        })
+      );
+
+      // Too low (limit is 1)
+      await aiService.generateFlashcardsFromText("text", 0);
+      expect(mockOpenRouter.generateChat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({
+            maxCards: 1,
+          }),
+        })
+      );
+    });
+
+    it("should throw AIParsingError when AI returns invalid JSON", async () => {
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue({
+        message: { role: "assistant", content: "Not JSON" },
+      } as ChatResponseDTO);
+
+      await expect(aiService.generateFlashcardsFromText("text")).rejects.toThrow(AIParsingError);
+    });
+
+    it("should throw AIParsingError when AI returns invalid schema", async () => {
+      vi.mocked(mockOpenRouter.generateChat).mockResolvedValue({
+        message: { role: "assistant", content: JSON.stringify({ wrong: "format" }) },
+      } as ChatResponseDTO);
+
+      await expect(aiService.generateFlashcardsFromText("text")).rejects.toThrow(AIParsingError);
+    });
+
+    it("should throw AIRateLimitError when OpenRouter throws ThrottledError", async () => {
+      vi.mocked(mockOpenRouter.generateChat).mockRejectedValue(new ThrottledError("Rate limit", 1000));
+
+      await expect(aiService.generateFlashcardsFromText("text")).rejects.toThrow(AIRateLimitError);
+    });
+
+    it("should throw AIUnavailableError when OpenRouter throws ServiceUnavailableError", async () => {
+      vi.mocked(mockOpenRouter.generateChat).mockRejectedValue(new ServiceUnavailableError("Down"));
+
+      await expect(aiService.generateFlashcardsFromText("text")).rejects.toThrow(AIUnavailableError);
+    });
+
+    it("should throw AIUnavailableError when OpenRouter throws NetworkError", async () => {
+      vi.mocked(mockOpenRouter.generateChat).mockRejectedValue(new NetworkError("Network issue"));
+
+      await expect(aiService.generateFlashcardsFromText("text")).rejects.toThrow(AIUnavailableError);
+    });
   });
 });
