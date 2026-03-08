@@ -15,7 +15,7 @@ vi.mock("../openrouter/openrouter.config", () => ({
 }));
 
 import { AIService, AIParsingError, AIRateLimitError, AIUnavailableError } from "../ai.service";
-import type { OpenRouterService, Logger, ChatResponseDTO, ChatRequestDTO } from "../openrouter/openrouter.service";
+import type { OpenRouterService, Logger, ChatResponseDTO } from "../openrouter/openrouter.service";
 import { ThrottledError, ServiceUnavailableError, NetworkError } from "../openrouter/openrouter.service";
 
 describe("AIService", () => {

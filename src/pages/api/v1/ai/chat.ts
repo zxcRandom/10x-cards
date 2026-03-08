@@ -159,7 +159,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     ...(locals.runtime?.env as Record<string, string>),
     ...(import.meta.env as Record<string, string>),
   };
-  
+
   const openRouterService = new OpenRouterService(createOpenRouterConfig(envVars), undefined, logger, rateLimiterHooks);
   const aiService = new AIService({ openRouter: openRouterService, logger });
 

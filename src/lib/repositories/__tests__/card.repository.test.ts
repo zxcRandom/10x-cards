@@ -22,7 +22,7 @@ describe("CardRepository", () => {
     builder.order = vi.fn().mockReturnThis();
     builder.range = vi.fn().mockReturnThis();
     builder.single = vi.fn().mockImplementation(() => {
-        return Promise.resolve(mockResult);
+      return Promise.resolve(mockResult);
     });
 
     // The `then` method simulates the await for non-single calls
